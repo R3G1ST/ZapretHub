@@ -1,0 +1,254 @@
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
+using ZapretHub.Services;
+using Color = System.Windows.Media.Color;
+using ColorConverter = System.Windows.Media.ColorConverter;
+
+namespace ZapretHub.Views;
+
+public partial class UpdateWindow : Window
+{
+    private string _downloadUrl = "";
+    private const double BarWidth = 364;
+
+    public UpdateWindow()
+    {
+        InitializeComponent();
+        ShowWarningState();
+    }
+
+    private void ShowWarningState()
+    {
+        StopIndeterminateAnimation();
+        SetProgressBar(0, "#3b82f6");
+        SetStatusIcon("WarningIcon", "#eab308", true);
+        StatusText.Foreground = Brush("#888888");
+        StatusText.Text = "Перед проверкой убедитесь что:\n\n• VPN отключён\n• Zapret / tg-ws-proxy остановлены";
+        PrimaryBtn.Content = "Проверить обновления";
+        PrimaryBtn.Background = Brush("#3b82f6");
+        PrimaryBtn.Visibility = Visibility.Visible;
+        SecondaryBtn.Content = "Закрыть";
+    }
+
+    private void ShowCheckingState()
+    {
+        PrimaryBtn.Visibility = Visibility.Collapsed;
+        StatusIcon.Visibility = Visibility.Collapsed;
+        StatusText.Foreground = Brush("#888888");
+        SetProgressBar(0, "#3b82f6");
+        StartIndeterminateAnimation();
+    }
+
+    private void ShowErrorState()
+    {
+        StopIndeterminateAnimation();
+        SetStatusIcon("CloseIcon", "#ef4444", false);
+        StatusText.Text = "Не удалось подключиться к GitHub.\n\nПожалуйста, выключите VPN и Zapret, затем попробуйте снова.";
+        StatusText.Foreground = Brush("#ef4444");
+        SetProgressBar(BarWidth, "#ef4444");
+        PrimaryBtn.Content = "Попробовать снова";
+        PrimaryBtn.Background = Brush("#ef4444");
+        PrimaryBtn.Visibility = Visibility.Visible;
+        SecondaryBtn.Content = "Закрыть";
+    }
+
+    private void ShowUpToDateState()
+    {
+        StopIndeterminateAnimation();
+        SetStatusIcon("CheckmarkIcon", "#22c55e", true);
+        StatusText.Text = "У вас установлена последняя версия";
+        StatusText.Foreground = Brush("#22c55e");
+        SetProgressBar(BarWidth, "#22c55e");
+        PrimaryBtn.Visibility = Visibility.Collapsed;
+        SecondaryBtn.Content = "Закрыть";
+    }
+
+    public void InitWithUpdate(string newVersion, string downloadUrl)
+    {
+        ShowUpdateAvailableState(newVersion, downloadUrl);
+    }
+
+    private void ShowUpdateAvailableState(string newVersion, string downloadUrl)
+    {
+        StopIndeterminateAnimation();
+        _downloadUrl = downloadUrl;
+        SetStatusIcon("RocketIcon", "#3b82f6", false);
+        StatusText.Text = $"Доступна новая версия, {newVersion}";
+        StatusText.Foreground = Brush("#f0f0f0");
+        SetProgressBar(BarWidth, "#3b82f6");
+        PrimaryBtn.Content = "Установить";
+        PrimaryBtn.Background = Brush("#3b82f6");
+        PrimaryBtn.Visibility = Visibility.Visible;
+        SecondaryBtn.Content = "Закрыть";
+    }
+
+    private async Task CheckWithRetriesAsync()
+    {
+        const int maxAttempts = 3;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            StatusText.Text = $"Подключение к GitHub... (попытка {attempt}/{maxAttempts})";
+
+            var (hasUpdate, newVersion, downloadUrl, error) = await UpdateService.CheckAsync();
+
+            if (!string.IsNullOrEmpty(error))
+            {
+                StatusText.Text = $"⚠ {error}";
+                if (attempt < maxAttempts)
+                {
+                    await Task.Delay(1500);
+                    continue;
+                }
+                else
+                {
+                    ShowErrorState();
+                    return;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(newVersion))
+            {
+                if (hasUpdate)
+                    ShowUpdateAvailableState(newVersion, downloadUrl);
+                else
+                    ShowUpToDateState();
+                return;
+            }
+
+            if (attempt < maxAttempts)
+                await Task.Delay(1500);
+        }
+
+        ShowErrorState();
+    }
+
+    private async void PrimaryBtn_Click(object sender, RoutedEventArgs e)
+    {
+        string content = PrimaryBtn.Content.ToString() ?? "";
+
+        if (content == "Проверить обновления" || content == "Попробовать снова")
+        {
+            ShowCheckingState();
+            await CheckWithRetriesAsync();
+            return;
+        }
+
+        if (content == "Установить" || content == "Обновить")
+        {
+            PrimaryBtn.IsEnabled = false;
+            SecondaryBtn.Content = "Отмена";
+            SecondaryBtn.Width = 100;
+            this.Height = 260;
+            StartIndeterminateAnimation();
+            StatusText.Text = "Скачивание обновления...";
+            StatusText.Foreground = Brush("#888888");
+
+            try
+            {
+                await UpdateService.DownloadAndInstallAsync(_downloadUrl,
+                    progress => Dispatcher.Invoke(() =>
+                    {
+                        StopIndeterminateAnimation();
+                        StatusText.Text = $"Скачивание... {progress}%";
+                        SetProgressBar(BarWidth * progress / 100, "#3b82f6");
+                    }));
+            }
+            catch
+            {
+                StopIndeterminateAnimation();
+                SetStatusIcon("CloseIcon", "#ef4444", false);
+                StatusText.Text = "Ошибка при скачивании. Попробуйте ещё раз.";
+                StatusText.Foreground = Brush("#ef4444");
+                SetProgressBar(BarWidth, "#ef4444");
+                PrimaryBtn.IsEnabled = true;
+                SecondaryBtn.Content = "Закрыть";
+            }
+        }
+    }
+
+    private void SecondaryBtn_Click(object sender, RoutedEventArgs e)
+    {
+        string secContent = SecondaryBtn.Content?.ToString() ?? "";
+        string primContent = PrimaryBtn.Content?.ToString() ?? "";
+
+        if (secContent == "Закрыть" && primContent == "Установить" && PrimaryBtn.Visibility == Visibility.Visible)
+        {
+            SetStatusIcon("WarningIcon", "#eab308", true);
+            StatusText.Text = "Ты точно не хочешь обновить приложение?\n\nВ обновлении куча нового! То, что могло не работать раньше, теперь может работать стабильнее, а также добавлены полезные фишки и улучшения.";
+            StatusText.Foreground = Brush("#eab308");
+
+            PrimaryBtn.Content = "Обновить";
+            PrimaryBtn.Background = Brush("#22c55e");
+
+            SecondaryBtn.Content = "Закрыть!";
+            SecondaryBtn.Width = 100;
+
+            this.Height = 290;
+        }
+        else
+        {
+            Close();
+        }
+    }
+
+    private void StartIndeterminateAnimation()
+    {
+        IndeterminateBar.Visibility = Visibility.Visible;
+        var animation = new DoubleAnimation
+        {
+            From = -80, To = BarWidth,
+            Duration = TimeSpan.FromSeconds(1.3),
+            RepeatBehavior = RepeatBehavior.Forever,
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+        };
+        BarTranslate.BeginAnimation(TranslateTransform.XProperty, animation);
+    }
+
+    private void StopIndeterminateAnimation()
+    {
+        BarTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+        IndeterminateBar.Visibility = Visibility.Collapsed;
+    }
+
+    private void SetProgressBar(double width, string hex)
+    {
+        ProgressFill.Width = width;
+        ProgressFill.Background = Brush(hex);
+        ((DropShadowEffect)ProgressFill.Effect).Color = ToColor(hex);
+    }
+
+    private static SolidColorBrush Brush(string hex) =>
+        new SolidColorBrush((Color)new ColorConverter().ConvertFrom(hex)!);
+
+    private static Color ToColor(string hex) =>
+        (Color)new ColorConverter().ConvertFrom(hex)!;
+
+    private void SetStatusIcon(string iconKey, string colorHex, bool useFill)
+    {
+        var geometry = TryFindResource(iconKey) as PathGeometry;
+        if (geometry != null)
+        {
+            StatusIcon.Data = geometry;
+            StatusIcon.Visibility = Visibility.Visible;
+
+            if (useFill)
+            {
+                StatusIcon.Fill = Brush(colorHex);
+                StatusIcon.Stroke = null;
+            }
+            else
+            {
+                StatusIcon.Stroke = Brush(colorHex);
+                StatusIcon.StrokeThickness = 2;
+                StatusIcon.Fill = null;
+            }
+        }
+        else
+        {
+            StatusIcon.Visibility = Visibility.Collapsed;
+        }
+    }
+}

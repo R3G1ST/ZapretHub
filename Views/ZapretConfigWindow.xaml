@@ -1,0 +1,318 @@
+<Window x:Class="ZapretHub.Views.ZapretConfigWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Настройка конфига Zapret"
+        Height="580" Width="600"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize">
+    <Window.Resources>
+        <PathGeometry x:Key="SettingsIcon">M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z</PathGeometry>
+        <PathGeometry x:Key="CheckmarkIcon">M2,12 L8,18 L22,4</PathGeometry>
+        <PathGeometry x:Key="WarningIcon">M12,2 L22,20 L2,20 Z M12,9 L12,13 M12,15 L12,17</PathGeometry>
+        <PathGeometry x:Key="CloseIcon">M6,6 L18,18 M18,6 L6,18</PathGeometry>
+        <Style x:Key="FlatBtn" TargetType="Button">
+            <Setter Property="Background"   Value="Transparent"/>
+            <Setter Property="BorderBrush"  Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground"   Value="#888888"/>
+            <Setter Property="FontFamily"   Value="Segoe UI"/>
+            <Setter Property="FontSize"     Value="13"/>
+            <Setter Property="Cursor"       Value="Hand"/>
+            <Setter Property="Padding"      Value="12,6"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="AccentBtn" TargetType="Button">
+            <Setter Property="Background"   Value="#3b82f6"/>
+            <Setter Property="Foreground"   Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontFamily"   Value="Segoe UI"/>
+            <Setter Property="FontSize"     Value="13"/>
+            <Setter Property="Cursor"       Value="Hand"/>
+            <Setter Property="Padding"      Value="20,8"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#3b82f6" BlurRadius="12" ShadowDepth="0" Opacity="0.4"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#2563eb"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="FlatBtnCentered" TargetType="Button" BasedOn="{StaticResource FlatBtn}">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="Transparent"
+                                CornerRadius="8"
+                                Width="{TemplateBinding Width}"
+                                Height="{TemplateBinding Height}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#2e2e2e"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CloseBtn" TargetType="Button" BasedOn="{StaticResource FlatBtn}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#ef4444"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#b91c1c"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="OutlineBtn" TargetType="Button" BasedOn="{StaticResource FlatBtn}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="Transparent"
+                                BorderBrush="#333333" BorderThickness="1"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#252525"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ScrollBar">
+            <Setter Property="MinWidth" Value="0"/>
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="{TemplateBinding Background}">
+                            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="#3a3a3a" CornerRadius="4" Width="4" HorizontalAlignment="Right" Margin="0,4,12,4"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageDownCommand" Opacity="0" Focusable="False"/>
+                                </Track.IncreaseRepeatButton>
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageUpCommand" Opacity="0" Focusable="False"/>
+                                </Track.DecreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Border Background="#161618" CornerRadius="14" BorderBrush="#2a2a2d" BorderThickness="1" ClipToBounds="True">
+        <Grid x:Name="RootGrid" Margin="1,1,-1,-1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" MinHeight="71"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+                <RowDefinition Height="Auto" MinHeight="77"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0" Margin="28,14,28,10">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="32" Height="32" CornerRadius="8" Background="#1e1e22" Margin="0,0,12,0">
+                        <Path Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                  Data="{StaticResource SettingsIcon}" Fill="#3b82f6"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Zapret" FontSize="11" Foreground="#555558" FontWeight="Medium"/>
+                        <TextBlock Text="Настройка конфига" FontSize="15" FontWeight="SemiBold" Foreground="#f0f0f0"/>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Style="{StaticResource FlatBtnCentered}"
+                            Width="34" Height="18.62" MinWidth="34" MinHeight="18.62" Padding="0,0,0,1" FontSize="14"
+                            Click="HideButton_Click">
+                        <TextBlock Text="−" Margin="0,-1,0,0"/>
+                    </Button>
+                    <Button Style="{StaticResource CloseBtn}"
+                            Width="34" Height="18.62" Padding="0" Margin="-6,0,0,0"
+                            Click="CloseButton_Click">
+                        <Path Data="{StaticResource CloseIcon}" 
+                              Stroke="#888888"
+                              StrokeThickness="2"
+                              Width="12" Height="12"
+                              Stretch="Uniform"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+            <Border Grid.Row="0" Height="1" Background="#22222a" Margin="28,70,28,0" VerticalAlignment="Top"/>
+            <StackPanel x:Name="StatusPanel" Grid.Row="1" Orientation="Horizontal" Margin="28,10,28,10">
+                <Border Width="36" Height="36" CornerRadius="10" Background="#1e1e22" Margin="0,0,14,0" VerticalAlignment="Top">
+                    <Path x:Name="StatusIcon" Width="16" Height="16" Stretch="Uniform"
+                              VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed"/>
+                </Border>
+                <TextBlock x:Name="StatusText"
+                               Text="Запуск тестирования..."
+                               Foreground="#f0f0f0" FontSize="13" LineHeight="20"
+                               TextWrapping="Wrap"
+                               MaxWidth="460"/>
+            </StackPanel>
+            <Grid Grid.Row="1" Margin="28,16,28,0" x:Name="ProgressBarContainer">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Margin="0,0,0,6">
+                    <TextBlock x:Name="ProgressText" Text="" Foreground="#888888" FontSize="11" HorizontalAlignment="Left" Visibility="Collapsed"/>
+                    <TextBlock x:Name="TimeRemainingText" Text="" Foreground="#555558" FontSize="11" HorizontalAlignment="Right" Visibility="Collapsed"/>
+                </Grid>
+                <Border Grid.Row="1" Height="4" CornerRadius="2" Background="#22222a" ClipToBounds="True">
+                    <Border x:Name="ProgressBar" Height="4" CornerRadius="2" HorizontalAlignment="Left" Width="0">
+                        <Border.Background>
+                            <SolidColorBrush Color="#3b82f6"/>
+                        </Border.Background>
+                        <Border.Effect>
+                            <DropShadowEffect Color="#3b82f6" BlurRadius="6" ShadowDepth="0" Opacity="0.7"/>
+                        </Border.Effect>
+                    </Border>
+                </Border>
+            </Grid>
+            <Border Grid.Row="2" Background="#111113" CornerRadius="10"
+                    BorderBrush="#22222a" BorderThickness="1"
+                    x:Name="LogContainer" Visibility="Collapsed"
+                    Margin="28,16,28,0"
+                    VerticalAlignment="Stretch" Height="Auto">
+                <ScrollViewer x:Name="LogScrollViewer" VerticalScrollBarVisibility="Auto">
+                    <RichTextBox x:Name="LogTextBox"
+                                 Background="Transparent"
+                                 Foreground="#888888"
+                                 FontFamily="Consolas"
+                                 FontSize="11"
+                                 IsReadOnly="True"
+                                 BorderThickness="0"
+                                 Padding="14"
+                                 VerticalScrollBarVisibility="Disabled"
+                                 IsDocumentEnabled="True"/>
+                </ScrollViewer>
+            </Border>
+            <ScrollViewer x:Name="ConfigListScroll" Grid.Row="2"
+                          VerticalScrollBarVisibility="Auto"
+                          Visibility="Collapsed"
+                          Margin="28,16,28,0"
+                          VerticalAlignment="Stretch" Height="Auto">
+                <StackPanel x:Name="ConfigListPanel"/>
+            </ScrollViewer>
+            <Border Grid.Row="3" Background="#111113" CornerRadius="0,0,14,14"
+                        BorderBrush="#22222a" BorderThickness="0,1,0,0"
+                        Margin="0,16,0,0" Padding="28,12,28,12">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Zapret Config Manager" 
+                                       Foreground="#333336" FontSize="11" VerticalAlignment="Center"/>
+                        <Button x:Name="SecondaryBtn" Grid.Column="1" Content="Применить"
+                                    MinWidth="140" MinHeight="38" Padding="16,8" Margin="0,0,10,0"
+                                    Style="{StaticResource AccentBtn}"
+                                    Click="SecondaryBtn_Click"/>
+                        <Button x:Name="PrimaryBtn" Grid.Column="2" Content="Проверить конфиг"
+                                    MinWidth="140" MinHeight="38" Padding="16,8"
+                                    Background="Transparent" Foreground="#666669"
+                                    BorderBrush="#2a2a2d" BorderThickness="1"
+                                    Cursor="Hand" Click="PrimaryBtn_Click"
+                                    Visibility="Collapsed">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}"
+                                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                                            CornerRadius="8">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                    TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#3a3a3d"/>
+                                            <Setter Property="BorderBrush" Value="#5a5a5d"/>
+                                            <Setter Property="Foreground" Value="#aaaaaa"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </Grid>
+                    <ProgressBar x:Name="ApplyConfigProgress"
+                                 Height="3"
+                                 Margin="0,8,0,0"
+                                 IsIndeterminate="True"
+                                 Visibility="Collapsed"
+                                 Foreground="#3b82f6"
+                                 Background="#1a1a1c"
+                                 BorderThickness="0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

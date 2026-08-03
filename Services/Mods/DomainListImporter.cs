@@ -1,0 +1,78 @@
+using System.Net.Http;
+using ZapretHub.Models;
+
+namespace ZapretHub.Services.Mods;
+
+public static class DomainListImporter
+{
+    private static readonly HttpClient _http = new()
+    {
+        Timeout = TimeSpan.FromSeconds(15),
+    };
+
+    public static async Task<(string? Content, string? Error)> DownloadFromUrlAsync(string url)
+    {
+        try
+        {
+            var response = await _http.GetStringAsync(url);
+
+            if (string.IsNullOrWhiteSpace(response))
+                return (null, "Список доменов пуст");
+
+            var lines = response.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+            var domains = new List<string>();
+
+            foreach (var line in lines)
+            {
+                var trimmed = line.Trim();
+                if (trimmed.Length > 0 && !trimmed.StartsWith('#') && !trimmed.StartsWith("//"))
+                    domains.Add(trimmed);
+            }
+
+            if (domains.Count == 0)
+                return (null, "Не найдено доменов в списке");
+
+            return (string.Join("\n", domains), null);
+        }
+        catch (TaskCanceledException)
+        {
+            return (null, "Таймаут загрузки. Проверьте URL и подключение к интернету.");
+        }
+        catch (Exception ex)
+        {
+            return (null, $"Ошибка загрузки: {ex.Message}");
+        }
+    }
+
+    public static string ParseText(string text)
+    {
+        var lines = text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        var domains = new List<string>();
+
+        foreach (var line in lines)
+        {
+            var trimmed = line.Trim();
+            if (trimmed.Length > 0 && !trimmed.StartsWith('#') && !trimmed.StartsWith("//"))
+                domains.Add(trimmed);
+        }
+
+        return string.Join("\n", domains);
+    }
+
+    public static string NameFromUrl(string url)
+    {
+        try
+        {
+            var uri = new Uri(url);
+            var host = uri.Host;
+            var parts = host.Split('.');
+            if (parts.Length >= 2)
+                return parts[^2];
+            return host;
+        }
+        catch
+        {
+            return "imported-list";
+        }
+    }
+}

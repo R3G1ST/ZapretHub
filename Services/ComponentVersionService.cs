@@ -1,0 +1,207 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
+using ZapretHub.Models;
+
+namespace ZapretHub.Services;
+
+public static class ComponentVersionService
+{
+    private const string ZapretRepo = "Flowseal/zapret-discord-youtube";
+    private const string TgWsProxyRepo = "Flowseal/tg-ws-proxy";
+
+    public static async Task<(bool needsUpdate, string reason)> CheckIfUpdateNeededAsync(AppSettings settings)
+    {
+        try
+        {
+            bool zapretCheck = settings.EnableZapret && !string.IsNullOrEmpty(settings.ZapretPath) && File.Exists(settings.ZapretPath);
+            bool tgWsProxyCheck = settings.EnableTgWsProxy && !string.IsNullOrEmpty(settings.TgWsProxyPath) && File.Exists(settings.TgWsProxyPath);
+
+            if (!zapretCheck && !tgWsProxyCheck)
+            {
+                return (true, "Компоненты не установлены");
+            }
+
+            bool zapretNeedsUpdate = false;
+            bool tgWsProxyNeedsUpdate = false;
+
+            if (zapretCheck)
+            {
+                var zapretVersion = GetInstalledZapretVersion(settings.ZapretPath);
+                var latestZapretVersion = await GetLatestGitHubVersionAsync(ZapretRepo);
+
+                if (!string.IsNullOrEmpty(latestZapretVersion) &&
+                    !string.IsNullOrEmpty(zapretVersion) &&
+                    IsNewerVersion(latestZapretVersion, zapretVersion))
+                {
+                    zapretNeedsUpdate = true;
+                }
+            }
+
+            if (tgWsProxyCheck)
+            {
+                var tgWsProxyVersion = GetInstalledTgWsProxyVersion(settings.TgWsProxyPath);
+                var latestTgWsProxyVersion = await GetLatestGitHubVersionAsync(TgWsProxyRepo);
+
+                if (!string.IsNullOrEmpty(latestTgWsProxyVersion) &&
+                    !string.IsNullOrEmpty(tgWsProxyVersion) &&
+                    IsNewerVersion(latestTgWsProxyVersion, tgWsProxyVersion))
+                {
+                    tgWsProxyNeedsUpdate = true;
+                }
+            }
+
+            if (zapretNeedsUpdate || tgWsProxyNeedsUpdate)
+            {
+                string components = "";
+                if (zapretNeedsUpdate && tgWsProxyNeedsUpdate)
+                    components = "Zapret и TgWsProxy";
+                else if (zapretNeedsUpdate)
+                    components = "Zapret";
+                else
+                    components = "TgWsProxy";
+
+                return (true, $"Доступно обновление для {components}");
+            }
+
+            return (false, "Все компоненты актуальны");
+        }
+        catch (Exception ex)
+        {
+            return (false, "Не удалось проверить версии");
+        }
+    }
+
+    public static string? GetInstalledZapretVersion(string serviceBatPath)
+    {
+        try
+        {
+            var zapretDir = Path.GetDirectoryName(serviceBatPath);
+            if (string.IsNullOrEmpty(zapretDir))
+                return null;
+
+            var versionFile = Path.Combine(zapretDir, "version.txt");
+            if (File.Exists(versionFile))
+            {
+                return File.ReadAllText(versionFile).Trim();
+            }
+
+            var readmeFiles = Directory.GetFiles(zapretDir, "README*", SearchOption.TopDirectoryOnly);
+            if (readmeFiles.Length > 0)
+            {
+                var content = File.ReadAllText(readmeFiles[0]);
+                var versionMatch = System.Text.RegularExpressions.Regex.Match(content, @"version[:\s]+([0-9.]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                if (versionMatch.Success)
+                {
+                    return versionMatch.Groups[1].Value;
+                }
+            }
+
+            var fileInfo = new FileInfo(serviceBatPath);
+            return fileInfo.LastWriteTime.ToString("yyyy.MM.dd");
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public static string? GetInstalledTgWsProxyVersion(string exePath)
+    {
+        try
+        {
+            var fileInfo = new FileInfo(exePath);
+
+            var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(exePath);
+            if (!string.IsNullOrEmpty(versionInfo.FileVersion))
+            {
+                return versionInfo.FileVersion;
+            }
+
+            return fileInfo.LastWriteTime.ToString("yyyy.MM.dd");
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static async Task<string?> GetLatestGitHubVersionAsync(string repo)
+    {
+        try
+        {
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("ZapretHub/1.0");
+
+            var json = await http.GetStringAsync($"https://api.github.com/repos/{repo}/releases/latest");
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            var version = root.GetProperty("tag_name").GetString() ?? "";
+            return version.TrimStart('v');
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public static bool IsNewerVersion(string version1, string version2)
+    {
+        try
+        {
+            version1 = version1.TrimStart('v').Trim();
+            version2 = version2.TrimStart('v').Trim();
+
+            var (numPart1, suffix1) = SplitVersionAndSuffix(version1);
+            var (numPart2, suffix2) = SplitVersionAndSuffix(version2);
+
+            if (Version.TryParse(numPart1, out var v1) && Version.TryParse(numPart2, out var v2))
+            {
+                int comparison = v1.CompareTo(v2);
+
+                if (comparison != 0)
+                    return comparison > 0;
+
+                if (string.IsNullOrEmpty(suffix1) && !string.IsNullOrEmpty(suffix2))
+                    return true;
+                if (!string.IsNullOrEmpty(suffix1) && string.IsNullOrEmpty(suffix2))
+                    return false;
+
+                return string.Compare(suffix1, suffix2, StringComparison.OrdinalIgnoreCase) > 0;
+            }
+
+            return string.Compare(version1, version2, StringComparison.OrdinalIgnoreCase) > 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static (string numericPart, string suffix) SplitVersionAndSuffix(string version)
+    {
+        int firstLetterIndex = -1;
+        for (int i = 0; i < version.Length; i++)
+        {
+            if (char.IsLetter(version[i]))
+            {
+                firstLetterIndex = i;
+                break;
+            }
+        }
+
+        if (firstLetterIndex == -1)
+        {
+            return (version, "");
+        }
+
+        string numericPart = version.Substring(0, firstLetterIndex);
+        string suffix = version.Substring(firstLetterIndex);
+
+        return (numericPart, suffix);
+    }
+}

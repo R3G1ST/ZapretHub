@@ -1,0 +1,753 @@
+using System;
+using System.IO;
+using System.IO.Compression;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
+using System.Linq;
+using ZapretHub.Services.Mods;
+
+namespace ZapretHub.Services;
+
+public static class AutoDownloadService
+{
+    private const string ZapretRepo = "Flowseal/zapret-discord-youtube";
+    private const string TgWsProxyRepo = "Flowseal/tg-ws-proxy";
+    private static readonly string InstallDir = @"C:\Zapret";
+
+    private static readonly string[] ProtectedListFiles =
+    [
+        "ipset-exclude-user.txt",
+        "list-exclude-user.txt",
+        "list-general-user.txt"
+    ];
+
+    public static async Task<bool> AutoInstallAllAsync(
+        Action<string> onLog,
+        Action<double> onProgress,
+        Action<string> onError,
+        bool preserveLists = false,
+        bool forceReserve = false)
+    {
+        try
+        {
+            onLog("=== Запуск автоматической установки ===");
+            onLog("Подготовка папки установки...");
+
+            onLog("Проверяю запущенные процессы...");
+            bool zapretWasRunning = false;
+            bool tgWsProxyWasRunning = false;
+
+            var winwsProcesses = System.Diagnostics.Process.GetProcessesByName("winws");
+            if (winwsProcesses.Length > 0)
+            {
+                zapretWasRunning = true;
+                onLog($"⚠️ Обнаружено {winwsProcesses.Length} процессов winws.exe (Zapret)");
+                onLog("Останавливаю Zapret...");
+
+                foreach (var proc in winwsProcesses)
+                {
+                    try
+                    {
+                        proc.Kill(true);
+                        proc.WaitForExit(3000);
+                        proc.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        onLog($"⚠️ Не удалось остановить процесс winws.exe (PID {proc.Id}): {ex.Message}");
+                    }
+                }
+
+                await Task.Delay(1000);
+                onLog("✅ Zapret остановлен");
+            }
+
+            var tgWsProxyProcesses = System.Diagnostics.Process.GetProcessesByName("TgWsProxy");
+            if (tgWsProxyProcesses.Length > 0)
+            {
+                tgWsProxyWasRunning = true;
+                onLog($"⚠️ Обнаружено {tgWsProxyProcesses.Length} процессов TgWsProxy.exe");
+                onLog("Останавливаю TgWsProxy...");
+
+                foreach (var proc in tgWsProxyProcesses)
+                {
+                    try
+                    {
+                        proc.Kill(true);
+                        proc.WaitForExit(3000);
+                        proc.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        onLog($"⚠️ Не удалось остановить процесс TgWsProxy.exe (PID {proc.Id}): {ex.Message}");
+                    }
+                }
+
+                await Task.Delay(1000);
+                onLog("✅ TgWsProxy остановлен");
+            }
+
+            if (!zapretWasRunning && !tgWsProxyWasRunning)
+            {
+                onLog("✅ Процессы не запущены, продолжаю установку");
+            }
+
+
+            string mainInstallDir = @"C:\Zapret";
+            string tempInstallDir = Path.Combine(Path.GetTempPath(), $"ZapretHub_Zapret_Temp_{Guid.NewGuid()}");
+
+            try
+            {
+                bool hasExistingZapret = false;
+                bool hasExistingTgWsProxy = false;
+
+                if (Directory.Exists(mainInstallDir))
+                {
+                    var existingServiceBat = FindFile(mainInstallDir, "service.bat");
+                    var existingTgWsProxy = FindFile(mainInstallDir, "TgWsProxy.exe");
+
+                    hasExistingZapret = !string.IsNullOrEmpty(existingServiceBat);
+                    hasExistingTgWsProxy = !string.IsNullOrEmpty(existingTgWsProxy);
+
+                    if (hasExistingZapret || hasExistingTgWsProxy)
+                    {
+                        onLog("⚠️ Найдена существующая установка:");
+                        if (hasExistingZapret)
+                            onLog($"   • Zapret (service.bat)");
+                        if (hasExistingTgWsProxy)
+                            onLog($"   • TgWsProxy (TgWsProxy.exe)");
+
+                        onLog("🔄 Обновляю файлы (с заменой существующих)...");
+                    }
+                    else
+                    {
+                        onLog("📌 Обнаружена папка C:\\Zapret, обновляю файлы...");
+                    }
+                }
+                else
+                {
+                    onLog("📂 Создаю папку C:\\Zapret...");
+                }
+
+                onLog("Создаю временную папку для установки...");
+                Directory.CreateDirectory(tempInstallDir);
+
+                ReleaseInfo? zapretInfo = null;
+                string? zapretArchive = null;
+
+                bool useLocalZapret = forceReserve;
+
+                if (!useLocalZapret)
+                {
+                    try
+                    {
+                        onLog("Получаю информацию о последней версии Zapret...");
+                        zapretInfo = await GetLatestReleaseInfoAsync(ZapretRepo);
+                        if (zapretInfo != null)
+                        {
+                            onProgress(0.10);
+                            onLog($"✅ Найдена версия Zapret: {zapretInfo.Version}");
+                            onLog($"Загружаю архив по ссылке: {zapretInfo.DownloadUrl}");
+
+                            zapretArchive = await DownloadFileAsync(
+                                zapretInfo.DownloadUrl,
+                                Path.Combine(Path.GetTempPath(), "zapret_autoinstall.zip"),
+                                p => onProgress(0.10 + p * 0.30));
+
+                            if (zapretArchive == null)
+                            {
+                                onLog("⚠️ Ошибка при скачивании архива Zapret с GitHub.");
+                                useLocalZapret = true;
+                            }
+                        }
+                        else
+                        {
+                            onLog("⚠️ Не удалось получить информацию о последней версии Zapret с GitHub.");
+                            useLocalZapret = true;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        onLog($"⚠️ Ошибка работы с GitHub для Zapret: {ex.Message}");
+                        useLocalZapret = true;
+                    }
+                }
+
+                if (useLocalZapret)
+                {
+                    onLog("ℹ️ Переключаюсь на встроенный архив Zapret...");
+                    var manifest = ReserveComponentProvider.GetManifest();
+                    if (manifest is null)
+                    {
+                        onError("❌ Не удалось загрузить манифест встроенных резервных копий.");
+                        return false;
+                    }
+
+                    zapretInfo = new ReleaseInfo { Version = manifest.Zapret.Version, DownloadUrl = "embedded://zapret" };
+                    onProgress(0.10);
+
+                    onLog("ℹ️ Атрибуция компонентов резервной копии:");
+                    onLog($"   • Zapret: bol-van/Flowseal (лицензия MIT, версия: {manifest.Zapret.Version} от {manifest.Zapret.ReleaseDate})");
+
+                    onLog($"Копирую встроенный архив Zapret (версия: {zapretInfo.Version})...");
+                    string zapretDest = Path.Combine(Path.GetTempPath(), "zapret_autoinstall.zip");
+                    using (var srcStream = ReserveComponentProvider.GetZapretStream())
+                    {
+                        if (srcStream is null)
+                        {
+                            onError("❌ Встроенный ресурс Zapret не найден.");
+                            return false;
+                        }
+                        using (var destStream = new FileStream(zapretDest, FileMode.Create, FileAccess.Write, FileShare.None))
+                        {
+                            await srcStream.CopyToAsync(destStream);
+                        }
+                    }
+
+                    onLog("Проверяю контрольную сумму архива Zapret...");
+                    if (!await ReserveComponentProvider.VerifyFileHashAsync(zapretDest, manifest.Zapret.Sha256))
+                    {
+                        onError("❌ Ошибка проверки целостности резервной копии Zapret (хэш не совпадает).\n\nВозможные причины:\n• Файл резервной копии поврежден в процессе сборки\n• Резервный архив был модифицирован сторонней программой\n\nРекомендуется выполнить ручную установку или перекачать ZapretHub.");
+                        return false;
+                    }
+
+                    zapretArchive = zapretDest;
+                    onProgress(0.40);
+                }
+
+                onLog("✅ Zapret успешно скопирован/скачан");
+                onLog("Распаковываю Zapret в TEMP папку...");
+
+                var zapretPath = await ExtractArchiveAsync(zapretArchive, tempInstallDir);
+                onProgress(0.50);
+
+                var preservedFiles = new List<(string Source, string Backup)>();
+                if (preserveLists)
+                {
+                    string listsDir = Path.Combine(mainInstallDir, "lists");
+                    if (Directory.Exists(listsDir))
+                    {
+                        onLog("📋 Сохраняю пользовательские файлы lists...");
+                        foreach (var fileName in ProtectedListFiles)
+                        {
+                            var src = Path.Combine(listsDir, fileName);
+                            if (File.Exists(src))
+                            {
+                                var backup = Path.Combine(Path.GetTempPath(), $"ZapretHub_Preserve_{Guid.NewGuid()}_{fileName}");
+                                File.Copy(src, backup, true);
+                                preservedFiles.Add((src, backup));
+                                onLog($"  → {fileName} сохранён");
+                            }
+                        }
+                        if (preservedFiles.Count > 0)
+                            onLog($"✅ Сохранено {preservedFiles.Count} файлов");
+                        else
+                            onLog("⚠️ Ни один из защищаемых файлов не найден");
+                    }
+                }
+
+                onLog("Копирую файлы в C:\\Zapret (с заменой существующих)...");
+                MoveDirectoryContents(tempInstallDir, mainInstallDir);
+
+                if (preservedFiles.Count > 0)
+                {
+                    onLog("📋 Восстанавливаю пользовательские файлы...");
+                    foreach (var (source, backup) in preservedFiles)
+                    {
+                        try
+                        {
+                            var dir = Path.GetDirectoryName(source);
+                            if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
+                            File.Copy(backup, source, true);
+                            File.Delete(backup);
+                            onLog($"  → {Path.GetFileName(source)} восстановлен");
+                        }
+                        catch (Exception ex)
+                        {
+                            onLog($"  ⚠️ {Path.GetFileName(source)}: {ex.Message}");
+                        }
+                    }
+                    onLog("✅ Пользовательские файлы восстановлены");
+                }
+
+                if (!preserveLists)
+                {
+                    string listsDir = Path.Combine(mainInstallDir, "lists");
+                    if (Directory.Exists(listsDir))
+                    {
+                        foreach (var fileName in ProtectedListFiles)
+                        {
+                            var filePath = Path.Combine(listsDir, fileName);
+                            try
+                            {
+                                if (File.Exists(filePath))
+                                {
+                                    File.Delete(filePath);
+                                    onLog($"  → {fileName} удалён (будут использованы стандартные)");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                onLog($"  ⚠️ {fileName}: {ex.Message}");
+                            }
+                        }
+                    }
+                }
+
+                onLog("Проверяю результат установки...");
+                if (!IsInstallationSuccessful(mainInstallDir))
+                {
+                    onError($"❌ Установка завершена, но не найдены необходимые файлы в {mainInstallDir}\n\nВозможные причины:\n• Архив поврежден\n• Неправильная структура архива\n• Защита системы от перезаписи важных файлов");
+                    return false;
+                }
+
+                onLog("Ищу файл service.bat...");
+                var serviceBat = FindFile(mainInstallDir, "service.bat");
+
+                onLog($"✅ service.bat найден: {serviceBat}");
+                onProgress(0.60);
+
+                ReleaseInfo? tgWsInfo = null;
+                string? tgWsExe = null;
+
+                bool useLocalTgWs = forceReserve;
+
+                if (!useLocalTgWs)
+                {
+                    try
+                    {
+                        onLog("Получаю информацию о последней версии TgWsProxy...");
+                        tgWsInfo = await GetLatestReleaseInfoAsync(TgWsProxyRepo);
+                        if (tgWsInfo != null)
+                        {
+                            onProgress(0.65);
+                            onLog($"✅ Найдена версия TgWsProxy: {tgWsInfo.Version}");
+                            onLog("Скачиваю TgWsProxy...");
+
+                            tgWsExe = await DownloadFileAsync(
+                                tgWsInfo.DownloadUrl,
+                                Path.Combine(mainInstallDir, "TgWsProxy.exe"),
+                                p => onProgress(0.65 + p * 0.30));
+
+                            if (tgWsExe == null)
+                            {
+                                onLog("⚠️ Не удалось скачать новую версию TgWsProxy с GitHub.");
+                                useLocalTgWs = true;
+                            }
+                            else
+                            {
+                                onLog($"✅ TgWsProxy успешно скачан: {tgWsExe}");
+                                onProgress(0.95);
+                            }
+                        }
+                        else
+                        {
+                            onLog("⚠️ Не удалось получить информацию о TgWsProxy с GitHub.");
+                            useLocalTgWs = true;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        onLog($"⚠️ Ошибка работы с GitHub для TgWsProxy: {ex.Message}");
+                        useLocalTgWs = true;
+                    }
+                }
+
+                if (useLocalTgWs)
+                {
+                    onLog("ℹ️ Переключаюсь на встроенный файл TgWsProxy...");
+                    var manifest = ReserveComponentProvider.GetManifest();
+                    if (manifest is null)
+                    {
+                        onError("❌ Не удалось загрузить манифест встроенных резервных копий.");
+                        return false;
+                    }
+
+                    tgWsInfo = new ReleaseInfo { Version = manifest.TgWsProxy.Version, DownloadUrl = "embedded://tgwsproxy" };
+                    onLog($"   • TgWsProxy: Flowseal (лицензия MIT, версия: {manifest.TgWsProxy.Version} от {manifest.TgWsProxy.ReleaseDate})");
+                    onLog("spacer");
+
+                    onLog($"Копирую встроенный файл TgWsProxy (версия: {tgWsInfo.Version})...");
+                    string tgWsDest = Path.Combine(mainInstallDir, "TgWsProxy.exe");
+
+                    using (var srcStream = ReserveComponentProvider.GetTgWsProxyStream())
+                    {
+                        if (srcStream is null)
+                        {
+                            onError("❌ Встроенный ресурс TgWsProxy не найден.");
+                            return false;
+                        }
+                        using (var destStream = new FileStream(tgWsDest, FileMode.Create, FileAccess.Write, FileShare.None))
+                        {
+                            await srcStream.CopyToAsync(destStream);
+                        }
+                    }
+
+                    onLog("Проверяю контрольную сумму файла TgWsProxy...");
+                    if (!await ReserveComponentProvider.VerifyFileHashAsync(tgWsDest, manifest.TgWsProxy.Sha256))
+                    {
+                        onError("❌ Ошибка проверки целостности резервной копии TgWsProxy (хэш не совпадает).\n\nВозможные причины:\n• Файл резервной копии поврежден в процессе сборки\n• Исполняемый файл был модифицирован сторонней программой\n\nРекомендуется выполнить ручную установку или перекачать ZapretHub.");
+                        return false;
+                    }
+
+                    tgWsExe = tgWsDest;
+                    onProgress(0.95);
+                }
+
+                onLog("Сохраняю настройки в приложении...");
+                var settings = SettingsService.Load();
+                settings.ZapretPath = serviceBat;
+                settings.TgWsProxyPath = tgWsExe;
+                SettingsService.Save(settings);
+
+                try
+                {
+                    if (zapretInfo != null && !string.IsNullOrEmpty(serviceBat))
+                    {
+                        var zapretDir = Path.GetDirectoryName(serviceBat);
+                        if (!string.IsNullOrEmpty(zapretDir))
+                        {
+                            var versionFile = Path.Combine(zapretDir, "version.txt");
+                            File.WriteAllText(versionFile, zapretInfo.Version);
+                            onLog($"✓ Сохранена версия Zapret: {zapretInfo.Version}");
+                        }
+                    }
+
+                    if (tgWsInfo != null && !string.IsNullOrEmpty(tgWsExe))
+                    {
+                        var tgWsDir = Path.GetDirectoryName(tgWsExe);
+                        if (!string.IsNullOrEmpty(tgWsDir))
+                        {
+                            var versionFile = Path.Combine(tgWsDir, "tgwsproxy_version.txt");
+                            File.WriteAllText(versionFile, tgWsInfo.Version);
+                            onLog($"✓ Сохранена версия TgWsProxy: {tgWsInfo.Version}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    onLog($"⚠️ Не удалось сохранить версии: {ex.Message}");
+                }
+
+                onLog("");
+                onLog("Проверяю необходимость перезапуска процессов...");
+
+                if (zapretWasRunning)
+                {
+                    onLog("ℹ️ Zapret был остановлен для обновления");
+                    onLog("Вы можете запустить его через панель сервисов или service.bat");
+                }
+
+                if (tgWsProxyWasRunning && !string.IsNullOrEmpty(tgWsExe))
+                {
+                    onLog("Перезапускаю TgWsProxy...");
+                    try
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(tgWsExe)
+                        {
+                            UseShellExecute = true,
+                            WorkingDirectory = Path.GetDirectoryName(tgWsExe)
+                        });
+                        onLog("✅ TgWsProxy перезапущен");
+                    }
+                    catch (Exception ex)
+                    {
+                        onLog($"⚠️ Не удалось перезапустить TgWsProxy: {ex.Message}");
+                        onLog("Вы можете запустить его вручную через панель сервисов");
+                    }
+                }
+
+                if (!zapretWasRunning && !tgWsProxyWasRunning)
+                {
+                    onLog("ℹ️ Процессы не были запущены, перезапуск не требуется");
+                }
+
+                onProgress(1.0);
+
+                onLog("");
+                onLog("✓ Установка завершена успешно!");
+                onLog("Можно закрыть окно и начать использовать приложение.");
+                return true;
+            }
+            finally
+            {
+                if (Directory.Exists(tempInstallDir))
+                {
+                    try { Directory.Delete(tempInstallDir, true); }
+                    catch { /* Игнорируем ошибки очистки временной папки */ }
+                }
+            }
+        }
+        catch (NotSupportedException ex)
+        {
+            onError($"❌ Ошибка формата архива: {ex.Message}");
+            return false;
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            onError($"❌ Ошибка доступа: {ex.Message}\n\nПопробуйте запустить приложение от имени администратора.");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            onError($"❌ Неизвестная ошибка: {ex.Message}");
+            return false;
+        }
+    }
+
+    private static void CopyDirectory(string source, string destination)
+    {
+        Directory.CreateDirectory(destination);
+        foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+        {
+            var relative = Path.GetRelativePath(source, file);
+            var target = Path.Combine(destination, relative);
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.Copy(file, target, true);
+        }
+    }
+
+    private static void MoveDirectoryContents(string sourceDir, string targetDir)
+    {
+        Directory.CreateDirectory(targetDir);
+
+        foreach (var filePath in Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories))
+        {
+            var relativePath = Path.GetRelativePath(sourceDir, filePath);
+            var targetFilePath = Path.Combine(targetDir, relativePath);
+
+            var targetDirPath = Path.GetDirectoryName(targetFilePath);
+            if (!string.IsNullOrEmpty(targetDirPath))
+            {
+                Directory.CreateDirectory(targetDirPath);
+            }
+
+            try
+            {
+                File.Copy(filePath, targetFilePath, true);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    private static bool IsInstallationSuccessful(string targetDir)
+    {
+        var serviceBat = FindFile(targetDir, "service.bat");
+        var tgwsProxy = FindFile(targetDir, "TgWsProxy.exe");
+
+        return !string.IsNullOrEmpty(serviceBat) || !string.IsNullOrEmpty(tgwsProxy);
+    }
+
+    private static async Task<ReleaseInfo?> GetLatestReleaseInfoAsync(string repo)
+    {
+        try
+        {
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("ZapretHub/1.0");
+
+            var json = await http.GetStringAsync($"https://api.github.com/repos/{repo}/releases/latest");
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            var version = root.GetProperty("tag_name").GetString() ?? "unknown";
+
+            if (root.TryGetProperty("assets", out var assets))
+            {
+                if (repo.Contains("zapret"))
+                {
+                    foreach (var asset in assets.EnumerateArray())
+                    {
+                        var name = asset.GetProperty("name").GetString()?.ToLower() ?? "";
+                        var downloadUrl = asset.GetProperty("browser_download_url").GetString() ?? "";
+
+                        if (name.Contains("zapret-discord-youtube") && name.EndsWith(".zip"))
+                        {
+                            return new ReleaseInfo { Version = version, DownloadUrl = downloadUrl };
+                        }
+                    }
+
+                    foreach (var asset in assets.EnumerateArray())
+                    {
+                        var name = asset.GetProperty("name").GetString()?.ToLower() ?? "";
+                        var downloadUrl = asset.GetProperty("browser_download_url").GetString() ?? "";
+
+                        if (name.Contains("zapret-discord-youtube") && name.EndsWith(".rar"))
+                        {
+                            return new ReleaseInfo { Version = version, DownloadUrl = downloadUrl };
+                        }
+                    }
+                }
+
+                if (repo.Contains("tg-ws-proxy"))
+                {
+                    foreach (var asset in assets.EnumerateArray())
+                    {
+                        var name = asset.GetProperty("name").GetString()?.ToLower() ?? "";
+                        var downloadUrl = asset.GetProperty("browser_download_url").GetString() ?? "";
+
+                        if (name.Contains("tgwsproxy") && name.Contains("windows") && name.EndsWith(".exe"))
+                        {
+                            return new ReleaseInfo { Version = version, DownloadUrl = downloadUrl };
+                        }
+                    }
+
+                    foreach (var asset in assets.EnumerateArray())
+                    {
+                        var name = asset.GetProperty("name").GetString()?.ToLower() ?? "";
+                        var downloadUrl = asset.GetProperty("browser_download_url").GetString() ?? "";
+
+                        if (name.Contains("tgwsproxy") && name.EndsWith(".exe"))
+                        {
+                            return new ReleaseInfo { Version = version, DownloadUrl = downloadUrl };
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            return null;
+        }
+    }
+
+    private static async Task<string?> DownloadFileAsync(
+        string url,
+        string destinationPath,
+        Action<double> onProgress)
+    {
+        try
+        {
+            using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("ZapretHub/1.0");
+
+            using var response = await http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+
+            var totalBytes = response.Content.Headers.ContentLength ?? -1L;
+            using var stream = await response.Content.ReadAsStreamAsync();
+            using var fileStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None);
+
+            var buffer = new byte[8192];
+            long downloaded = 0;
+            int bytesRead;
+
+            while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            {
+                await fileStream.WriteAsync(buffer, 0, bytesRead);
+                downloaded += bytesRead;
+
+                if (totalBytes > 0)
+                {
+                    onProgress((double)downloaded / totalBytes);
+                }
+            }
+
+            return destinationPath;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static async Task<string> ExtractArchiveAsync(string archivePath, string destinationDir)
+    {
+        try
+        {
+            await Task.Run(() =>
+            {
+                if (archivePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                {
+                    ZipFile.ExtractToDirectory(archivePath, destinationDir, overwriteFiles: true);
+                }
+                else
+                {
+                    throw new NotSupportedException(
+                        "RAR архивы не поддерживаются автоматической установкой.\n" +
+                        "Пожалуйста, скачайте ZIP версию Zapret с GitHub или установите вручную.");
+                }
+
+                var serviceBatPath = FindFile(destinationDir, "service.bat");
+                if (string.IsNullOrEmpty(serviceBatPath))
+                {
+                    throw new FileNotFoundException("Файл service.bat не найден в распакованном архиве.");
+                }
+
+                var batDir = Path.GetDirectoryName(serviceBatPath);
+                if (!string.IsNullOrEmpty(batDir) && !batDir.Equals(destinationDir, StringComparison.OrdinalIgnoreCase))
+                {
+                    foreach (var dir in Directory.GetDirectories(batDir))
+                    {
+                        var destDir = Path.Combine(destinationDir, Path.GetFileName(dir));
+                        if (Directory.Exists(destDir))
+                        {
+                            Directory.Delete(destDir, true);
+                        }
+                        Directory.Move(dir, destDir);
+                    }
+
+                    foreach (var file in Directory.GetFiles(batDir))
+                    {
+                        var destFile = Path.Combine(destinationDir, Path.GetFileName(file));
+                        File.Move(file, destFile, overwrite: true);
+                    }
+
+                    string relative = Path.GetRelativePath(destinationDir, batDir);
+                    string firstSegment = relative.Split(['/', '\\'], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
+                    if (!string.IsNullOrEmpty(firstSegment))
+                    {
+                        string topLevelDirToDelete = Path.Combine(destinationDir, firstSegment);
+                        if (Directory.Exists(topLevelDirToDelete))
+                        {
+                            Directory.Delete(topLevelDirToDelete, true);
+                        }
+                    }
+                }
+            });
+        }
+        catch (NotSupportedException)
+        {
+            throw;
+        }
+        catch (FileNotFoundException ex)
+        {
+            throw new Exception(ex.Message);
+        }
+        catch (Exception ex) when (ex.Message.Contains("Central Directory") || ex.Message.Contains("ZIP") || ex.Message.Contains("archive"))
+        {
+            throw new NotSupportedException(
+                "RAR архивы не поддерживаются автоматической установкой.\n" +
+                "Пожалуйста, скачайте ZIP версию Zapret с GitHub или установите вручную.");
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Ошибка распаковки архива: {ex.Message}");
+        }
+
+        return destinationDir;
+    }
+
+    private static string? FindFile(string directory, string fileName)
+    {
+        try
+        {
+            var files = Directory.GetFiles(directory, fileName, SearchOption.AllDirectories);
+            return files.FirstOrDefault();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private class ReleaseInfo
+    {
+        public string Version { get; set; } = "";
+        public string DownloadUrl { get; set; } = "";
+    }
+}

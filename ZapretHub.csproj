@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>ZapretHub</AssemblyName>
+    <RootNamespace>ZapretHub</RootNamespace>
+    <Platforms>x64</Platforms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+    <RollForward>LatestMajor</RollForward>
+    <Version>1.1.8</Version>
+    <AssemblyVersion>1.1.8.0</AssemblyVersion>
+    <FileVersion>1.1.8.0</FileVersion>
+    <Copyright>© 2024-2026 rupleide</Copyright>
+    <Product>ZapretHub</Product>
+    <Description>ZapretHub - GUI менеджер Zapret и tg-ws-proxy</Description>
+    <License>GPL-3.0-only</License>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Backup_18.03.2026_ 0-05\**" />
+    <Page Remove="Backup_18.03.2026_ 0-05\**" />
+    <None Remove="Backup_18.03.2026_ 0-05\**" />
+    <EmbeddedResource Remove="Backup_18.03.2026_ 0-05\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\noise.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\noise.png" />
+  </ItemGroup>
+
+  <!-- Копируем папку Tracks в выходную директорию -->
+  <ItemGroup>
+    <None Include="Tracks\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="DiscordRichPresence" Version="1.6.1.70" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\Fallback\zapret-fallback.zip" />
+    <EmbeddedResource Include="Assets\Fallback\tgwsproxy-fallback.exe" />
+    <EmbeddedResource Include="Assets\Fallback\metadata.json" />
+  </ItemGroup>
+</Project>
