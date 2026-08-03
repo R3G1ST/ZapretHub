@@ -5651,6 +5651,15 @@ public partial class MainWindow : Window
 
     private async void FixBtn_Click(object s, RoutedEventArgs e)
     {
+        // Toggle: if already connected — stop everything
+        if (_isConnected)
+        {
+            StopAllZapret();
+            SetFixBtnDisconnected();
+            AppendLog("Все компоненты остановлены.", "warn");
+            return;
+        }
+
         if (_checkInProgress || _autoFixRunning || _isInstalling) return;
 
         ShowPlayWhileScanDialog();
@@ -6243,6 +6252,40 @@ public partial class MainWindow : Window
         _splitTarget = 0;
         _colorTarget = 0;
         _finalSuccess = true;
+    }
+
+    private void StopAllZapret()
+    {
+        try
+        {
+            // Kill winws processes
+            foreach (var proc in Process.GetProcessesByName("winws"))
+            {
+                try { proc.Kill(); proc.Dispose(); } catch { }
+            }
+
+            // Stop zapret service
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "net",
+                    Arguments = "stop zapret",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                using var proc = Process.Start(psi);
+                proc?.WaitForExit(3000);
+            }
+            catch { }
+
+            // Kill tgwsproxy
+            foreach (var proc in Process.GetProcessesByName("tgwsproxy"))
+            {
+                try { proc.Kill(); proc.Dispose(); } catch { }
+            }
+        }
+        catch { }
     }
 
     private void HideAllRings()
