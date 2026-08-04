@@ -803,7 +803,7 @@ public partial class MainWindow : Window
         if (string.IsNullOrEmpty(_settings.ZapretPath) || !File.Exists(_settings.ZapretPath))
             return;
 
-        var w = new Views.ZapretConfigWindow(_settings.ZapretPath, testMode, _settings.SelectedGameServices);
+        var w = new Views.ZapretConfigWindow(_settings.ZapretPath, testMode, _settings.SelectedGameServices, _settings.SelectedGames);
         _configWindow = w;
         w.Owner = this;
         w.Closed += (_, _) =>
@@ -6897,6 +6897,27 @@ public partial class MainWindow : Window
             };
             GameServicesCheckboxes.Children.Add(cb);
         }
+
+        GamesCheckboxes.Children.Clear();
+        var allGames = ZapretConfigService.GameDomains.Keys.ToList();
+        var selectedGames = _settings.SelectedGames.Count > 0
+            ? _settings.SelectedGames
+            : allGames.ToList();
+
+        foreach (var game in allGames)
+        {
+            var cb = new System.Windows.Controls.CheckBox
+            {
+                Content = game,
+                IsChecked = selectedGames.Contains(game),
+                FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+                FontSize = 12,
+                Foreground = System.Windows.Media.Brushes.White,
+                Margin = new Thickness(0, 0, 0, 6),
+                Tag = game
+            };
+            GamesCheckboxes.Children.Add(cb);
+        }
     }
 
     private void SaveGameServices_Click(object sender, RoutedEventArgs e)
@@ -6910,6 +6931,17 @@ public partial class MainWindow : Window
             }
         }
         _settings.SelectedGameServices = selected;
+
+        var selectedGames = new List<string>();
+        foreach (var child in GamesCheckboxes.Children)
+        {
+            if (child is System.Windows.Controls.CheckBox cb && cb.IsChecked == true)
+            {
+                selectedGames.Add(cb.Tag?.ToString() ?? "");
+            }
+        }
+        _settings.SelectedGames = selectedGames;
+
         SettingsService.Save(_settings);
 
         var countText = selected.Count == ZapretConfigService.GameServiceDomains.Count
@@ -6918,6 +6950,18 @@ public partial class MainWindow : Window
         GameServicesCheckboxes.Children.Add(new System.Windows.Controls.TextBlock
         {
             Text = $"✅ {countText}",
+            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x22, 0xc5, 0x5e)),
+            FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+            FontSize = 11,
+            Margin = new Thickness(0, 6, 0, 0)
+        });
+
+        var gamesCountText = selectedGames.Count == ZapretConfigService.GameDomains.Count
+            ? "Все игры выбраны"
+            : $"Выбрано: {selectedGames.Count}/{ZapretConfigService.GameDomains.Count}";
+        GamesCheckboxes.Children.Add(new System.Windows.Controls.TextBlock
+        {
+            Text = $"✅ {gamesCountText}",
             Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x22, 0xc5, 0x5e)),
             FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
             FontSize = 11,

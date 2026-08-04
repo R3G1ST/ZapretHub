@@ -275,6 +275,26 @@
                           VerticalAlignment="Stretch" Height="Auto">
                 <StackPanel x:Name="ConfigListPanel"/>
             </ScrollViewer>
+            <ScrollViewer x:Name="GameTopScroll" Grid.Row="2"
+                          VerticalScrollBarVisibility="Auto"
+                          Visibility="Collapsed"
+                          Margin="28,16,28,0"
+                          VerticalAlignment="Stretch" Height="Auto">
+                <StackPanel x:Name="GameTopPanel">
+                    <Button Content="← Назад к списку конфигов" 
+                            Style="{StaticResource OutlineBtn}" 
+                            HorizontalAlignment="Left" Margin="0,0,0,14"
+                            Click="GameTopBackBtn_Click"/>
+                    <TextBlock Text="🏆 ТОП КОНФИГОВ ДЛЯ ИГР" 
+                               Foreground="#00ff88" FontFamily="Cascadia Code, Consolas, monospace" 
+                               FontSize="14" FontWeight="Bold" Margin="0,0,0,14"/>
+                    <TextBlock x:Name="GameTopEmptyText"
+                               Text="Нет данных. Нажмите '🎮 Тест игр' для тестирования конфигов." 
+                               Foreground="#5a6a7a" FontFamily="Cascadia Code, Consolas, monospace" 
+                               FontSize="12" Visibility="Collapsed"/>
+                    <StackPanel x:Name="GameTopResults"/>
+                </StackPanel>
+            </ScrollViewer>
             <ScrollViewer x:Name="GameTestScroll" Grid.Row="2"
                           VerticalScrollBarVisibility="Auto"
                           Visibility="Collapsed"

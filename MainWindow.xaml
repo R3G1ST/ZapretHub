@@ -5095,10 +5095,21 @@
                                     </StackPanel>
                                 </Border>
                                 <StackPanel x:Name="SectionGamesContent" Visibility="Collapsed" Margin="0,0,0,12">
-                                    <TextBlock Text="Выберите сервисы для тестирования в '🎮 Тест игр'" 
+                                    <TextBlock Text="Платформы:" 
                                                FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
-                                               Foreground="#5a6a7a" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                               Foreground="#00ff88" FontWeight="Bold" Margin="0,0,0,6"/>
+                                    <TextBlock Text="Выберите сервисы для тестирования" 
+                                               FontFamily="Cascadia Code, Consolas, monospace" FontSize="10"
+                                               Foreground="#5a6a7a" TextWrapping="Wrap" Margin="0,0,0,8"/>
                                     <StackPanel x:Name="GameServicesCheckboxes"/>
+                                    <Border Height="1" Background="#181820" Margin="0,12,0,12"/>
+                                    <TextBlock Text="Игры:" 
+                                               FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
+                                               Foreground="#00ff88" FontWeight="Bold" Margin="0,0,0,6"/>
+                                    <TextBlock Text="Выберите игры для полного тестирования (серверы + лаунчер + Discord)" 
+                                               FontFamily="Cascadia Code, Consolas, monospace" FontSize="10"
+                                               Foreground="#5a6a7a" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                    <StackPanel x:Name="GamesCheckboxes"/>
                                     <Button Content="Применить" Style="{StaticResource AccentBtn}" 
                                             HorizontalAlignment="Stretch" Margin="0,10,0,0"
                                             Click="SaveGameServices_Click"/>

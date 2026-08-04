@@ -40,7 +40,7 @@ public class ZapretConfigCache
     public string CurrentConfig { get; set; } = "";
     public List<ZapretConfig> ValidConfigs { get; set; } = new();
     public List<ZapretConfig> PartialConfigs { get; set; } = new();
-    public Dictionary<string, ServiceTestResult>? LastGameTestResults { get; set; }
+    public Dictionary<string, Dictionary<string, ServiceTestResult>>? LastGameTestResults { get; set; }
     public string? LastGameTestedConfig { get; set; }
     public DateTime? LastGameTestTime { get; set; }
 

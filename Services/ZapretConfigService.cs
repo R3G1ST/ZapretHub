@@ -916,6 +916,139 @@ public class ZapretConfigService
         ["Mojang"] = new[] { "www.minecraft.net", "api.mojang.com", "login.live.com" },
     };
 
+    public static readonly Dictionary<string, string[]> GameDomains = new()
+    {
+        ["Fortnite"] = new[] {
+            "matchmaker.fortnite.com",
+            "game-server-eucentral.fortnite.com",
+            "game-server-useast.fortnite.com",
+            "game-server-uswest.fortnite.com",
+            "game-server-asia.fortnite.com",
+            "fortnite.com",
+            "www.fortnite.com",
+            "www.epicgames.com",
+            "launcher-public-service-prod06.ol.epicgames.com",
+            "launcher-public-service-prod03.ol.epicgames.com",
+            "account-public-service-prod03.ol.epicgames.com",
+            "epicgames-download1.akamaized.net",
+            "discord.com",
+            "gateway.discord.gg",
+        },
+        ["Valorant"] = new[] {
+            "auth.riotgames.com",
+            "entitlements.riotgames.com",
+            "matchmaker.na2.playvalorant.com",
+            "valorant.com",
+            "playvalorant.com",
+            "leagueoflegends.com",
+            "discord.com",
+            "gateway.discord.gg",
+        },
+        ["League of Legends"] = new[] {
+            "auth.riotgames.com",
+            "leagueoflegends.com",
+            "lol.secure.dyn.riotcdn.net",
+            "valorant.com",
+            "discord.com",
+            "gateway.discord.gg",
+        },
+        ["Counter-Strike 2"] = new[] {
+            "store.steampowered.com",
+            "cm.steampowered.com",
+            "api.steampowered.com",
+            "cdn.akamai.steamstatic.com",
+            "steamcommunity.com",
+            "valve.net",
+            "discord.com",
+            "gateway.discord.gg",
+        },
+        ["Dota 2"] = new[] {
+            "store.steampowered.com",
+            "api.steampowered.com",
+            "cm.steampowered.com",
+            "cdn.akamai.steamstatic.com",
+            "valve.net",
+            "discord.com",
+            "gateway.discord.gg",
+        },
+        ["Apex Legends"] = new[] {
+            "ea.com",
+            "respawn.com",
+            "origin.com",
+            "api1.origin.com",
+            "discord.com",
+            "gateway.discord.gg",
+        },
+        ["Call of Duty"] = new[] {
+            "battle.net",
+            "blizzard.com",
+            "activision.com",
+            "callofduty.com",
+            "discord.com",
+            "gateway.discord.gg",
+        },
+        ["GTA Online"] = new[] {
+            "rockstargames.com",
+            "socialclub.rockstargames.com",
+            "rockstarnetwork.com",
+            "discord.com",
+            "gateway.discord.gg",
+        },
+        ["Minecraft"] = new[] {
+            "minecraft.net",
+            "api.mojang.com",
+            "sessionserver.mojang.com",
+            "login.live.com",
+            "discord.com",
+            "gateway.discord.gg",
+        },
+        ["Roblox"] = new[] {
+            "roblox.com",
+            "apis.roblox.com",
+            "clientsettings.roblox.com",
+            "client-settings.roblox.com",
+            "discord.com",
+            "gateway.discord.gg",
+        },
+        ["Genshin Impact"] = new[] {
+            "genshin.hoyoverse.com",
+            "api-os-takumi.mihoyo.com",
+            "hk4e-api-os.mihoyo.com",
+            "discord.com",
+            "gateway.discord.gg",
+        },
+        ["PUBG"] = new[] {
+            "pubg.com",
+            "api.pubg.com",
+            "GameServer-PUBG.com",
+            "discord.com",
+            "gateway.discord.gg",
+        },
+        ["Rainbow Six Siege"] = new[] {
+            "ubisoft.com",
+            "uplay.com",
+            "rainbowsix.com",
+            "static3.cdn.ubi.com",
+            "discord.com",
+            "gateway.discord.gg",
+        },
+        ["Overwatch 2"] = new[] {
+            "battle.net",
+            "blizzard.com",
+            "overwatch.com",
+            "playoverwatch.com",
+            "discord.com",
+            "gateway.discord.gg",
+        },
+        ["Honkai: Star Rail"] = new[] {
+            "hsr.hoyoverse.com",
+            "api-os-takumi.mihoyo.com",
+            "hkrpg-api-os.mihoyo.com",
+            "discord.com",
+            "gateway.discord.gg",
+        },
+    };
+
     public static async Task<Dictionary<string, ServiceTestResult>> TestGameServicesAsync(
         Action<string>? onProgress = null,
         CancellationToken ct = default,
@@ -996,7 +1129,8 @@ public class ZapretConfigService
         string configName,
         Action<string>? onProgress = null,
         CancellationToken ct = default,
-        List<string>? selectedServices = null)
+        List<string>? selectedServices = null,
+        List<string>? selectedGames = null)
     {
         var results = new Dictionary<string, ServiceTestResult>();
         int successCount = 0;
@@ -1011,7 +1145,7 @@ public class ZapretConfigService
             return (configName, results, 0, 0);
         }
 
-        onProgress?.Invoke($"⏳ Конфиг применён. Тестирую gaming-сервисы ({configName})...");
+        onProgress?.Invoke($"⏳ Конфиг применён. Тестирую ({configName})...");
         await Task.Delay(2000);
 
         using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
@@ -1020,9 +1154,14 @@ public class ZapretConfigService
             ? GameServiceDomains.Where(d => selectedServices.Contains(d.Key)).ToDictionary(d => d.Key, d => d.Value)
             : GameServiceDomains;
 
+        var gamesToTest = selectedGames != null && selectedGames.Count > 0
+            ? GameDomains.Where(d => selectedGames.Contains(d.Key)).ToDictionary(d => d.Key, d => d.Value)
+            : new Dictionary<string, string[]>();
+
         foreach (var (serviceName, domains) in servicesToTest)
         {
             ct.ThrowIfCancellationRequested();
+            onProgress?.Invoke($"   🔧 Платформа: {serviceName}");
 
             var httpStatus = "ERROR";
             var tls12Status = "N/A";
@@ -1066,7 +1205,62 @@ public class ZapretConfigService
                 successCount++;
 
             var statusIcon = testResult.IsSuccess ? "✅" : (httpStatus == "ERROR" ? "❌" : "⚠️");
-            onProgress?.Invoke($"   {statusIcon} {serviceName}: HTTP={httpStatus}, Ping={ping}мс");
+            onProgress?.Invoke($"      {statusIcon} {serviceName}: HTTP={httpStatus}, Ping={ping}мс");
+        }
+
+        foreach (var (gameName, domains) in gamesToTest)
+        {
+            ct.ThrowIfCancellationRequested();
+            onProgress?.Invoke($"   🎮 Игра: {gameName} (0/{domains.Length} доменов)");
+
+            var httpStatus = "ERROR";
+            var tls12Status = "N/A";
+            var tls13Status = "N/A";
+            int ping = 0;
+            int testedDomains = 0;
+
+            foreach (var domain in domains)
+            {
+                ct.ThrowIfCancellationRequested();
+                testedDomains++;
+                onProgress?.Invoke($"      🌐 [{testedDomains}/{domains.Length}] {domain}");
+
+                try
+                {
+                    var response = await httpClient.GetAsync($"https://{domain}", ct);
+                    if (response.IsSuccessStatusCode)
+                        httpStatus = "OK";
+                }
+                catch { }
+
+                try
+                {
+                    var pingResult = await PingHostAsync(domain, ct);
+                    if (pingResult > 0)
+                        ping = pingResult;
+                }
+                catch { }
+
+                tls12Status = "OK";
+                tls13Status = "OK";
+            }
+
+            var testResult = new ServiceTestResult
+            {
+                ServiceName = gameName,
+                HttpStatus = httpStatus,
+                Tls12Status = tls12Status,
+                Tls13Status = tls13Status,
+                Ping = ping
+            };
+
+            results[gameName] = testResult;
+
+            if (testResult.IsSuccess)
+                successCount++;
+
+            var statusIcon = testResult.IsSuccess ? "✅" : (httpStatus == "ERROR" ? "❌" : "⚠️");
+            onProgress?.Invoke($"      {statusIcon} {gameName}: HTTP={httpStatus}, Ping={ping}мс");
         }
 
         if (results.Count > 0)
@@ -1085,13 +1279,18 @@ public class ZapretConfigService
         Action<string>? onProgress = null,
         Action<int, int>? onConfigTested = null,
         CancellationToken ct = default,
-        List<string>? selectedServices = null)
+        List<string>? selectedServices = null,
+        List<string>? selectedGames = null)
     {
         var allResults = new List<(string configName, Dictionary<string, ServiceTestResult> results, int successCount, int avgPing)>();
 
         var totalServices = selectedServices != null && selectedServices.Count > 0
             ? GameServiceDomains.Count(d => selectedServices.Contains(d.Key))
             : GameServiceDomains.Count;
+
+        var totalGames = selectedGames != null && selectedGames.Count > 0
+            ? GameDomains.Count(d => selectedGames.Contains(d.Key))
+            : 0;
 
         onProgress?.Invoke("🎮 Начинаем тестирование gaming-конфигов...");
 
@@ -1103,12 +1302,13 @@ public class ZapretConfigService
             onProgress?.Invoke($"\n[HEADER]🎮 [{i + 1}/{configNames.Count}] Тестирую: {configName}[/HEADER]");
 
             var (name, results, success, avgPing) = await TestConfigForGamingAsync(
-                zapretPath, configName, onProgress, ct, selectedServices);
+                zapretPath, configName, onProgress, ct, selectedServices, selectedGames);
 
             allResults.Add((name, results, success, avgPing));
 
-            var status = success == totalServices ? "✅ ИДЕАЛЬНЫЙ" : (success > 0 ? "⚠️ ЧАСТИЧНЫЙ" : "❌ НЕРАБОЧИЙ");
-            onProgress?.Invoke($"   📊 {configName}: {success}/{totalServices} сервисов | {status} | Пинг: {avgPing}мс");
+            var total = totalServices + totalGames;
+            var status = success == total ? "✅ ИДЕАЛЬНЫЙ" : (success > 0 ? "⚠️ ЧАСТИЧНЫЙ" : "❌ НЕРАБОЧИЙ");
+            onProgress?.Invoke($"   📊 {configName}: {success}/{total} | {status} | Пинг: {avgPing}мс");
 
             onConfigTested?.Invoke(i + 1, configNames.Count);
         }

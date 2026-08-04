@@ -23,6 +23,7 @@ public partial class ZapretConfigWindow : Window
     private readonly string _zapretPath;
     private readonly bool _testMode;
     private readonly List<string> _selectedGameServices;
+    private readonly List<string> _selectedGames;
     private ZapretConfigCache? _cache;
     private bool _isTesting = false;
     private Process? _testProcess = null;
@@ -31,12 +32,13 @@ public partial class ZapretConfigWindow : Window
 
     public bool ConfigWasApplied { get; private set; } = false;
 
-    public ZapretConfigWindow(string zapretPath, bool testMode, List<string>? selectedGameServices = null)
+    public ZapretConfigWindow(string zapretPath, bool testMode, List<string>? selectedGameServices = null, List<string>? selectedGames = null)
     {
         InitializeComponent();
         _zapretPath = zapretPath;
         _testMode = testMode;
         _selectedGameServices = selectedGameServices ?? new();
+        _selectedGames = selectedGames ?? new();
         Loaded += OnLoaded;
         Closing += OnClosing;
 
@@ -192,9 +194,96 @@ public partial class ZapretConfigWindow : Window
             {
                 StopIndeterminateAnimation();
                 ShowConfigList();
+                LoadGameTopResults();
             }
         }
 
+    }
+
+    private void LoadGameTopResults()
+    {
+        GameTopResults.Children.Clear();
+
+        if (_cache?.LastGameTestResults == null || _cache.LastGameTestResults.Count == 0)
+        {
+            GameTopEmptyText.Visibility = Visibility.Visible;
+            return;
+        }
+
+        GameTopEmptyText.Visibility = Visibility.Collapsed;
+
+        var sortedResults = _cache.LastGameTestResults
+            .OrderByDescending(r => r.Value.Count(v => v.Value.IsSuccess))
+            .ThenBy(r => r.Value.Values.Where(v => v.Ping > 0).Select(v => v.Ping).DefaultIfEmpty(0).Average())
+            .ToList();
+
+        for (int i = 0; i < sortedResults.Count; i++)
+        {
+            var serviceName = sortedResults[i].Key;
+            var testResults = sortedResults[i].Value;
+            var successCount = testResults.Count(r => r.Value.IsSuccess);
+            var totalCount = testResults.Count;
+            var avgPing = testResults.Values.Where(r => r.Ping > 0).Select(r => r.Ping).DefaultIfEmpty(0).Average();
+
+            var rank = i + 1;
+            var rankText = rank == 1 ? "🥇" : (rank == 2 ? "🥈" : (rank == 3 ? "🥉" : $"#{rank}"));
+            var cardColor = successCount == totalCount ? "#22c55e" : (successCount > totalCount / 2 ? "#eab308" : "#ef4444");
+
+            var card = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(0x08, 0x08, 0x0e)),
+                BorderBrush = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString(cardColor)),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(14, 10, 14, 10),
+                Margin = new Thickness(0, 0, 0, 8)
+            };
+
+            var stack = new StackPanel();
+
+            var headerGrid = new Grid();
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            var rankBlock = new TextBlock
+            {
+                Text = rankText,
+                FontSize = 16,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 0, 10, 0)
+            };
+            Grid.SetColumn(rankBlock, 0);
+
+            var nameBlock = new TextBlock
+            {
+                Text = serviceName,
+                Foreground = new SolidColorBrush(Color.FromRgb(0xf0, 0xf0, 0xf0)),
+                FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+                FontSize = 13,
+                FontWeight = FontWeights.SemiBold,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            Grid.SetColumn(nameBlock, 1);
+
+            var statsBlock = new TextBlock
+            {
+                Text = $"{successCount}/{totalCount} | {avgPing:F0}мс",
+                Foreground = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString(cardColor)),
+                FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+                FontSize = 12,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            Grid.SetColumn(statsBlock, 2);
+
+            headerGrid.Children.Add(rankBlock);
+            headerGrid.Children.Add(nameBlock);
+            headerGrid.Children.Add(statsBlock);
+            stack.Children.Add(headerGrid);
+
+            card.Child = stack;
+            GameTopResults.Children.Add(card);
+        }
     }
 
     private void ShowWarningNoCache()
@@ -692,6 +781,12 @@ public partial class ZapretConfigWindow : Window
         Close();
     }
 
+    private void GameTopBackBtn_Click(object sender, RoutedEventArgs e)
+    {
+        GameTopScroll.Visibility = Visibility.Collapsed;
+        ConfigListScroll.Visibility = Visibility.Visible;
+    }
+
     private CancellationTokenSource? _gameTestCts;
     private DateTime _gameTestStartTime;
     private int _gameTotalConfigs = 0;
@@ -777,7 +872,8 @@ public partial class ZapretConfigWindow : Window
                     GameTimeRemainingText.Text = $"~{remaining.Minutes:D2}:{remaining.Seconds:D2} осталось";
                 }),
                 ct,
-                _selectedGameServices);
+                _selectedGameServices,
+                _selectedGames);
 
             Dispatcher.Invoke(() =>
             {
@@ -1067,9 +1163,29 @@ public partial class ZapretConfigWindow : Window
         StatusPanel.Visibility = Visibility.Collapsed;
         ProgressBarContainer.Visibility = Visibility.Collapsed;
         ConfigListScroll.Visibility = Visibility.Visible;
+        GameTopScroll.Visibility = Visibility.Collapsed;
         ConfigListPanel.Children.Clear();
         var selectableConfigs = _cache.GetSelectableConfigs();
         var usingPartialConfigs = _cache.ValidConfigs.Count == 0 && _cache.PartialConfigs.Count > 0;
+
+        if (_cache.LastGameTestResults != null && _cache.LastGameTestResults.Count > 0)
+        {
+            var gameTopBtn = new System.Windows.Controls.Button
+            {
+                Content = "🏆 Показать топ конфигов для игр",
+                MinHeight = 40,
+                Padding = new Thickness(16, 8, 16, 8),
+                Margin = new Thickness(0, 0, 0, 16),
+                Cursor = System.Windows.Input.Cursors.Hand,
+                Template = (System.Windows.Controls.ControlTemplate)FindResource("AccentBtn")
+            };
+            gameTopBtn.Click += (s, e) =>
+            {
+                ConfigListScroll.Visibility = Visibility.Collapsed;
+                GameTopScroll.Visibility = Visibility.Visible;
+            };
+            ConfigListPanel.Children.Add(gameTopBtn);
+        }
 
         var currentLabel = new StackPanel
         {

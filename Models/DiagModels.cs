@@ -136,6 +136,7 @@ public class AppSettings
     public List<string> PreviousDnsAddresses { get; set; } = [];
     public bool PreviousDnsWasDhcp { get; set; } = true;
     public List<string> SelectedGameServices { get; set; } = new();
+    public List<string> SelectedGames { get; set; } = new();
 }
 
 public record GameTrackStats
