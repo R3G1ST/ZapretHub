@@ -4592,14 +4592,12 @@
                         <TextBlock Text="READY" FontFamily="Cascadia Code, Consolas, monospace" FontSize="10"
                                    Foreground="#00ff88" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <TextBlock HorizontalAlignment="Right"
+                    <TextBlock x:Name="VersionText" HorizontalAlignment="Right"
                                VerticalAlignment="Center" Margin="0,0,0,0"
                                FontFamily="Cascadia Code, Consolas, monospace"
                                FontSize="11" FontWeight="Bold"
-                               Foreground="#00ff88" Opacity="0.6">
-                        <TextBlock.Text>
-                            <Binding Path="Title" RelativeSource="{RelativeSource AncestorType=Window}" FallbackValue="v1.2.0"/>
-                        </TextBlock.Text>
+                               Foreground="#00ff88" Opacity="0.6"
+                               Text="v0.0.0">
                         <TextBlock.Effect>
                             <DropShadowEffect Color="#00ff88" BlurRadius="6" ShadowDepth="0" Opacity="0.4"/>
                         </TextBlock.Effect>

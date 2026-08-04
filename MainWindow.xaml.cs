@@ -283,6 +283,9 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        var ver = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+        VersionText.Text = $"v{ver?.Major}.{ver?.Minor}.{ver?.Build}";
+
         Loaded += OnLoaded;
         SizeChanged += OnSizeChanged;
         InitTray();
