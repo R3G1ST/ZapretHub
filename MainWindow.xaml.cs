@@ -15169,15 +15169,39 @@ public partial class MainWindow : Window
 
             card.Child = stack;
 
+            var notificationId = n.Id;
+            var notificationNotes = n.ReleaseNotes;
+            var notificationVersion = n.Version;
+            var expanded = false;
+            TextBlock? notesExpand = null;
+
+            card.MouseLeftButtonDown += (_, _) =>
+            {
+                if (!expanded && !string.IsNullOrWhiteSpace(notificationNotes))
+                {
+                    var fullNotes = notificationNotes;
+                    notesExpand = new TextBlock
+                    {
+                        Text = fullNotes,
+                        FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+                        FontSize = 10,
+                        Foreground = new SolidColorBrush(Color.FromRgb(0xf0, 0xf0, 0xf0)),
+                        TextWrapping = TextWrapping.Wrap,
+                        Margin = new Thickness(0, 6, 0, 0)
+                    };
+                    stack.Children.Insert(2, notesExpand);
+                    expanded = true;
+                }
+                if (!n.IsRead)
+                {
+                    NotificationService.MarkAsRead(notificationId);
+                    UpdateNotifyBadge();
+                }
+            };
+
             card.MouseEnter += (_, _) =>
             {
                 card.Background = new SolidColorBrush(Color.FromRgb(0x08, 0x08, 0x0e));
-                if (!n.IsRead)
-                {
-                    NotificationService.MarkAsRead(n.Id);
-                    UpdateNotifyBadge();
-                    RenderNotifyList();
-                }
             };
             card.MouseLeave += (_, _) =>
             {

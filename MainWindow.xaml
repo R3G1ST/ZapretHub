@@ -863,18 +863,38 @@
                             </Button>
                         </StackPanel>
                         <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0,0,0,12">
-                            <Border Width="14" Height="14" Background="Transparent" ToolTip="Сеть: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="12">
-                                <Ellipse x:Name="NetDot" Width="6" Height="6" Fill="#333344" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <Border Width="14" Height="14" Background="Transparent" ToolTip="VPN: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="12" Margin="0,-2,0,0">
-                                <Ellipse x:Name="VpnDot" Width="6" Height="6" Fill="#333344" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <Border Width="14" Height="14" Background="Transparent" ToolTip="Zapret: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="12" Margin="0,-2,0,0">
-                                <Ellipse x:Name="ZapretDot" Width="6" Height="6" Fill="#333344" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <Border Width="14" Height="14" Background="Transparent" ToolTip="TgWsProxy: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="12" Margin="0,-2,0,0">
-                                <Ellipse x:Name="TgWsDot" Width="6" Height="6" Fill="#333344" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
+                            <Grid Width="20" Height="20" Background="Transparent"
+                                  ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
+                                <Grid.ToolTip>
+                                    <ToolTip Content="Сеть: проверка..."/>
+                                </Grid.ToolTip>
+                                <Ellipse x:Name="NetDot" Width="6" Height="6" Fill="#333344"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid Width="20" Height="20" Background="Transparent" Margin="0,-4,0,0"
+                                  ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
+                                <Grid.ToolTip>
+                                    <ToolTip Content="VPN: проверка..."/>
+                                </Grid.ToolTip>
+                                <Ellipse x:Name="VpnDot" Width="6" Height="6" Fill="#333344"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid Width="20" Height="20" Background="Transparent" Margin="0,-4,0,0"
+                                  ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
+                                <Grid.ToolTip>
+                                    <ToolTip Content="Zapret: проверка..."/>
+                                </Grid.ToolTip>
+                                <Ellipse x:Name="ZapretDot" Width="6" Height="6" Fill="#333344"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid Width="20" Height="20" Background="Transparent" Margin="0,-4,0,0"
+                                  ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
+                                <Grid.ToolTip>
+                                    <ToolTip Content="TgWsProxy: проверка..."/>
+                                </Grid.ToolTip>
+                                <Ellipse x:Name="TgWsDot" Width="6" Height="6" Fill="#333344"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock x:Name="NetLbl" Text="NET" FontFamily="Cascadia Code, Consolas, monospace" FontSize="7"
                                        Foreground="#333344" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                         </StackPanel>
