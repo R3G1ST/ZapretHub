@@ -953,6 +953,27 @@ public partial class ZapretConfigWindow : Window
                     var card = CreateConfigGameCard(item.configName, item.results, item.successCount, item.avgPing, totalServices, rank);
                     GameTestResults.Children.Add(card);
                 }
+
+                var gameResultsDict = new Dictionary<string, Dictionary<string, ServiceTestResult>>();
+                foreach (var item in allResults)
+                    gameResultsDict[item.configName] = item.results;
+
+                _cache.LastGameTestResults = gameResultsDict;
+                _cache.LastGameTestedConfig = bestConfig.configName;
+                _cache.LastGameTestTime = DateTime.Now;
+
+                foreach (var cfg in _cache.ValidConfigs.Concat(_cache.PartialConfigs))
+                {
+                    if (gameResultsDict.TryGetValue(cfg.Name, out var cfgResults))
+                    {
+                        cfg.GameTests = cfgResults;
+                        cfg.GameSuccessCount = cfgResults.Count(r => r.Value.IsSuccess);
+                        cfg.GameAveragePing = cfgResults.Values.Where(r => r.Ping > 0).Select(r => r.Ping).DefaultIfEmpty(0).Average() is double d ? (int)Math.Round(d) : 0;
+                        cfg.IsGameValid = cfg.GameSuccessCount == cfgResults.Count;
+                    }
+                }
+
+                ZapretConfigService.SaveCache(_cache);
             });
         }
         catch (OperationCanceledException) { }
