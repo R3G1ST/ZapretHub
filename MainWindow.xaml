@@ -876,7 +876,7 @@
                                   Stretch="Uniform"
                                   Margin="0,0,8,0"
                                   VerticalAlignment="Center"/>
-                            <TextBlock Text="Починить Telegram и Discord"
+                            <TextBlock Text="Разблокируй всё. Без ограничений."
                                        FontFamily="Cascadia Code, Consolas, monospace" FontSize="22" FontWeight="Bold"
                                        Foreground="White"
                                        TextAlignment="Center"
@@ -1078,81 +1078,14 @@
                                                        VerticalAlignment="Center" Margin="4,0,0,0"/>
                                         </StackPanel>
                                     </StackPanel>
-                                    <Button x:Name="RescanBtn"
-                                            Grid.Column="2"
+                                    <TextBlock Grid.Column="2"
                                             VerticalAlignment="Center"
                                             Margin="8,2,0,0"
-                                            Padding="0"
-                                            Width="22" Height="22"
-                                            Background="Transparent"
-                                            BorderThickness="0"
-                                            Cursor="Hand"
-                                            Click="RescanBtn_Click"
-                                            ToolTipService.InitialShowDelay="0"
-                                            ToolTipService.ShowDuration="10000"
-                                            ToolTipService.BetweenShowDelay="0">
-                                        <Button.Style>
-                                            <Style TargetType="Button">
-                                                <Setter Property="Opacity" Value="0.3"/>
-                                                <Setter Property="Template">
-                                                    <Setter.Value>
-                                                        <ControlTemplate TargetType="Button">
-                                                            <Grid Background="Transparent">
-                                                                <ContentPresenter HorizontalAlignment="Center"
-                                                                                  VerticalAlignment="Center"/>
-                                                            </Grid>
-                                                        </ControlTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
-                                                <Style.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter Property="Opacity" Value="1"/>
-                                                    </Trigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Button.Style>
-                                        <Button.ToolTip>
-                                            <ToolTip Background="Transparent"
-                                                     BorderThickness="0"
-                                                     HasDropShadow="False"
-                                                     Placement="Bottom"
-                                                     VerticalOffset="4">
-                                                <ToolTip.Style>
-                                                    <Style TargetType="ToolTip">
-                                                        <Style.Triggers>
-                                                            <Trigger Property="IsOpen" Value="True">
-                                                                <Trigger.EnterActions>
-                                                                    <BeginStoryboard>
-                                                                        <Storyboard>
-                                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                                                                             From="0" To="1"
-                                                                                             Duration="0:0:0.1"/>
-                                                                        </Storyboard>
-                                                                    </BeginStoryboard>
-                                                                </Trigger.EnterActions>
-                                                            </Trigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </ToolTip.Style>
-                                                <Border Background="#060609"
-                                                        BorderBrush="#252525"
-                                                        BorderThickness="1"
-                                                        CornerRadius="6"
-                                                        Padding="8,5">
-                                                    <TextBlock Text="Просканировать ещё раз"
-                                                               FontFamily="Cascadia Code, Consolas, monospace"
-                                                               FontSize="12"
-                                                               Foreground="#aaaaaa"/>
-                                                </Border>
-                                            </ToolTip>
-                                        </Button.ToolTip>
-                                        <Viewbox Width="15" Height="15">
-                                            <Canvas Width="24" Height="24">
-                                                <Path Data="M21,11c-0.6,0-1,0.4-1,1c0,2.9-1.5,5.5-4,6.9c-3.8,2.2-8.7,0.9-10.9-2.9C2.9,12.2,4.2,7.3,8,5.1c3.3-1.9,7.3-1.2,9.8,1.4h-2.4c-0.6,0-1,0.4-1,1s0.4,1,1,1h4.5c0.6,0,1-0.4,1-1V3c0-0.6-0.4-1-1-1s-1,0.4-1,1v1.8C17,3,14.6,2,12,2C6.5,2,2,6.5,2,12s4.5,10,10,10c5.5,0,10-4.5,10-10C22,11.4,21.6,11,21,11z"
-                                                      Fill="#aaaaaa"/>
-                                            </Canvas>
-                                        </Viewbox>
-                                    </Button>
+                                            FontFamily="Cascadia Code, Consolas, monospace"
+                                            FontSize="9"
+                                            Foreground="#00ff88"
+                                            Text="auto"
+                                            Opacity="0.4"/>
                                 </Grid>
                             </StackPanel>
                         </Grid>
@@ -5127,6 +5060,7 @@
                             Style="{StaticResource FlatBtn}" FontSize="10"
                             WindowChrome.IsHitTestVisibleInChrome="True"
                             VerticalAlignment="Center" Margin="0,-3,0,0"
+                            Visibility="Collapsed"
                             Click="DonateBtn_Click">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource CoffeeIcon}" 

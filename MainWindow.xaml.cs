@@ -5243,8 +5243,6 @@ public partial class MainWindow : Window
         await Task.Delay(d);
         AppendLog("Инициализация компонентов системы...", "info");
         await Task.Delay(d);
-        AppendLink("Мой Telegram-канал: ", "t.me/ZapretHubRuBi", " - информация об обновлениях, новые способы обходов и гайды. Максимально полезная информация, советую подписаться", "https://t.me/ZapretHubRuBi");
-        await Task.Delay(d);
         AppendLog("spacer");
 
         var status = DiagnosticsEngine.CheckAppStatus();
@@ -12512,7 +12510,7 @@ public partial class MainWindow : Window
         _netTimer.Tick += NetTimer_Tick;
         _netTimer.Start();
 
-        _pingTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+        _pingTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _pingTimer.Tick += async (s, e) => await UpdatePingAsync();
         _pingTimer.Start();
 
@@ -12783,30 +12781,7 @@ public partial class MainWindow : Window
         return sorted.Take(takeCount).Average();
     }
 
-    private async void RescanBtn_Click(object sender, RoutedEventArgs e)
-    {
-        RescanBtn.IsEnabled = false;
 
-        var rotateAnim = new DoubleAnimation(0, 360, TimeSpan.FromSeconds(1))
-        {
-            RepeatBehavior = RepeatBehavior.Forever
-        };
-        var transform = new RotateTransform();
-        RescanBtn.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
-        RescanBtn.RenderTransform = transform;
-        transform.BeginAnimation(RotateTransform.AngleProperty, rotateAnim);
-
-        PingLbl.Text = "…";
-        DownloadLbl.Text = "…";
-        UploadLbl.Text = "…";
-
-        await Task.Run(async () => await RunSpeedTestAsync());
-        await Task.Run(async () => await UpdatePingAsync());
-
-        transform.BeginAnimation(RotateTransform.AngleProperty, null);
-        RescanBtn.RenderTransform = null;
-        RescanBtn.IsEnabled = true;
-    }
 
     private int _listeningLane = -1;
 
