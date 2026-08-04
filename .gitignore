@@ -1,6 +1,5 @@
 bin/
 obj/
-*.user
-*.suo
-.vs/
-*.DotSettings.user
+*.lnk
+app.ico
+icon/

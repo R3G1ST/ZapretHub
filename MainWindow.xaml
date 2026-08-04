@@ -18,7 +18,7 @@
         <SolidColorBrush x:Key="Bg2Brush"     Color="#030306"/>
         <SolidColorBrush x:Key="Bg3Brush"     Color="#0a0a12"/>
         <SolidColorBrush x:Key="Bg4Brush"     Color="#0a0a12"/>
-        <SolidColorBrush x:Key="BorderBrush_" Color="#1a1a2a"/>
+        <SolidColorBrush x:Key="BorderBrush_" Color="#0a0a12"/>
         <SolidColorBrush x:Key="TextBrush"    Color="#f0f0f0"/>
         <SolidColorBrush x:Key="MutedBrush"   Color="#5a6a7a"/>
         <SolidColorBrush x:Key="AccentBrush"  Color="#00ff88"/>
@@ -29,7 +29,7 @@
         <SolidColorBrush x:Key="CardBgBrush" Color="#030306"/>
         <SolidColorBrush x:Key="CardBorderBrush" Color="#0a0a12"/>
         <SolidColorBrush x:Key="CardHoverBgBrush" Color="#08080e"/>
-        <SolidColorBrush x:Key="CardHoverBorderBrush" Color="#1a1a2a"/>
+        <SolidColorBrush x:Key="CardHoverBorderBrush" Color="#0a0a12"/>
         <PathGeometry x:Key="PowerIcon">M7.5,7.638 A7,7 0 1,0 16.5,7.638 M12,4 L12,11</PathGeometry>
         <PathGeometry x:Key="BoltIcon">M13,2 L3,14 L10,14 L9,22 L19,10 L12,10 Z</PathGeometry>
         <PathGeometry x:Key="SearchIcon">M10,10 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 M14,14 L20,20</PathGeometry>
@@ -239,7 +239,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="bd" Background="Transparent"
-                                BorderBrush="#1a1a2a" BorderThickness="1"
+                                BorderBrush="#0a0a12" BorderThickness="1"
                                 CornerRadius="8" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
@@ -254,7 +254,7 @@
         </Style>
         <Style x:Key="BackBtn" TargetType="Button" BasedOn="{StaticResource FlatBtn}">
             <Setter Property="Background" Value="#030306"/>
-            <Setter Property="BorderBrush" Value="#1a1a2a"/>
+            <Setter Property="BorderBrush" Value="#0a0a12"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Foreground" Value="#e0e0e0"/>
             <Setter Property="Padding" Value="12,6"/>
@@ -352,7 +352,7 @@
                     <ControlTemplate TargetType="CheckBox">
                         <StackPanel Orientation="Horizontal">
                             <Border x:Name="track" Width="40" Height="22" CornerRadius="11"
-                                    Background="#1a1a2a" VerticalAlignment="Center" Margin="0,0,10,0"
+                                    Background="#0a0a12" VerticalAlignment="Center" Margin="0,0,10,0"
                                     Cursor="Hand">
                                 <Ellipse x:Name="thumb" Width="16" Height="16" Fill="#e0e0e0"
                                          HorizontalAlignment="Left" VerticalAlignment="Center" Margin="3,0,0,0">
@@ -443,7 +443,7 @@
         <Style x:Key="InputBox" TargetType="TextBox">
             <Setter Property="Background"       Value="#0a0a12"/>
             <Setter Property="Foreground"       Value="#e0e0e0"/>
-            <Setter Property="BorderBrush"      Value="#1a1a2a"/>
+            <Setter Property="BorderBrush"      Value="#0a0a12"/>
             <Setter Property="BorderThickness"  Value="1"/>
             <Setter Property="CaretBrush"       Value="#e0e0e0"/>
             <Setter Property="FontFamily"       Value="Cascadia Code, Consolas, monospace"/>
@@ -466,7 +466,7 @@
         <Style x:Key="LogBox" TargetType="RichTextBox">
             <Setter Property="Background"       Value="#030306"/>
             <Setter Property="Foreground"       Value="#e0e0e0"/>
-            <Setter Property="BorderBrush"      Value="#1a1a2a"/>
+            <Setter Property="BorderBrush"      Value="#0a0a12"/>
             <Setter Property="BorderThickness"  Value="1"/>
             <Setter Property="FontFamily"       Value="Consolas"/>
             <Setter Property="FontSize"         Value="12"/>
@@ -522,7 +522,7 @@
                                     <Thumb>
                                         <Thumb.Template>
                                             <ControlTemplate TargetType="Thumb">
-                                                <Border Background="#1a1a2a" CornerRadius="5" Width="5" HorizontalAlignment="Right" Margin="0,4,2,4"/>
+                                                <Border Background="#0a0a12" CornerRadius="5" Width="5" HorizontalAlignment="Right" Margin="0,4,2,4"/>
                                             </ControlTemplate>
                                         </Thumb.Template>
                                     </Thumb>
@@ -706,7 +706,7 @@
             <MenuItem Header="По кол-ву нот (Больше → Меньше)" Tag="NotesDesc" Click="SortMenuItem_Click"/>
         </ContextMenu>
     </Window.Resources>
-    <Border Background="#030306" x:Name="RootBorder" CornerRadius="6" BorderBrush="#1a1a2a" BorderThickness="1">
+    <Border Background="#030306" x:Name="RootBorder" CornerRadius="6" BorderBrush="#0a0a12" BorderThickness="1">
             <Grid x:Name="MainGrid">
             <Grid.RowDefinitions>
                 <RowDefinition Height="54"/>
@@ -753,7 +753,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <!-- SIDEBAR -->
-                <Border Grid.Column="0" Background="#07070c" BorderBrush="#1a1a2a" BorderThickness="0,0,1,0">
+                <Border Grid.Column="0" Background="#07070c" BorderBrush="#0a0a12" BorderThickness="0,0,1,0">
                     <DockPanel LastChildFill="False">
                         <StackPanel DockPanel.Dock="Top" Margin="0,10,0,16" HorizontalAlignment="Center">
                             <Border Width="32" Height="32" CornerRadius="8" Background="#00ff8810"
@@ -801,8 +801,8 @@
                     </DockPanel>
                 </Border>
                 <!-- CONTENT AREA -->
-                <Grid Grid.Column="1" x:Name="MainPageContainer" ClipToBounds="True">
-                    <ScrollViewer x:Name="MainPage" Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                <Grid Grid.Column="1" x:Name="MainPageContainer" ClipToBounds="True" Background="#030306">
+                    <ScrollViewer x:Name="MainPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Background="#030306">
                         <Grid>
                             <Grid IsHitTestVisible="False" ClipToBounds="True" 
                                   Panel.ZIndex="-1"
@@ -1134,7 +1134,7 @@
                                                         </Style.Triggers>
                                                     </Style>
                                                 </ToolTip.Style>
-                                                <Border Background="#181818"
+                                                <Border Background="#060609"
                                                         BorderBrush="#252525"
                                                         BorderThickness="1"
                                                         CornerRadius="6"
@@ -1159,7 +1159,7 @@
                         <ProgressBar x:Name="SetupProg" Value="0" Maximum="100" Margin="0,16,0,0"/>
                         <TextBlock x:Name="SetupProgLbl" Text="" FontSize="12"
                                    Foreground="#5a6a7a" Margin="0,5,0,0"/>
-                        <Border Height="1" Background="#1a1a2a" Margin="0,24,0,0"/>
+                        <Border Height="1" Background="#0a0a12" Margin="0,24,0,0"/>
                         <Grid Margin="0,16,0,0">
                             <TextBlock Text="Лог" FontFamily="Cascadia Code, Consolas, monospace" FontSize="13"
                                        FontWeight="Bold" Foreground="#5a6a7a" VerticalAlignment="Center"/>
@@ -1182,7 +1182,7 @@
                         </Grid>
                 </ScrollViewer>
                 </Grid>
-                <Grid Grid.Column="1" x:Name="GamePage" Visibility="Collapsed">
+                <Grid Grid.Column="1" x:Name="GamePage" Visibility="Collapsed" Background="#030306">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -1257,7 +1257,7 @@
                             </StackPanel>
                         </StackPanel>
                     </Grid>
-                    <Border Grid.Row="1" Height="1" Background="#1a1a2a" Margin="32,14,32,0"/>
+                    <Border Grid.Row="1" Height="1" Background="#0a0a12" Margin="32,14,32,0"/>
                     <Grid Grid.Row="2" IsHitTestVisible="False" Panel.ZIndex="-1">
                         <Rectangle x:Name="GameAurora1" Opacity="0.5">
                             <Rectangle.Fill>
@@ -1380,7 +1380,7 @@
                                                     <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
                                                 <Border Width="34" Height="34" CornerRadius="17"
-                                                        Background="#20275a"
+                                                        Background="#0a0a18"
                                                         IsHitTestVisible="False"
                                                         HorizontalAlignment="Center" VerticalAlignment="Center">
                                                     <Path Data="M8,5 L8,19 L19,12 Z" Fill="#00ff88"
@@ -1403,14 +1403,14 @@
                                         MouseEnter="GameSettingsMenuBtn_MouseEnter"
                                         MouseLeave="GameSettingsMenuBtn_MouseLeave"
                                         Background="#030306">
-                                    <Border BorderBrush="#1a1a2a" BorderThickness="1" CornerRadius="6" IsHitTestVisible="False">
+                                    <Border BorderBrush="#0a0a12" BorderThickness="1" CornerRadius="6" IsHitTestVisible="False">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="68"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
                                             <Border Width="34" Height="34" CornerRadius="17"
-                                                    Background="#272727"
+                                                    Background="#0a0a12"
                                                     HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <Path Data="M3,17 L7,11 L11,13 L15,6 L21,6 M18,3 L21,6 L18,9"
                                                       Stroke="#a1a1aa" StrokeThickness="2"
@@ -1432,14 +1432,14 @@
                                         MouseEnter="EditorMenuBtn_MouseEnter"
                                         MouseLeave="EditorMenuBtn_MouseLeave"
                                         Background="#030306">
-                                    <Border BorderBrush="#1a1a2a" BorderThickness="1" CornerRadius="6" IsHitTestVisible="False">
+                                    <Border BorderBrush="#0a0a12" BorderThickness="1" CornerRadius="6" IsHitTestVisible="False">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="68"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
                                             <Border Width="34" Height="34" CornerRadius="17"
-                                                    Background="#272727"
+                                                    Background="#0a0a12"
                                                     HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <Path Data="M12,2 L15,9 L22,9 L17,14 L19,21 L12,17 L5,21 L7,14 L2,9 L9,9 Z"
                                                       Fill="#a1a1aa" Width="16" Height="16" Stretch="Uniform"
@@ -1460,14 +1460,14 @@
                                         MouseEnter="GameSettingsMenuBtn_MouseEnter"
                                         MouseLeave="GameSettingsMenuBtn_MouseLeave"
                                         Background="#030306">
-                                    <Border BorderBrush="#1a1a2a" BorderThickness="1" CornerRadius="6" IsHitTestVisible="False">
+                                    <Border BorderBrush="#0a0a12" BorderThickness="1" CornerRadius="6" IsHitTestVisible="False">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="68"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
                                             <Border Width="34" Height="34" CornerRadius="17"
-                                                    Background="#272727"
+                                                    Background="#0a0a12"
                                                     HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <Path Data="M12,2 A10,10 0 1 1 11.999,2 Z M12,8 L12,12 M12,15 L12,16"
                                                       Stroke="#a1a1aa" StrokeThickness="2"
@@ -1740,7 +1740,7 @@
                                                                <Border x:Name="GlowBorder" CornerRadius="6" Opacity="0.5"/>
                                                                 <Border x:Name="Face" CornerRadius="5"
                                                                         Margin="1.5" Background="#030306"
-                                                                        BorderBrush="#1a1a2a" BorderThickness="1"
+                                                                        BorderBrush="#0a0a12" BorderThickness="1"
                                                                         Padding="{TemplateBinding Padding}">
                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                </Border>
@@ -1784,7 +1784,7 @@
                                                          <Run Text="ZIP или RAR архив" FontWeight="SemiBold" Foreground="#ddd"/>
                                                          <Run Text=". Такой архив создается автоматически при экспорте ваших кастомных уровней. Вы можете создавать уровни самостоятельно или использовать файлы, полученные от друзей."/>
                                                      </TextBlock>
-                                                     <Border Background="#0f1419" CornerRadius="6" Padding="10,8"
+                                                     <Border Background="#050508" CornerRadius="6" Padding="10,8"
                                                              BorderBrush="#00ff88" BorderThickness="1" Opacity="0.8">
                                                          <Grid>
                                                              <Grid.ColumnDefinitions>
@@ -1882,7 +1882,7 @@
                                                 </Grid>
                                             </Border>
                                             <Border x:Name="UserLevelsEmpty" Background="#030306" CornerRadius="8"
-                                                    Padding="16" BorderBrush="#1a1a2a" BorderThickness="1">
+                                                    Padding="16" BorderBrush="#0a0a12" BorderThickness="1">
                                                 <TextBlock Text="Нет сохранённых уровней" FontFamily="Cascadia Code, Consolas, monospace"
                                                            FontSize="12" Foreground="#333344" HorizontalAlignment="Center"/>
                                             </Border>
@@ -1890,7 +1890,7 @@
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <Border Background="#030306" CornerRadius="8" Margin="0,0,0,6"
-                                                                Padding="12,10" BorderBrush="#1a1a2a" BorderThickness="1"
+                                                                Padding="12,10" BorderBrush="#0a0a12" BorderThickness="1"
                                                                 Cursor="Hand" Tag="{Binding}"
                                                                 MouseLeftButtonUp="UserLevelCard_Click"
                                                                 MouseEnter="UserLevelCard_MouseEnter"
@@ -2133,7 +2133,7 @@
                                                 </Grid>
                                             </Border>
                                             <Border x:Name="OsuLevelsEmpty" Background="#030306" CornerRadius="8"
-                                                    Padding="16" BorderBrush="#1a1a2a" BorderThickness="1">
+                                                    Padding="16" BorderBrush="#0a0a12" BorderThickness="1">
                                                 <TextBlock Text="Нет импортированных osu! треков"
                                                            FontFamily="Cascadia Code, Consolas, monospace" FontSize="12"
                                                            Foreground="#333344" HorizontalAlignment="Center"/>
@@ -2142,7 +2142,7 @@
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <Border Background="#030306" CornerRadius="8" Margin="0,0,0,6"
-                                                                Padding="12,10" BorderBrush="#1a1a2a" BorderThickness="1"
+                                                                Padding="12,10" BorderBrush="#0a0a12" BorderThickness="1"
                                                                 Cursor="Hand" Tag="{Binding}"
                                                                 MouseLeftButtonUp="OsuLevelCard_Click"
                                                                 MouseEnter="UserLevelCard_MouseEnter"
@@ -2215,8 +2215,8 @@
                                         Background="Transparent">
                                 </Canvas>
                             </Grid>
-                            <Border VerticalAlignment="Bottom" Background="#0d0d15"
-                                    BorderBrush="#1a1a2a" BorderThickness="0,1,0,0" Padding="0,10">
+                            <Border VerticalAlignment="Bottom" Background="#050508"
+                                    BorderBrush="#0a0a12" BorderThickness="0,1,0,0" Padding="0,10">
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                     <Border Background="#1a0a10" CornerRadius="6" Padding="12,6" Margin="4,0">
                                         <TextBlock x:Name="KeyHint0" Text="A / ←" FontFamily="Cascadia Code, Consolas, monospace" FontSize="12" Foreground="#f43f5e"/>
@@ -2298,7 +2298,7 @@
                                                          Height="2" Maximum="3" Value="0" Visibility="Collapsed"/>
                                         </StackPanel>
                                     </Border>
-                                    <Border x:Name="EditorRecordingBox" Background="#0f0a15" CornerRadius="8"
+                                    <Border x:Name="EditorRecordingBox" Background="#050508" CornerRadius="8"
                                             Padding="20" Margin="0,0,0,20" Visibility="Collapsed"
                                             BorderBrush="#00d4ff" BorderThickness="1.5">
                                         <StackPanel>
@@ -2373,7 +2373,7 @@
                                         <TextBlock Text="Завершить запись" VerticalAlignment="Center"/>
                                     </Button>
                                     <Border x:Name="EditorResultBox" Margin="0,20,0,0"
-                                            Background="#0a1a0a" CornerRadius="8" Padding="16"
+                                            Background="#050508" CornerRadius="8" Padding="16"
                                             BorderBrush="#1a3a1a" BorderThickness="1" Visibility="Collapsed">
                                         <StackPanel>
                                             <TextBlock x:Name="EditorResultText" FontFamily="Cascadia Code, Consolas, monospace" FontSize="13"
@@ -2399,7 +2399,7 @@
                               </Grid>
                               </Grid>
                  </Grid>
-                <Grid Grid.Column="1" x:Name="FaqPage" Visibility="Collapsed">
+                <Grid Grid.Column="1" x:Name="FaqPage" Visibility="Collapsed" Background="#030306">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -2426,12 +2426,12 @@
                                        VerticalAlignment="Center" Margin="16,0,0,0"/>
                         </StackPanel>
                     </Grid>
-                    <Border Grid.Row="1" Height="1" Background="#1a1a2a" Margin="32,14,32,0"/>
+                    <Border Grid.Row="1" Height="1" Background="#0a0a12" Margin="32,14,32,0"/>
                     <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="32,14,32,0">
                         <StackPanel x:Name="FaqContainer" Margin="0,0,0,20"/>
                     </ScrollViewer>
                 </Grid>
-                <Grid Grid.Column="1" x:Name="SolutionPage" Visibility="Collapsed">
+                <Grid Grid.Column="1" x:Name="SolutionPage" Visibility="Collapsed" Background="#030306">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -2458,7 +2458,7 @@
                                        VerticalAlignment="Center" Margin="16,0,0,0"/>
                         </StackPanel>
                     </Grid>
-                    <Border Grid.Row="1" Height="1" Background="#1a1a2a" Margin="32,14,32,0"/>
+                    <Border Grid.Row="1" Height="1" Background="#0a0a12" Margin="32,14,32,0"/>
                     <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="32,14,32,0">
                         <StackPanel Margin="0,0,0,32">
                             <TextBlock Text="Автоматическое решение" FontFamily="Cascadia Code, Consolas, monospace" FontSize="15"
@@ -2477,7 +2477,7 @@
                                     <TextBlock Text="Исправить в один клик" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Border Height="1" Background="#1a1a2a" Margin="0,0,0,24"/>
+                            <Border Height="1" Background="#0a0a12" Margin="0,0,0,24"/>
                             <TextBlock Text="Ручное решение" FontFamily="Cascadia Code, Consolas, monospace" FontSize="15"
                                        FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
                             <Border Background="#030306" BorderBrush="#00ff88" BorderThickness="2,0,0,0"
@@ -2489,7 +2489,7 @@
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>
-                <Grid Grid.Column="1" x:Name="DiagPage" Visibility="Collapsed">
+                <Grid Grid.Column="1" x:Name="DiagPage" Visibility="Collapsed" Background="#030306">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -2537,12 +2537,12 @@
                         <TextBlock x:Name="DiagProgLbl" Text="" FontSize="12"
                                    Foreground="#5a6a7a" Margin="0,5,0,0"/>
                     </StackPanel>
-                    <Border Grid.Row="2" Height="1" Background="#1a1a2a" Margin="32,14,32,0"/>
+                    <Border Grid.Row="2" Height="1" Background="#0a0a12" Margin="32,14,32,0"/>
                     <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" Margin="32,14,32,0">
                         <StackPanel x:Name="DiagResults"/>
                     </ScrollViewer>
                 </Grid>
-           <Grid Grid.Column="1" x:Name="ModsPage" Visibility="Collapsed">
+           <Grid Grid.Column="1" x:Name="ModsPage" Visibility="Collapsed" Background="#030306">
                <Grid.Resources>
                     <PathGeometry x:Key="OpenLocationIcon">M17,3 L21,3 L21,7 M11,13 L21,3 M19,13.89 L19,20 Q19,21 18,21 L4,21 Q3,21 3,20 L3,6 Q3,5 4,5 L10.11,5</PathGeometry>
                     <Style x:Key="TabRadio" TargetType="RadioButton">
@@ -2581,7 +2581,7 @@
                    </Style>
                    <Style x:Key="ArrowBtn" TargetType="Button">
                        <Setter Property="Background" Value="#1c1c1e"/>
-                       <Setter Property="BorderBrush" Value="#1a1a2a"/>
+                       <Setter Property="BorderBrush" Value="#0a0a12"/>
                        <Setter Property="BorderThickness" Value="1"/>
                        <Setter Property="Cursor" Value="Hand"/>
                        <Setter Property="Width" Value="40"/>
@@ -2636,11 +2636,11 @@
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="bd" Property="Background" Value="#2a2a2e"/>
+                                            <Setter TargetName="bd" Property="Background" Value="#0a0a12"/>
                                             <Setter TargetName="bd" Property="BorderBrush" Value="#44888888"/>
                                         </Trigger>
                                         <Trigger Property="IsPressed" Value="True">
-                                            <Setter TargetName="bd" Property="Background" Value="#1e1e22"/>
+                                            <Setter TargetName="bd" Property="Background" Value="#08080e"/>
                                         </Trigger>
                                         <Trigger Property="IsEnabled" Value="False">
                                             <Setter Property="Opacity" Value="0.55"/>
@@ -2713,7 +2713,7 @@
                                                    FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"
                                                    TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
                                         <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                            <Border CornerRadius="4" Background="#1e1e22" Padding="6,2" Margin="0,0,6,0">
+                                            <Border CornerRadius="4" Background="#08080e" Padding="6,2" Margin="0,0,6,0">
                                                 <TextBlock x:Name="CardAuthor" FontFamily="Cascadia Code, Consolas, monospace" FontSize="10" Foreground="#5a9fd4">
                                                     <Run Text="Автор: " FontWeight="SemiBold"/>
                                                     <Run Text="{Binding Author}"/>
@@ -2723,7 +2723,7 @@
                                                 <TextBlock FontFamily="Cascadia Code, Consolas, monospace" FontSize="10" Foreground="{StaticResource DimTextBrush}"
                                                            Text="{Binding Version}"/>
                                             </Border>
-                                            <Border CornerRadius="4" Background="#16161a" Padding="6,2" Margin="6,0,0,0">
+                                            <Border CornerRadius="4" Background="#07070c" Padding="6,2" Margin="6,0,0,0">
                                                 <Border.Style>
                                                     <Style TargetType="Border">
                                                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -2927,7 +2927,7 @@
                         </DataTemplate>
                      <DataTemplate x:Key="MyModCardTpl">
                         <Border Width="160" Height="170" CornerRadius="14"
-                                Background="#030306" BorderBrush="#2a2a2e" BorderThickness="1"
+                                Background="#030306" BorderBrush="#0a0a12" BorderThickness="1"
                                 Margin="0,0,14,14" Padding="16,14,10,10"
                                 Cursor="Hand" MouseLeftButtonUp="MyModCard_Click">
                             <Grid>
@@ -2945,13 +2945,13 @@
                                            MaxHeight="50" Margin="0,0,0,8"/>
                                 <StackPanel Grid.Row="2">
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                        <Border CornerRadius="4" Background="#1e1e22" Padding="6,2" Margin="0,0,6,0">
+                                        <Border CornerRadius="4" Background="#08080e" Padding="6,2" Margin="0,0,6,0">
                                             <TextBlock Text="{Binding Author}" FontSize="10" Foreground="#5a9fd4"/>
                                         </Border>
                                         <Border CornerRadius="4" Background="#030306" Padding="6,2">
                                             <TextBlock Text="{Binding Version}" FontSize="10" Foreground="#333344"/>
                                         </Border>
-                                        <Border CornerRadius="4" Background="#141418" Padding="6,2" Margin="6,0,0,0">
+                                        <Border CornerRadius="4" Background="#060609" Padding="6,2" Margin="6,0,0,0">
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -3123,7 +3123,7 @@
                                                     FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"
                                                     TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
                                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                               <Border CornerRadius="4" Background="#1e1e22" Padding="5,2" Margin="0,0,5,0">
+                                               <Border CornerRadius="4" Background="#08080e" Padding="5,2" Margin="0,0,5,0">
                                                    <TextBlock x:Name="CardAuthor" FontFamily="Cascadia Code, Consolas, monospace" FontSize="10" Foreground="#5a9fd4">
                                                        <Run Text="Автор: " FontWeight="SemiBold"/>
                                                        <Run Text="{Binding Author}"/>
@@ -3133,7 +3133,7 @@
                                                    <TextBlock FontFamily="Cascadia Code, Consolas, monospace" FontSize="10" Foreground="{StaticResource DimTextBrush}"
                                                               Text="{Binding Version}"/>
                                                </Border>
-                                               <Border CornerRadius="4" Background="#16161a" Padding="5,1" Margin="5,0,0,0">
+                                               <Border CornerRadius="4" Background="#07070c" Padding="5,1" Margin="5,0,0,0">
                                                    <Border.Style>
                                                        <Style TargetType="Border">
                                                            <Setter Property="Visibility" Value="Collapsed"/>
@@ -3388,7 +3388,7 @@
                                                <Thumb>
                                                    <Thumb.Template>
                                                        <ControlTemplate TargetType="Thumb">
-                                                           <Border Background="#3a3a3a" CornerRadius="4" Width="4" HorizontalAlignment="Right" Margin="0,4,12,4"/>
+                                                           <Border Background="#0a0a12" CornerRadius="4" Width="4" HorizontalAlignment="Right" Margin="0,4,12,4"/>
                                                        </ControlTemplate>
                                                    </Thumb.Template>
                                                </Thumb>
@@ -3441,7 +3441,7 @@
                                 Foreground="#00ff88" VerticalAlignment="Center"
                                 Visibility="Collapsed"/>
                  </Grid>
-                <Border Grid.Row="1" Height="1" Background="#1a1a2a" Margin="32,14,32,0"/>
+                <Border Grid.Row="1" Height="1" Background="#0a0a12" Margin="32,14,32,0"/>
                 <Grid Grid.Row="2" IsHitTestVisible="False" Panel.ZIndex="-1"
                       VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
                       ClipToBounds="True" RenderOptions.EdgeMode="Aliased">
@@ -4133,7 +4133,7 @@
                                         <TextBlock Text="ДОСТУПНЫЕ:" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                                    FontWeight="Bold" Foreground="#666669" VerticalAlignment="Center"
                                                    />
-                                        <Border Background="#1e1e22" CornerRadius="6" Padding="8,3" Margin="10,0,0,0">
+                                        <Border Background="#08080e" CornerRadius="6" Padding="8,3" Margin="10,0,0,0">
                                             <TextBlock x:Name="AvailableCount" Text="0"
                                                        FontFamily="Cascadia Code, Consolas, monospace" FontSize="11" Foreground="#5a6a7a"/>
                                          </Border>
@@ -4186,7 +4186,7 @@
                                        <TextBlock Text="АКТИВНЫЕ:" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                                   FontWeight="Bold" Foreground="#666669" VerticalAlignment="Center"
                                                   />
-                                       <Border Background="#1e1e22" CornerRadius="6" Padding="8,3" Margin="10,0,0,0">
+                                       <Border Background="#08080e" CornerRadius="6" Padding="8,3" Margin="10,0,0,0">
                                             <TextBlock x:Name="ActiveCount" Text="0"
                                                        FontFamily="Cascadia Code, Consolas, monospace" FontSize="11" Foreground="#5a6a7a"/>
                                        </Border>
@@ -4284,7 +4284,7 @@
                                           <TextBlock Text="ДОСТУПНЫЕ:" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                                      FontWeight="Bold" Foreground="#666669" VerticalAlignment="Center"
                                                      />
-                                          <Border Background="#1e1e22" CornerRadius="6" Padding="8,3" Margin="10,0,0,0">
+                                          <Border Background="#08080e" CornerRadius="6" Padding="8,3" Margin="10,0,0,0">
                                               <TextBlock x:Name="ListsAvailableCount" Text="0"
                                                          FontFamily="Cascadia Code, Consolas, monospace" FontSize="11" Foreground="#5a6a7a"/>
                                           </Border>
@@ -4337,7 +4337,7 @@
                                         <TextBlock Text="АКТИВНЫЕ:" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                                    FontWeight="Bold" Foreground="#666669" VerticalAlignment="Center"
                                                    />
-                                        <Border Background="#1e1e22" CornerRadius="6" Padding="8,3" Margin="10,0,0,0">
+                                        <Border Background="#08080e" CornerRadius="6" Padding="8,3" Margin="10,0,0,0">
                                             <TextBlock x:Name="ListsActiveCount" Text="0"
                                                        FontFamily="Cascadia Code, Consolas, monospace" FontSize="11" Foreground="#5a6a7a"/>
                                         </Border>
@@ -4636,7 +4636,7 @@
                                           <TextBlock Text="ДОСТУПНЫЕ:" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                                      FontWeight="Bold" Foreground="#666669" VerticalAlignment="Center"
                                                      />
-                                          <Border Background="#1e1e22" CornerRadius="6" Padding="8,3" Margin="10,0,0,0">
+                                          <Border Background="#08080e" CornerRadius="6" Padding="8,3" Margin="10,0,0,0">
                                               <TextBlock x:Name="HostsAvailableCount" Text="0"
                                                          FontFamily="Cascadia Code, Consolas, monospace" FontSize="11" Foreground="#5a6a7a"/>
                                           </Border>
@@ -4685,7 +4685,7 @@
                                         <TextBlock Text="АКТИВНЫЕ:" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                                    FontWeight="Bold" Foreground="#666669" VerticalAlignment="Center"
                                                    />
-                                        <Border Background="#1e1e22" CornerRadius="6" Padding="8,3" Margin="10,0,0,0">
+                                        <Border Background="#08080e" CornerRadius="6" Padding="8,3" Margin="10,0,0,0">
                                             <TextBlock x:Name="HostsActiveCount" Text="0"
                                                        FontFamily="Cascadia Code, Consolas, monospace" FontSize="11" Foreground="#5a6a7a"/>
                                         </Border>
@@ -4788,7 +4788,7 @@
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                  <TextBlock Text="Включено:" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                            FontWeight="Bold" Foreground="#666669" VerticalAlignment="Center"/>
-                                <Border Background="#1e1e22" CornerRadius="6" Padding="8,3" Margin="10,0,0,0">
+                                <Border Background="#08080e" CornerRadius="6" Padding="8,3" Margin="10,0,0,0">
                                     <TextBlock x:Name="MyModsCount" Text="0"
                                                FontFamily="Cascadia Code, Consolas, monospace" FontSize="11" Foreground="#5a6a7a"/>
                                 </Border>
@@ -4829,7 +4829,7 @@
                                  <ColumnDefinition Width="Auto"/>
                                  <ColumnDefinition Width="*" MinWidth="150"/>
                              </Grid.ColumnDefinitions>
-                                 <Grid Grid.Column="0" Background="#141416">
+                                 <Grid Grid.Column="0" Background="#060609">
                                          <Grid.RowDefinitions>
                                                  <RowDefinition Height="Auto"/>
                                                  <RowDefinition Height="*"/>
@@ -4846,7 +4846,7 @@
                                                            <Button.Template>
                                                                <ControlTemplate TargetType="Button">
                                                                    <Border x:Name="bd" Background="{TemplateBinding Background}"
-                                                                           BorderBrush="#2a2a2e" BorderThickness="1"
+                                                                           BorderBrush="#0a0a12" BorderThickness="1"
                                                                            CornerRadius="6" Width="24" Height="24">
                                                                        <Path Data="{StaticResource FolderOpenIcon}" Stroke="#5a6a7a"
                                                                              StrokeThickness="1.5" Width="14" Height="14" Stretch="Uniform"
@@ -4854,7 +4854,7 @@
                                                                    </Border>
                                                                    <ControlTemplate.Triggers>
                                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                                           <Setter TargetName="bd" Property="Background" Value="#2a2a2e"/>
+                                                                           <Setter TargetName="bd" Property="Background" Value="#0a0a12"/>
                                                                        </Trigger>
                                                                    </ControlTemplate.Triggers>
                                                                </ControlTemplate>
@@ -4862,9 +4862,9 @@
                                                        </Button>
                                                   </Grid>
                                               </Border>
-                                             <Rectangle Grid.Row="0" Height="1" Fill="#2a2a2e" VerticalAlignment="Bottom"/>
+                                             <Rectangle Grid.Row="0" Height="1" Fill="#0a0a12" VerticalAlignment="Bottom"/>
                                              <ListBox x:Name="ModsEditorFileList" Grid.Row="1"
-                                                    Background="#141416" BorderThickness="0"
+                                                    Background="#060609" BorderThickness="0"
                                                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
                                                     ScrollViewer.VerticalScrollBarVisibility="Hidden"
                                                    SelectionChanged="ModsEditorFileList_SelectionChanged">
@@ -4905,7 +4905,7 @@
                                            </ListBox>
                                 </Grid>
                                <GridSplitter Grid.Column="1" Width="4" ResizeDirection="Columns"
-                                           Background="#2a2a2e" HorizontalAlignment="Stretch">
+                                           Background="#0a0a12" HorizontalAlignment="Stretch">
                                   <GridSplitter.Style>
                                       <Style TargetType="GridSplitter">
                                           <Setter Property="Template">
@@ -4919,7 +4919,7 @@
                                       </Style>
                                   </GridSplitter.Style>
                              </GridSplitter>
-                                 <Grid Grid.Column="2" Background="#141416">
+                                 <Grid Grid.Column="2" Background="#060609">
                                           <Grid>
                                               <Grid.RowDefinitions>
                                                   <RowDefinition Height="Auto"/>
@@ -4934,7 +4934,7 @@
                                                      </Grid.ColumnDefinitions>
                                                      <TextBlock Grid.Column="0" Text="Редактор" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                                                 FontWeight="Bold" Foreground="#666669" VerticalAlignment="Center"/>
-                                                     <Border Grid.Column="1" BorderBrush="#2a2a2e" BorderThickness="1" CornerRadius="6">
+                                                     <Border Grid.Column="1" BorderBrush="#0a0a12" BorderThickness="1" CornerRadius="6">
                                                         <StackPanel Orientation="Horizontal">
                                                              <Button x:Name="EditorZoomOutBtn" Width="24" Height="24" Padding="0"
                                                                      BorderThickness="0" Background="Transparent"
@@ -4950,7 +4950,7 @@
                                                                         </Border>
                                                                         <ControlTemplate.Triggers>
                                                                             <Trigger Property="IsMouseOver" Value="True">
-                                                                                <Setter TargetName="bd" Property="Background" Value="#2a2a2e"/>
+                                                                                <Setter TargetName="bd" Property="Background" Value="#0a0a12"/>
                                                                             </Trigger>
                                                                         </ControlTemplate.Triggers>
                                                                     </ControlTemplate>
@@ -4974,7 +4974,7 @@
                                                                         </Border>
                                                                         <ControlTemplate.Triggers>
                                                                             <Trigger Property="IsMouseOver" Value="True">
-                                                                                <Setter TargetName="bd" Property="Background" Value="#2a2a2e"/>
+                                                                                <Setter TargetName="bd" Property="Background" Value="#0a0a12"/>
                                                                             </Trigger>
                                                                         </ControlTemplate.Triggers>
                                                                     </ControlTemplate>
@@ -4984,9 +4984,9 @@
                                                     </Border>
                                                 </Grid>
                                             </Border>
-                                            <Rectangle Grid.Row="0" Height="1" Fill="#2a2a2e" VerticalAlignment="Bottom"/>
+                                            <Rectangle Grid.Row="0" Height="1" Fill="#0a0a12" VerticalAlignment="Bottom"/>
                                             <TextBox x:Name="ModsEditorTextBox" Grid.Row="1"
-                                                     Background="#141416" Foreground="#e0e0e0"
+                                                     Background="#060609" Foreground="#e0e0e0"
                                                      BorderThickness="0"
                                                      FontFamily="Consolas" FontSize="12.5"
                                                      AcceptsReturn="True" AcceptsTab="True"
@@ -5028,7 +5028,7 @@
                                                                               ViewportSize="{TemplateBinding ViewportWidth}"
                                                                               Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"
                                                                               Orientation="Horizontal"/>
-                                                                         <Rectangle Grid.Row="1" Grid.Column="1" Fill="#141416"/>
+                                                                         <Rectangle Grid.Row="1" Grid.Column="1" Fill="#060609"/>
                                                                      </Grid>
                                                                  </ControlTemplate>
                                                              </Setter.Value>
@@ -5049,7 +5049,7 @@
                                                                                  <Thumb>
                                                                                      <Thumb.Template>
                                                                                          <ControlTemplate TargetType="Thumb">
-                                                                                             <Border Background="#404048" CornerRadius="4"/>
+                                                                                             <Border Background="#1a1a2a" CornerRadius="4"/>
                                                                                          </ControlTemplate>
                                                                                      </Thumb.Template>
                                                                                  </Thumb>
@@ -5078,7 +5078,7 @@
                                                                                          <Thumb>
                                                                                              <Thumb.Template>
                                                                                                  <ControlTemplate TargetType="Thumb">
-                                                                                                     <Border Background="#404048" CornerRadius="4"/>
+                                                                                                     <Border Background="#1a1a2a" CornerRadius="4"/>
                                                                                                  </ControlTemplate>
                                                                                              </Thumb.Template>
                                                                                          </Thumb>
@@ -5098,7 +5098,7 @@
                                                 </TextBox.Resources>
                                             </TextBox>
                                             <Border Grid.Row="2" Background="#030306" Padding="12,8"
-                                                    BorderBrush="#2a2a2e" BorderThickness="0,1,0,0">
+                                                    BorderBrush="#0a0a12" BorderThickness="0,1,0,0">
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                                     <Button x:Name="ModsEditorResetBtn" Content="Сбросить"
                                                             Style="{StaticResource OutlineBtn}"
@@ -5146,12 +5146,12 @@
                 <Rectangle x:Name="SettingsBackdrop" Fill="Black" Opacity="0"
                            MouseLeftButtonDown="SettingsBackdrop_Click"/>
                 <Border x:Name="SettingsPanel" Width="370" HorizontalAlignment="Right"
-                        Background="#030306" CornerRadius="0,12,12,0" BorderBrush="#1a1a2a" BorderThickness="1,0,0,0">
+                        Background="#030306" CornerRadius="0,12,12,0" BorderBrush="#0a0a12" BorderThickness="1,0,0,0">
                     <Border.RenderTransform>
                         <TranslateTransform x:Name="SettingsTrans" X="370"/>
                     </Border.RenderTransform>
                     <DockPanel>
-                        <Border DockPanel.Dock="Top" Height="46" BorderBrush="#1a1a2a" BorderThickness="0,0,0,1">
+                        <Border DockPanel.Dock="Top" Height="46" BorderBrush="#0a0a12" BorderThickness="0,0,0,1">
                             <Grid Margin="20,0">
                                 <TextBlock Text="Настройки" FontFamily="Cascadia Code, Consolas, monospace" FontSize="15"
                                            FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
@@ -5205,7 +5205,7 @@
                                             WindowChrome.IsHitTestVisibleInChrome="True"
                                             Click="BrowseTgWs_Click"/>
                                 </Grid>
-                                <Border Height="1" Background="#1a1a2a" Margin="0,0,0,16"/>
+                                <Border Height="1" Background="#0a0a12" Margin="0,0,0,16"/>
                                 <TextBlock Text="АВТОЗАПУСК" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                            Foreground="#5a6a7a" FontWeight="Bold" Margin="0,0,0,12"/>
                                 <CheckBox x:Name="AutoTgWsCB" Style="{StaticResource Toggle}"
@@ -5217,7 +5217,7 @@
                                  <CheckBox x:Name="StartMinimizedCB" Style="{StaticResource Toggle}"
                                             Content="ZapretHub в трей при запуске" Margin="0,0,0,10"
                                             Checked="SettingCB_Checked" Unchecked="SettingCB_Unchecked"/>
-                                <Border Height="1" Background="#1a1a2a" Margin="0,0,0,16"/>
+                                <Border Height="1" Background="#0a0a12" Margin="0,0,0,16"/>
                                 <TextBlock Text="ИСПОЛЬЗУЕМЫЕ КОМПОНЕНТЫ" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                            Foreground="#5a6a7a" FontWeight="Bold" Margin="0,0,0,10"/>
                                 <CheckBox x:Name="UseZapretCB" Style="{StaticResource Toggle}"
@@ -5226,19 +5226,19 @@
                                 <CheckBox x:Name="UseTgWsCB" Style="{StaticResource Toggle}"
                                           Content="Использовать TgWsProxy" Margin="0,0,0,14"
                                           Checked="SettingCB_Checked" Unchecked="SettingCB_Unchecked"/>
-                                <Border Height="1" Background="#1a1a2a" Margin="0,0,0,16"/>
+                                <Border Height="1" Background="#0a0a12" Margin="0,0,0,16"/>
                                 <TextBlock Text="TgWsProxy" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                            Foreground="#5a6a7a" FontWeight="Bold" Margin="0,0,0,12"/>
                                 <CheckBox x:Name="TgWsCheckUpdatesCB" Style="{StaticResource Toggle}"
                                           Content="Уведомления об обновлении TgWsProxy" Margin="0,0,0,20"
                                           Checked="TgWsSetting_Checked" Unchecked="TgWsSetting_Unchecked"/>
-                                <Border Height="1" Background="#1a1a2a" Margin="0,0,0,16"/>
+                                <Border Height="1" Background="#0a0a12" Margin="0,0,0,16"/>
                                 <TextBlock Text="РЕЖИМ КНОПКИ «ПОЧИНИТЬ ИНТЕРНЕТ»" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                            Foreground="#5a6a7a" FontWeight="Bold" Margin="0,0,0,10"/>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,20">
                                     <Border x:Name="FixModeFastCard" Width="155" Height="90"
                                             CornerRadius="10" Background="#030306"
-                                            BorderBrush="#1a1a2a" BorderThickness="1.5"
+                                            BorderBrush="#0a0a12" BorderThickness="1.5"
                                             Margin="0,0,8,0" Cursor="Hand"
                                             MouseLeftButtonDown="FixModeFastCard_Click"
                                             SnapsToDevicePixels="True"
@@ -5258,7 +5258,7 @@
                                     </Border>
                                     <Border x:Name="FixModeFullCard" Width="155" Height="90"
                                             CornerRadius="10" Background="#030306"
-                                            BorderBrush="#1a1a2a" BorderThickness="1.5"
+                                            BorderBrush="#0a0a12" BorderThickness="1.5"
                                             Cursor="Hand" MouseLeftButtonDown="FixModeFullCard_Click"
                                             SnapsToDevicePixels="True"
                                             TextOptions.TextRenderingMode="ClearType"
@@ -5280,7 +5280,7 @@
                                            FontSize="10.5" Foreground="#f0f0f0" TextWrapping="Wrap"
                                            Margin="0,0,0,10" HorizontalAlignment="Center"
                                            TextAlignment="Center" MaxWidth="420"/>
-                                <Border Height="1" Background="#1a1a2a" Margin="0,0,0,16"/>
+                                <Border Height="1" Background="#0a0a12" Margin="0,0,0,16"/>
                                 <TextBlock Text="ПРОЧЕЕ" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                            Foreground="#5a6a7a" FontWeight="Bold" Margin="0,0,0,12"/>
                                 <CheckBox x:Name="DiscordRpcCB" Style="{StaticResource Toggle}"
@@ -5331,7 +5331,7 @@
                                         HorizontalAlignment="Stretch" Padding="12,8" Margin="0,0,0,20"
                                         WindowChrome.IsHitTestVisibleInChrome="True"
                                         Click="CheckUpdateBtn_Click"/>
-                                <Border Height="1" Background="#1a1a2a" Margin="0,4,0,16"/>
+                                <Border Height="1" Background="#0a0a12" Margin="0,4,0,16"/>
                                 <TextBlock Text="TELEGRAM-КАНАЛ ПРОЕКТА" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                            Foreground="#5a6a7a" FontWeight="Bold" Margin="0,0,0,10"/>
                                 <Border Background="#1a2e1a" BorderBrush="#00ff88" BorderThickness="2,0,0,0"
@@ -5356,7 +5356,7 @@
                                         </Button>
                                     </StackPanel>
                                 </Border>
-                                <Border Height="1" Background="#1a1a2a" Margin="0,4"/>
+                                <Border Height="1" Background="#0a0a12" Margin="0,4"/>
                                 <TextBlock Text="БУДУЩЕЕ ПРОЕКТА И ПОДДЕРЖКА" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                            Foreground="#5a6a7a" FontWeight="Bold" Margin="0,0,0,10"/>
                                 <TextBlock Text="Нравится, как всё работает? Ты можешь поддержать разработку! В планах, реализовать такое же приложение на телефон с полным функционалом, потому что на мобилках сейчас такая же беда с интернетом.&#x0a;Если хочешь помочь финансово, жми на кнопку ниже. А если ты шаришь в коде и хочешь вписаться в разработку напрямую, пиши мне в личку, обсудим."
@@ -5389,7 +5389,7 @@
                                         <TextBlock Text="Написать в телеграм" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
-                                <Border Height="1" Background="#1a1a2a" Margin="0,20"/>
+                                <Border Height="1" Background="#0a0a12" Margin="0,20"/>
                                 <TextBlock Text="О ПРИЛОЖЕНИИ" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                            Foreground="#5a6a7a" FontWeight="Bold" Margin="0,0,0,12"/>
                                 <TextBlock TextWrapping="Wrap" FontFamily="Cascadia Code, Consolas, monospace" FontSize="12"
@@ -5401,7 +5401,7 @@
                                 <TextBlock TextWrapping="Wrap" FontFamily="Cascadia Code, Consolas, monospace" FontSize="12"
                                            Foreground="#f0f0f0" Margin="0,0,0,0"
                                            Text="Цель ZapretHub, сделать настройку простой и понятной для любого пользователя."/>
-                                <Border Height="1" Background="#1a1a2a" Margin="0,20"/>
+                                <Border Height="1" Background="#0a0a12" Margin="0,20"/>
                                 <TextBlock Text="ССЫЛКИ" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                            Foreground="#5a6a7a" FontWeight="Bold" Margin="0,0,0,10"/>
                                 <Button HorizontalAlignment="Left"
@@ -5468,7 +5468,7 @@
                                         <TextBlock Text="Telegram-канал @ZapretHubRuBi" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
-                                <Border Height="1" Background="#1a1a2a" Margin="0,16"/>
+                                <Border Height="1" Background="#0a0a12" Margin="0,16"/>
                                 <TextBlock Text="РЕЗЕРВНОЕ КОПИРОВАНИЕ" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                            Foreground="#5a6a7a" FontWeight="Bold" Margin="0,0,0,12"/>
                                 <Button Style="{StaticResource OutlineBtn}" HorizontalAlignment="Stretch"
@@ -5505,7 +5505,7 @@
                                         <TextBlock Text="Импортировать результаты тестов" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
-                                <Border Height="1" Background="#1a1a2a" Margin="0,0,0,16"/>
+                                <Border Height="1" Background="#0a0a12" Margin="0,0,0,16"/>
                                 <TextBlock Text="СБРОС" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                            Foreground="#5a6a7a" FontWeight="Bold" Margin="0,0,0,12"/>
                                 <Button Style="{StaticResource OutlineBtn}" HorizontalAlignment="Stretch"
@@ -5536,12 +5536,12 @@
                   Visibility="Collapsed" Panel.ZIndex="15">
                 <Rectangle x:Name="WizardBackdrop" Fill="Black" Opacity="0.6"/>
                 <Border Width="370" HorizontalAlignment="Right"
-                        Background="#030306" CornerRadius="0,12,12,0" BorderBrush="#1a1a2a" BorderThickness="1,0,0,0">
+                        Background="#030306" CornerRadius="0,12,12,0" BorderBrush="#0a0a12" BorderThickness="1,0,0,0">
                     <Border.RenderTransform>
                         <TranslateTransform x:Name="WizardTrans" X="370"/>
                     </Border.RenderTransform>
                     <DockPanel>
-                        <Border DockPanel.Dock="Top" Height="46" BorderBrush="#1a1a2a" BorderThickness="0,0,0,1">
+                        <Border DockPanel.Dock="Top" Height="46" BorderBrush="#0a0a12" BorderThickness="0,0,0,1">
                             <Grid Margin="20,0">
                                 <TextBlock Text="Мастер настройки Zapret" FontFamily="Cascadia Code, Consolas, monospace" FontSize="15"
                                            FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
@@ -5566,7 +5566,7 @@
                                              IsIndeterminate="True"
                                              Visibility="Collapsed"
                                              Foreground="#00ff88"
-                                             Background="#1a1a1c"
+                                             Background="#07070c"
                                              BorderThickness="0"/>
                             </StackPanel>
                         </ScrollViewer>
@@ -5589,7 +5589,7 @@
                 <Border x:Name="ServicesPanel" Width="300"
                         HorizontalAlignment="Right"
                         Background="#030306" CornerRadius="0,12,12,0"
-                        BorderBrush="#1a1a2a" BorderThickness="1,0,0,0">
+                        BorderBrush="#0a0a12" BorderThickness="1,0,0,0">
                     <Border.RenderTransform>
                         <TranslateTransform x:Name="ServicesTrans" X="300"/>
                     </Border.RenderTransform>
@@ -5601,7 +5601,7 @@
                             </Grid.RenderTransform>
                             <DockPanel>
                                 <Border DockPanel.Dock="Top" Height="46"
-                                        BorderBrush="#1a1a2a" BorderThickness="0,0,0,1">
+                                        BorderBrush="#0a0a12" BorderThickness="0,0,0,1">
                                     <Grid x:Name="HeaderMainView" Margin="20,0">
                                         <TextBlock Text="Управление сервисами"
                                                    FontFamily="Cascadia Code, Consolas, monospace" FontSize="15"
@@ -5623,7 +5623,7 @@
                                 </Border>
                                 <StackPanel Margin="20,8,20,15">
                                      <Border Background="#0a0a12" CornerRadius="6"
-                                             BorderBrush="#1a1a2a" BorderThickness="1"
+                                             BorderBrush="#0a0a12" BorderThickness="1"
                                              Padding="15,12" Margin="0,0,0,8">
                                          <StackPanel>
                                              <Grid>
@@ -5677,12 +5677,12 @@
                                                          IsIndeterminate="True"
                                                          Visibility="Collapsed"
                                                          Foreground="#00ff88"
-                                                         Background="#1a1a1c"
+                                                         Background="#07070c"
                                                          BorderThickness="0"/>
                                         </StackPanel>
                                     </Border>
                                     <Border Background="#0a0a12" CornerRadius="6"
-                                            BorderBrush="#1a1a2a" BorderThickness="1"
+                                            BorderBrush="#0a0a12" BorderThickness="1"
                                             Padding="12,10" Margin="0,0,0,6">
                                         <StackPanel>
                                             <Grid>
@@ -5736,7 +5736,7 @@
                                                          IsIndeterminate="True"
                                                          Visibility="Collapsed"
                                                          Foreground="#00ff88"
-                                                         Background="#1a1a1c"
+                                                         Background="#07070c"
                                                          BorderThickness="0"/>
                                         </StackPanel>
                                     </Border>
@@ -5911,7 +5911,7 @@
                             </Grid.RenderTransform>
                             <DockPanel>
                                 <Border DockPanel.Dock="Top" Height="46"
-                                        BorderBrush="#1a1a2a" BorderThickness="0,0,0,1">
+                                        BorderBrush="#0a0a12" BorderThickness="0,0,0,1">
                                     <Grid x:Name="HeaderDnsView" Margin="20,0">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <Button Style="{StaticResource FlatBtnCentered}"
