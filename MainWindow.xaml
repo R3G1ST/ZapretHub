@@ -755,7 +755,7 @@
                         <Button x:Name="NotifyBtn" Style="{StaticResource SidebarBtn}"
                                 Width="34" Height="34" Margin="0,0,4,0"
                                 WindowChrome.IsHitTestVisibleInChrome="True"
-                                Click="NotifyBtn_Click" ToolTip="Уведомления">
+                                PreviewMouseLeftButtonDown="NotifyBtn_PreviewClick" ToolTip="Уведомления">
                             <Grid>
                                 <Path Data="{StaticResource BellIcon}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="16" Height="16" Stretch="Uniform"/>
                                 <Border x:Name="NotifyBadge" Background="#ef4444" CornerRadius="8"

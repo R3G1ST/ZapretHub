@@ -14957,8 +14957,9 @@ public partial class MainWindow : Window
         }
     }
 
-    private void NotifyBtn_Click(object sender, RoutedEventArgs e)
+    private void NotifyBtn_PreviewClick(object sender, MouseButtonEventArgs e)
     {
+        e.Handled = true;
         if (NotifyPanel.Visibility == Visibility.Visible)
         {
             NotifyPanel.Visibility = Visibility.Collapsed;
