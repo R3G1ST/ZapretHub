@@ -4592,23 +4592,18 @@
                         <TextBlock Text="READY" FontFamily="Cascadia Code, Consolas, monospace" FontSize="10"
                                    Foreground="#00ff88" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <Button HorizontalAlignment="Right"
-                            Style="{StaticResource FlatBtn}" FontSize="10"
-                            WindowChrome.IsHitTestVisibleInChrome="True"
-                            VerticalAlignment="Center" Margin="0,-3,0,0"
-                            Visibility="Collapsed"
-                            Click="DonateBtn_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource CoffeeIcon}" 
-                                  Stroke="#5a6a7a"
-                                  StrokeThickness="1.5"
-                                  Width="10" Height="10"
-                                  Stretch="Uniform"
-                                  Margin="0,0,5,0"
-                                  VerticalAlignment="Center"/>
-                            <TextBlock Text="Donate" FontFamily="Cascadia Code, Consolas, monospace" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                    <TextBlock HorizontalAlignment="Right"
+                               VerticalAlignment="Center" Margin="0,0,0,0"
+                               FontFamily="Cascadia Code, Consolas, monospace"
+                               FontSize="11" FontWeight="Bold"
+                               Foreground="#00ff88" Opacity="0.6">
+                        <TextBlock.Text>
+                            <Binding Path="Title" RelativeSource="{RelativeSource AncestorType=Window}" FallbackValue="v1.2.0"/>
+                        </TextBlock.Text>
+                        <TextBlock.Effect>
+                            <DropShadowEffect Color="#00ff88" BlurRadius="6" ShadowDepth="0" Opacity="0.4"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
                 </Grid>
             </Border>
             <Grid Grid.Row="0" Grid.RowSpan="3" x:Name="ModsInfoLayer"
