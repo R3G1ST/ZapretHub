@@ -135,6 +135,7 @@ public class AppSettings
     public double WindowTop { get; set; } = double.NaN;
     public List<string> PreviousDnsAddresses { get; set; } = [];
     public bool PreviousDnsWasDhcp { get; set; } = true;
+    public List<string> SelectedGameServices { get; set; } = new();
 }
 
 public record GameTrackStats

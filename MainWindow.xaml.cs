@@ -803,7 +803,7 @@ public partial class MainWindow : Window
         if (string.IsNullOrEmpty(_settings.ZapretPath) || !File.Exists(_settings.ZapretPath))
             return;
 
-        var w = new Views.ZapretConfigWindow(_settings.ZapretPath, testMode);
+        var w = new Views.ZapretConfigWindow(_settings.ZapretPath, testMode, _settings.SelectedGameServices);
         _configWindow = w;
         w.Owner = this;
         w.Closed += (_, _) =>
@@ -6801,6 +6801,7 @@ public partial class MainWindow : Window
                 case "Links":     content = SectionLinksContent;     arrow = SectionLinksArrow;     break;
                 case "Backup":    content = SectionBackupContent;    arrow = SectionBackupArrow;    break;
                 case "Reset":     content = SectionResetContent;     arrow = SectionResetArrow;     break;
+                case "Games":     content = SectionGamesContent;     arrow = SectionGamesArrow;     break;
             }
 
             if (content != null && arrow != null)
@@ -6870,7 +6871,58 @@ public partial class MainWindow : Window
         RememberSizeCB.IsChecked = _settings.RememberWindowSize;
         ForceNetOkCB.IsChecked = _settings.ForceNetworkOk;
         LoadKeyLabels();
+        InitGameServicesCheckboxes();
         _settingsLoaded = true;
+    }
+
+    private void InitGameServicesCheckboxes()
+    {
+        GameServicesCheckboxes.Children.Clear();
+        var allServices = ZapretConfigService.GameServiceDomains.Keys.ToList();
+        var selected = _settings.SelectedGameServices.Count > 0
+            ? _settings.SelectedGameServices
+            : allServices.ToList();
+
+        foreach (var service in allServices)
+        {
+            var cb = new System.Windows.Controls.CheckBox
+            {
+                Content = service,
+                IsChecked = selected.Contains(service),
+                FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+                FontSize = 12,
+                Foreground = System.Windows.Media.Brushes.White,
+                Margin = new Thickness(0, 0, 0, 6),
+                Tag = service
+            };
+            GameServicesCheckboxes.Children.Add(cb);
+        }
+    }
+
+    private void SaveGameServices_Click(object sender, RoutedEventArgs e)
+    {
+        var selected = new List<string>();
+        foreach (var child in GameServicesCheckboxes.Children)
+        {
+            if (child is System.Windows.Controls.CheckBox cb && cb.IsChecked == true)
+            {
+                selected.Add(cb.Tag?.ToString() ?? "");
+            }
+        }
+        _settings.SelectedGameServices = selected;
+        SettingsService.Save(_settings);
+
+        var countText = selected.Count == ZapretConfigService.GameServiceDomains.Count
+            ? "Все сервисы выбраны"
+            : $"Выбрано: {selected.Count}/{ZapretConfigService.GameServiceDomains.Count}";
+        GameServicesCheckboxes.Children.Add(new System.Windows.Controls.TextBlock
+        {
+            Text = $"✅ {countText}",
+            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x22, 0xc5, 0x5e)),
+            FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+            FontSize = 11,
+            Margin = new Thickness(0, 6, 0, 0)
+        });
     }
 
     private void AutoSaveSettings()

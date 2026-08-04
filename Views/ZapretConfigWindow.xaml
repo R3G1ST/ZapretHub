@@ -230,6 +230,26 @@
                     </Border>
                 </Border>
             </Grid>
+            <Grid Grid.Row="1" Margin="28,16,28,0" x:Name="GameProgressBarContainer" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Margin="0,0,0,6">
+                    <TextBlock x:Name="GameProgressText" Text="" Foreground="#5a6a7a" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11" HorizontalAlignment="Left"/>
+                    <TextBlock x:Name="GameTimeRemainingText" Text="" Foreground="#5a6a7a" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11" HorizontalAlignment="Right"/>
+                </Grid>
+                <Border Grid.Row="1" Height="4" CornerRadius="2" Background="#0a0a12" ClipToBounds="True">
+                    <Border x:Name="GameProgressBar" Height="4" CornerRadius="2" HorizontalAlignment="Left" Width="0">
+                        <Border.Background>
+                            <SolidColorBrush Color="#00ff88"/>
+                        </Border.Background>
+                        <Border.Effect>
+                            <DropShadowEffect Color="#00ff88" BlurRadius="6" ShadowDepth="0" Opacity="0.7"/>
+                        </Border.Effect>
+                    </Border>
+                </Border>
+            </Grid>
             <Border Grid.Row="2" Background="#060609" CornerRadius="10"
                     BorderBrush="#0a0a12" BorderThickness="1"
                     x:Name="LogContainer" Visibility="Collapsed"
@@ -278,13 +298,11 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Zapret Config Manager" 
-                                       Foreground="#333336" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11" VerticalAlignment="Center"/>
-                        <Button x:Name="SecondaryBtn" Grid.Column="1" Content="Применить"
+                        <Button x:Name="SecondaryBtn" Grid.Column="0" Content="Применить"
                                     MinWidth="140" MinHeight="38" Padding="16,8" Margin="0,0,10,0"
                                     Style="{StaticResource AccentBtn}"
                                     Click="SecondaryBtn_Click"/>
-                        <Button x:Name="GameTestBtn" Grid.Column="2" Content="🎮 Тест игр"
+                        <Button x:Name="GameTestBtn" Grid.Column="1" Content="🎮 Тест игр"
                                     MinWidth="120" MinHeight="38" Padding="16,8" Margin="0,0,10,0"
                                     Background="#08080e" Foreground="#00ff88"
                                     BorderBrush="#181820" BorderThickness="1"
@@ -310,7 +328,7 @@
                                 </ControlTemplate>
                             </Button.Template>
                         </Button>
-                        <Button x:Name="PrimaryBtn" Grid.Column="3" Content="Проверить конфиг"
+                        <Button x:Name="PrimaryBtn" Grid.Column="2" Content="Проверить конфиг"
                                     MinWidth="140" MinHeight="38" Padding="16,8"
                                     Background="Transparent" Foreground="#5a6a7a"
                                     BorderBrush="#181820" BorderThickness="1"

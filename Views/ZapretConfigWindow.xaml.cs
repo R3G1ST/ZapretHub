@@ -22,6 +22,7 @@ public partial class ZapretConfigWindow : Window
 {
     private readonly string _zapretPath;
     private readonly bool _testMode;
+    private readonly List<string> _selectedGameServices;
     private ZapretConfigCache? _cache;
     private bool _isTesting = false;
     private Process? _testProcess = null;
@@ -30,11 +31,12 @@ public partial class ZapretConfigWindow : Window
 
     public bool ConfigWasApplied { get; private set; } = false;
 
-    public ZapretConfigWindow(string zapretPath, bool testMode)
+    public ZapretConfigWindow(string zapretPath, bool testMode, List<string>? selectedGameServices = null)
     {
         InitializeComponent();
         _zapretPath = zapretPath;
         _testMode = testMode;
+        _selectedGameServices = selectedGameServices ?? new();
         Loaded += OnLoaded;
         Closing += OnClosing;
 
@@ -691,6 +693,8 @@ public partial class ZapretConfigWindow : Window
     }
 
     private CancellationTokenSource? _gameTestCts;
+    private DateTime _gameTestStartTime;
+    private int _gameTotalConfigs = 0;
 
     private async void GameTestBtn_Click(object sender, RoutedEventArgs e)
     {
@@ -707,6 +711,7 @@ public partial class ZapretConfigWindow : Window
         var ct = _gameTestCts.Token;
 
         _isTesting = true;
+        _gameTestStartTime = DateTime.Now;
         GameTestBtn.IsEnabled = false;
         GameTestBtn.Content = "⏳ Тестирование...";
 
@@ -715,7 +720,12 @@ public partial class ZapretConfigWindow : Window
         ProgressBarContainer.Visibility = Visibility.Collapsed;
         LogContainer.Visibility = Visibility.Collapsed;
         GameTestScroll.Visibility = Visibility.Visible;
+        GameProgressBarContainer.Visibility = Visibility.Visible;
         GameTestResults.Children.Clear();
+
+        GameProgressText.Text = "Подготовка...";
+        GameTimeRemainingText.Text = "";
+        GameProgressBar.Width = 0;
 
         var header = new TextBlock
         {
@@ -730,6 +740,7 @@ public partial class ZapretConfigWindow : Window
         try
         {
             var configNames = _cache.GetSelectableConfigs().Select(c => c.Name).ToList();
+            _gameTotalConfigs = configNames.Count;
 
             var allResults = await ZapretConfigService.TestAllConfigsWithGamesAsync(
                 _zapretPath,
@@ -752,8 +763,21 @@ public partial class ZapretConfigWindow : Window
                     else
                         AppendGameResult(status, Color.FromRgb(0x5a, 0x6a, 0x7a));
                 }),
-                null,
-                ct);
+                (current, total) => Dispatcher.Invoke(() =>
+                {
+                    var progress = (double)current / total;
+                    var maxWidth = 450.0;
+                    GameProgressBar.Width = progress * maxWidth;
+
+                    var elapsed = DateTime.Now - _gameTestStartTime;
+                    var estimatedTotal = elapsed.TotalSeconds / progress;
+                    var remaining = TimeSpan.FromSeconds(Math.Max(0, estimatedTotal - elapsed.TotalSeconds));
+
+                    GameProgressText.Text = $"Тестирую конфиг {current}/{total}";
+                    GameTimeRemainingText.Text = $"~{remaining.Minutes:D2}:{remaining.Seconds:D2} осталось";
+                }),
+                ct,
+                _selectedGameServices);
 
             Dispatcher.Invoke(() =>
             {
@@ -857,6 +881,7 @@ public partial class ZapretConfigWindow : Window
             _isTesting = false;
             GameTestBtn.IsEnabled = true;
             GameTestBtn.Content = "🎮 Тест игр";
+            GameProgressBarContainer.Visibility = Visibility.Collapsed;
         }
     }
 

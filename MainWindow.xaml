@@ -5083,6 +5083,27 @@
                                         WindowChrome.IsHitTestVisibleInChrome="True"
                                         Click="ResetSettings_Click"/>
                                 </StackPanel>
+
+                                <Border x:Name="SectionGamesHeader" Background="#08080e" CornerRadius="8"
+                                        BorderBrush="#181820" BorderThickness="1" Padding="12,10" Margin="0,0,0,4"
+                                        Cursor="Hand" MouseLeftButtonDown="SettingsSection_Click" Tag="Games">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock x:Name="SectionGamesArrow" Text=">" FontFamily="Cascadia Code, Consolas, monospace"
+                                                   FontSize="11" Foreground="#00ff88" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="ИГРОВЫЕ СЕРВИСЫ" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
+                                                   Foreground="#5a6a7a" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                                <StackPanel x:Name="SectionGamesContent" Visibility="Collapsed" Margin="0,0,0,12">
+                                    <TextBlock Text="Выберите сервисы для тестирования в '🎮 Тест игр'" 
+                                               FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
+                                               Foreground="#5a6a7a" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                    <StackPanel x:Name="GameServicesCheckboxes"/>
+                                    <Button Content="Применить" Style="{StaticResource AccentBtn}" 
+                                            HorizontalAlignment="Stretch" Margin="0,10,0,0"
+                                            Click="SaveGameServices_Click"/>
+                                </StackPanel>
+
                             </StackPanel>
                         </ScrollViewer>
                     </DockPanel>

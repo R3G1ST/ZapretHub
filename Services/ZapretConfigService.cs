@@ -918,12 +918,17 @@ public class ZapretConfigService
 
     public static async Task<Dictionary<string, ServiceTestResult>> TestGameServicesAsync(
         Action<string>? onProgress = null,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        List<string>? selectedServices = null)
     {
         var results = new Dictionary<string, ServiceTestResult>();
         using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
 
-        foreach (var (serviceName, domains) in GameServiceDomains)
+        var servicesToTest = selectedServices != null && selectedServices.Count > 0
+            ? GameServiceDomains.Where(d => selectedServices.Contains(d.Key)).ToDictionary(d => d.Key, d => d.Value)
+            : GameServiceDomains;
+
+        foreach (var (serviceName, domains) in servicesToTest)
         {
             ct.ThrowIfCancellationRequested();
             onProgress?.Invoke($"🎮 Тестирую {serviceName}...");
@@ -990,7 +995,8 @@ public class ZapretConfigService
         string zapretPath,
         string configName,
         Action<string>? onProgress = null,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        List<string>? selectedServices = null)
     {
         var results = new Dictionary<string, ServiceTestResult>();
         int successCount = 0;
@@ -1010,7 +1016,11 @@ public class ZapretConfigService
 
         using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
 
-        foreach (var (serviceName, domains) in GameServiceDomains)
+        var servicesToTest = selectedServices != null && selectedServices.Count > 0
+            ? GameServiceDomains.Where(d => selectedServices.Contains(d.Key)).ToDictionary(d => d.Key, d => d.Value)
+            : GameServiceDomains;
+
+        foreach (var (serviceName, domains) in servicesToTest)
         {
             ct.ThrowIfCancellationRequested();
 
@@ -1074,9 +1084,14 @@ public class ZapretConfigService
         List<string> configNames,
         Action<string>? onProgress = null,
         Action<int, int>? onConfigTested = null,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        List<string>? selectedServices = null)
     {
         var allResults = new List<(string configName, Dictionary<string, ServiceTestResult> results, int successCount, int avgPing)>();
+
+        var totalServices = selectedServices != null && selectedServices.Count > 0
+            ? GameServiceDomains.Count(d => selectedServices.Contains(d.Key))
+            : GameServiceDomains.Count;
 
         onProgress?.Invoke("🎮 Начинаем тестирование gaming-конфигов...");
 
@@ -1088,11 +1103,10 @@ public class ZapretConfigService
             onProgress?.Invoke($"\n[HEADER]🎮 [{i + 1}/{configNames.Count}] Тестирую: {configName}[/HEADER]");
 
             var (name, results, success, avgPing) = await TestConfigForGamingAsync(
-                zapretPath, configName, onProgress, ct);
+                zapretPath, configName, onProgress, ct, selectedServices);
 
             allResults.Add((name, results, success, avgPing));
 
-            var totalServices = GameServiceDomains.Count;
             var status = success == totalServices ? "✅ ИДЕАЛЬНЫЙ" : (success > 0 ? "⚠️ ЧАСТИЧНЫЙ" : "❌ НЕРАБОЧИЙ");
             onProgress?.Invoke($"   📊 {configName}: {success}/{totalServices} сервисов | {status} | Пинг: {avgPing}мс");
 
