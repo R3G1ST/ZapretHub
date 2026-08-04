@@ -11999,10 +11999,10 @@ public partial class MainWindow : Window
             Content = txt,
             Background = bgBrush,
             Foreground = (SolidColorBrush)new BrushConverter().ConvertFrom(fgHex)!,
-            FontFamily = new FontFamily("Segoe UI"), FontSize = 14, Height = 40,
+            FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"), FontSize = 13, Height = 40,
             Cursor = Cursors.Hand, BorderThickness = new Thickness(0),
             Margin = new Thickness(0, 0, 0, 10),
-            Template = CreateSimpleBtnTemplate()
+            Template = CreateOnboardBtnTemplate()
         };
         btn.MouseEnter += (_, _) => btn.Background = hoverBrush;
         btn.MouseLeave += (_, _) => btn.Background = bgBrush;
@@ -12077,45 +12077,45 @@ public partial class MainWindow : Window
 
     private void BuildOnboard0(StackPanel p)
     {
-        AddOnboardTitle(p, "Привет!");
-        AddOnboardBtn(p, "Далее", "#3b82f6", () => ShowOnboardScreen(1));
+        AddOnboardTitle(p, "Добро пожаловать в ZapretHub");
+        AddOnboardBtn(p, "Далее", "#00ff88", () => ShowOnboardScreen(1));
     }
 
     private void BuildOnboard1(StackPanel p)
     {
-        AddOnboardSub(p, "Это программа создана для людей, у которых есть проблемы с интернетом в России!\nЕсли у вас есть ВПН, то вам это, скорее всего, не понадобится.\nПриложение предлагает решение всех проблем, а также полную автоматизацию.");
-        AddOnboardBtn(p, "Далее", "#3b82f6", () => ShowOnboardScreen(2));
+        AddOnboardSub(p, "ZapretHub — решение проблем с блокировками в России.\nЕсли у вас уже работает VPN, этот инструмент может не понадобиться.\nПолная автоматизация настройки обхода за считанные секунды.");
+        AddOnboardBtn(p, "Далее", "#00ff88", () => ShowOnboardScreen(2));
     }
 
     private void BuildOnboard2(StackPanel p)
     {
-        AddOnboardSub(p, "Приложение НЕ СОБИРАЕТ ВАШИ ДАННЫЕ.\n\nКак разработчик заявляю: они мне абсолютно не нужны. Если вы всё же беспокоитесь о конфиденциальности и безопасности, напоминаю, что исходный код проекта полностью открыт и доступен на GitHub - вы всегда можете проверить его лично.");
-        AddOnboardBtn(p, "Далее", "#3b82f6", () => ShowOnboardScreen(3));
+        AddOnboardSub(p, "Приложение НЕ СОБИРАЕТ личные данные.\nМне они не нужны и не интересны.\nИсходный код полностью открыт на GitHub — проверяйте лично.");
+        AddOnboardBtn(p, "Далее", "#00ff88", () => ShowOnboardScreen(3));
     }
 
     private void BuildOnboard3(StackPanel p)
     {
-        AddOnboardTitle(p, "Способ установки");
-        AddOnboardSub(p, "Как вы хотите установить компоненты для обхода блокировок?\nПрограмма может сделать всё автоматически примерно за 15 секунд.");
+        AddOnboardTitle(p, "Метод настройки");
+        AddOnboardSub(p, "Выберите способ установки компонентов.\nАвтоматическая настройка занимает около 15 секунд.");
 
-        AddOnboardBtn(p, "Автоматическая установка (15 сек)", "#22c55e", () =>
+        AddOnboardBtn(p, "Автоматически (рекомендуется)", "#22c55e", () =>
         {
             _onboardForceReserve = false;
             ShowOnboardScreen(16);
         });
 
-        AddOnboardBtn(p, "Автоматическая (Резерв)", "#3b82f6", () =>
+        AddOnboardBtn(p, "Автоматически (резервный сервер)", "#00ff88", () =>
         {
             _onboardForceReserve = true;
             ShowOnboardScreen(16);
         });
 
-        AddOnboardBtn(p, "Ручная установка", "#2e2e2e", () => ShowOnboardScreen(17), foreground: "#888888");
+        AddOnboardBtn(p, "Настроить вручную", "#0a0a12", () => ShowOnboardScreen(17), foreground: "#5a6a7a");
     }
 
     private void BuildOnboardZapretChoice(StackPanel p)
     {
-        AddOnboardTitle(p, "У вас установлен zapret-discord-youtube?");
+        AddOnboardTitle(p, "Уже установлен zapret?");
         AddOnboardBtn(p, "Да, выбрать файл", "#22c55e", () =>
         {
             var dlg = new OpenFileDialog { Title = "Выберите service.bat", Filter = "service.bat|service.bat|Все файлы|*.*" };
@@ -12127,14 +12127,14 @@ public partial class MainWindow : Window
                 ShowOnboardScreen(9);
             }
         });
-        AddOnboardBtn(p, "Нет, давай скачаю", "#2e2e2e", () => ShowOnboardScreen(5), foreground: "#888888");
+        AddOnboardBtn(p, "Нет, скачать", "#0a0a12", () => ShowOnboardScreen(5), foreground: "#5a6a7a");
     }
 
     private void BuildOnboardLetsDoIt(StackPanel p)
     {
-        AddOnboardTitle(p, "Давай всё сделаем");
-        AddOnboardSub(p, "Давай всё настроим за пару минут.\nНажми кнопку ниже, чтобы получить нужные компоненты.");
-        AddOnboardBtn(p, "Скачать Zapret", "#3b82f6", () =>
+        AddOnboardTitle(p, "Начинаем настройку");
+        AddOnboardSub(p, "Настроим всё за пару минут.\nНажмите кнопку для загрузки компонентов.");
+        AddOnboardBtn(p, "Скачать Zapret", "#00ff88", () =>
         {
             OpenUrl("https://github.com/Flowseal/zapret-discord-youtube/releases/latest");
             ShowOnboardScreen(6);
@@ -12143,8 +12143,8 @@ public partial class MainWindow : Window
 
     private void BuildOnboardDownloadArchive(StackPanel p)
     {
-        AddOnboardSub(p, "Опустите на сайте ниже и найдите вкладку с файлами называется Assets.\nТам есть несколько файлов zapret-discord-youtube-1.9.7b.rar или .zip.\nКачай какую хочешь.");
-        AddOnboardBtn(p, "Я скачал архив", "#3b82f6", () => ShowOnboardScreen(7));
+        AddOnboardSub(p, "На открывшейся странице найдите раздел Assets.\nСкачайте любой архив: .rar или .zip.");
+        AddOnboardBtn(p, "Я скачал архив", "#00ff88", () => ShowOnboardScreen(7));
     }
 
     private void BuildOnboardExtract(StackPanel p)
@@ -12158,14 +12158,14 @@ public partial class MainWindow : Window
         {
         }
 
-        AddOnboardSub(p, "Я открыл тебе папку C:\\Zapret.\nОткрой Архив который ты скачал, нажми CTRL + A, чтобы выделить всё,\nи перекинь все файлы в эту папку.");
-        AddOnboardBtn(p, "Я перекинул файлы", "#3b82f6", () => ShowOnboardScreen(8));
+        AddOnboardSub(p, "Папка C:\\Zapret открыта.\nРаспакуйте содержимое архива сюда (Ctrl+A → перетащить).");
+        AddOnboardBtn(p, "Я перекинул файлы", "#00ff88", () => ShowOnboardScreen(8));
     }
 
     private void BuildOnboardZapretSelectBat(StackPanel p)
     {
-        AddOnboardTitle(p, "Выбор service.bat");
-        AddOnboardSub(p, "Теперь выбери файл service.bat в папке, куда ты только что перекинул файлы.");
+        AddOnboardTitle(p, "Укажите service.bat");
+        AddOnboardSub(p, "Выберите файл service.bat из папки C:\\Zapret.");
         AddOnboardBtn(p, "Выбрать service.bat", "#22c55e", () =>
         {
             var dlg = new OpenFileDialog { Title = "Выберите service.bat", Filter = "service.bat|service.bat|Все файлы|*.*", InitialDirectory = @"C:\Zapret" };
@@ -12184,7 +12184,7 @@ public partial class MainWindow : Window
         var likeIcon = new System.Windows.Shapes.Path
         {
             Data = Geometry.Parse("M8,11.47A18.74,18.74,0,0,0,10.69,8.9a18.74,18.74,0,0,0,1.76-2.42A6.42,6.42,0,0,0,13,5.41l1.74-4.57a4.45,4.45,0,0,1,2.83,2A4,4,0,0,1,18,4.77a2.67,2.67,0,0,1-.09.55L16.72,9.05h5.22a2,2,0,0,1,2,1.85,19.32,19.32,0,0,1-.32,5.44,33.83,33.83,0,0,1-1.23,4.34,3.78,3.78,0,0,1-3.58,2.49,25.54,25.54,0,0,1-6.28-.66A45.85,45.85,0,0,1,8,21.26V11.47Z M5,9H1a1,1,0,0,0-1,1V22a1,1,0,0,0,1,1H5a1,1,0,0,0,1-1V10A1,1,0,0,0,5,9ZM3,21a1,1,0,1,1,1-1A1,1,0,0,1,3,21Z"),
-            Fill = new SolidColorBrush(Color.FromRgb(0x3b, 0x82, 0xf6)),
+            Fill = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88)),
             Width = 48,
             Height = 48,
             Stretch = Stretch.Uniform,
@@ -12193,14 +12193,14 @@ public partial class MainWindow : Window
         };
         p.Children.Add(likeIcon);
 
-        AddOnboardTitle(p, "Ты молодец!");
-        AddOnboardSub(p, "Надеюсь, ты сделал всё правильно.");
-        AddOnboardBtn(p, "Далее", "#3b82f6", () => ShowOnboardScreen(10));
+        AddOnboardTitle(p, "Zapret настроен");
+        AddOnboardSub(p, "Основной компонент успешно подключён.");
+        AddOnboardBtn(p, "Далее", "#00ff88", () => ShowOnboardScreen(10));
     }
 
     private void BuildOnboardTgWsChoice(StackPanel p)
     {
-        AddOnboardTitle(p, "У вас установлен tg-ws-proxy?");
+        AddOnboardTitle(p, "Уже установлен tg-ws-proxy?");
         AddOnboardBtn(p, "Да, выбрать файл", "#22c55e", () =>
         {
             var dlg = new OpenFileDialog { Title = "Выберите файл TgWsProxy.exe", Filter = "TgWsProxy.exe|*TgWsProxy*.exe|Исполняемые файлы (*.exe)|*.exe|Все файлы|*.*" };
@@ -12212,13 +12212,13 @@ public partial class MainWindow : Window
                 ShowOnboardScreen(15);
             }
         });
-        AddOnboardBtn(p, "Нет, давай скачаю", "#2e2e2e", () => ShowOnboardScreen(11), foreground: "#888888");
+        AddOnboardBtn(p, "Нет, скачать", "#0a0a12", () => ShowOnboardScreen(11), foreground: "#5a6a7a");
     }
 
     private void BuildOnboardTgWsDownload(StackPanel p)
     {
-        AddOnboardSub(p, "Опустите на сайте ниже и найдите вкладку с файлами называется Assets.\nТам нужно скачать не архив, а сам файл TgWsProxy.exe.");
-        AddOnboardBtn(p, "Скачать TgWsProxy.exe", "#3b82f6", () =>
+        AddOnboardSub(p, "В разделе Assets скачайте именно файл TgWsProxy.exe (не архив).");
+        AddOnboardBtn(p, "Скачать TgWsProxy.exe", "#00ff88", () =>
         {
             OpenUrl("https://github.com/Flowseal/tg-ws-proxy/releases/latest");
             ShowOnboardScreen(12);
@@ -12229,14 +12229,14 @@ public partial class MainWindow : Window
     {
         try { Process.Start("explorer.exe", @"C:\Zapret"); } catch {}
 
-        AddOnboardSub(p, "Я снова открыл тебе папку C:\\Zapret.\nТеперь перекинь скачанный файл TgWsProxy.exe в эту папку.");
-        AddOnboardBtn(p, "Я перекинул", "#3b82f6", () => ShowOnboardScreen(13));
+        AddOnboardSub(p, "Папка C:\\Zapret открыта.\nПереместите TgWsProxy.exe сюда.");
+        AddOnboardBtn(p, "Я перекинул", "#00ff88", () => ShowOnboardScreen(13));
     }
 
     private void BuildOnboardTgWsSelectExe(StackPanel p)
     {
-        AddOnboardTitle(p, "Выбор TgWsProxy.exe");
-        AddOnboardSub(p, "Теперь выбери файл TgWsProxy.exe, который ты только что перекинул в папку.");
+        AddOnboardTitle(p, "Укажите TgWsProxy.exe");
+        AddOnboardSub(p, "Выберите TgWsProxy.exe из папки C:\\Zapret.");
         AddOnboardBtn(p, "Выбрать TgWsProxy.exe", "#22c55e", () =>
         {
             var dlg = new OpenFileDialog { Title = "Выберите TgWsProxy.exe", Filter = "TgWsProxy.exe|*TgWsProxy*.exe|Исполняемые файлы (*.exe)|*.exe|Все файлы|*.*", InitialDirectory = @"C:\Zapret" };
@@ -12255,7 +12255,7 @@ public partial class MainWindow : Window
         var likeIcon = new System.Windows.Shapes.Path
         {
             Data = Geometry.Parse("M8,11.47A18.74,18.74,0,0,0,10.69,8.9a18.74,18.74,0,0,0,1.76-2.42A6.42,6.42,0,0,0,13,5.41l1.74-4.57a4.45,4.45,0,0,1,2.83,2A4,4,0,0,1,18,4.77a2.67,2.67,0,0,1-.09.55L16.72,9.05h5.22a2,2,0,0,1,2,1.85,19.32,19.32,0,0,1-.32,5.44,33.83,33.83,0,0,1-1.23,4.34,3.78,3.78,0,0,1-3.58,2.49,25.54,25.54,0,0,1-6.28-.66A45.85,45.85,0,0,1,8,21.26V11.47Z M5,9H1a1,1,0,0,0-1,1V22a1,1,0,0,0,1,1H5a1,1,0,0,0,1-1V10A1,1,0,0,0,5,9ZM3,21a1,1,0,1,1,1-1A1,1,0,0,1,3,21Z"),
-            Fill = new SolidColorBrush(Color.FromRgb(0x3b, 0x82, 0xf6)),
+            Fill = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88)),
             Width = 48,
             Height = 48,
             Stretch = Stretch.Uniform,
@@ -12264,12 +12264,12 @@ public partial class MainWindow : Window
         };
         p.Children.Add(likeIcon);
 
-        AddOnboardTitle(p, "Всё готово!");
+        AddOnboardTitle(p, "Настройка завершена");
 
         var subText = new TextBlock();
-        subText.FontFamily = new FontFamily("Segoe UI");
-        subText.FontSize = 15;
-        subText.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+        subText.FontFamily = new FontFamily("Cascadia Code, Consolas, monospace");
+        subText.FontSize = 13;
+        subText.Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a));
         subText.HorizontalAlignment = System.Windows.HorizontalAlignment.Center;
         subText.TextAlignment = TextAlignment.Center;
         subText.TextWrapping = TextWrapping.Wrap;
@@ -12281,7 +12281,7 @@ public partial class MainWindow : Window
         pathIcon.Width = 14;
         pathIcon.Height = 14;
         pathIcon.Stretch = System.Windows.Media.Stretch.Uniform;
-        pathIcon.Fill = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+        pathIcon.Fill = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a));
         pathIcon.Data = Geometry.Parse("M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z");
         pathIcon.Margin = new Thickness(2, 0, 0, -2);
 
@@ -12291,7 +12291,7 @@ public partial class MainWindow : Window
         subText.Inlines.Add(inlineIcon);
         p.Children.Add(subText);
 
-        AddOnboardBtn(p, "Открыть приложение →", "#3b82f6", () =>
+        AddOnboardBtn(p, "Открыть приложение →", "#00ff88", () =>
         {
             SettingsService.MarkOnboarded();
             OnboardLayer.Visibility = Visibility.Collapsed;
@@ -12303,7 +12303,7 @@ public partial class MainWindow : Window
     private void BuildOnboardManualStart(StackPanel p)
     {
         AddOnboardSub(p, "Для работы приложения вам нужно скачать следующие компоненты:");
-        AddOnboardBtn(p, "Погнали", "#3b82f6", () => ShowOnboardScreen(4));
+        AddOnboardBtn(p, "Погнали", "#00ff88", () => ShowOnboardScreen(4));
     }
 
     private void BuildOnboardAutoDownload(StackPanel p)
@@ -12432,7 +12432,7 @@ public partial class MainWindow : Window
                     progText.Text = "Всё готово!";
                     progText.Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xc5, 0x5e));
 
-                    AddOnboardBtn(actionsPanel, "Далее", "#3b82f6", () => ShowOnboardScreen(15));
+                    AddOnboardBtn(actionsPanel, "Далее", "#00ff88", () => ShowOnboardScreen(15));
                 }
                 else
                 {
@@ -12449,17 +12449,17 @@ public partial class MainWindow : Window
     private static void AddOnboardEmoji(StackPanel p, string emoji) =>
         p.Children.Add(new TextBlock
         {
-            Text = emoji, FontSize = 54, HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88)),
-            FontFamily = new FontFamily("Segoe UI Emoji"),
+            Text = emoji, FontSize = 48, HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+            Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88)),
+            FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
             Margin = new Thickness(0, 0, 0, 12)
         });
 
     private static void AddOnboardTitle(StackPanel p, string text) =>
         p.Children.Add(new TextBlock
         {
-            Text = text, FontFamily = new FontFamily("Segoe UI"), FontSize = 22,
-            FontWeight = FontWeights.Bold, Foreground = Brushes.White,
+            Text = text, FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"), FontSize = 22,
+            FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88)),
             HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
             TextAlignment = TextAlignment.Center,
             Margin = new Thickness(0, 0, 0, 12)
@@ -12468,15 +12468,15 @@ public partial class MainWindow : Window
     private static void AddOnboardSub(StackPanel p, string text) =>
         p.Children.Add(new TextBlock
         {
-            Text = text, FontFamily = new FontFamily("Segoe UI"), FontSize = 15,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88)),
+            Text = text, FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"), FontSize = 13,
+            Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a)),
             HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
             TextAlignment = TextAlignment.Center, TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0, 0, 0, 24)
         });
 
     private void AddOnboardBtn(StackPanel p, string text, string bgHex, Action action,
-        string foreground = "#ffffff")
+        string foreground = "#030306")
     {
         var bgBrush = (SolidColorBrush)new BrushConverter().ConvertFrom(bgHex)!;
         var c = bgBrush.Color;
@@ -12490,8 +12490,9 @@ public partial class MainWindow : Window
             Content             = text,
             Background          = bgBrush,
             Foreground          = (SolidColorBrush)new BrushConverter().ConvertFrom(foreground)!,
-            FontFamily          = new FontFamily("Segoe UI"),
-            FontSize            = 14,
+            FontFamily          = new FontFamily("Cascadia Code, Consolas, monospace"),
+            FontSize            = 13,
+            FontWeight          = FontWeights.SemiBold,
             Height              = 44,
             Cursor              = Cursors.Hand,
             BorderThickness     = new Thickness(0),
@@ -12499,21 +12500,21 @@ public partial class MainWindow : Window
             Margin              = new Thickness(0, 0, 0, 10),
         };
 
-        btn.Template = CreateSimpleBtnTemplate();
+        btn.Template = CreateOnboardBtnTemplate();
         btn.MouseEnter += (_, _) => btn.Background = hoverBrush;
         btn.MouseLeave += (_, _) => btn.Background = bgBrush;
         btn.Click += (_, _) => action();
         p.Children.Add(btn);
     }
 
-    private static ControlTemplate CreateSimpleBtnTemplate()
+    private static ControlTemplate CreateOnboardBtnTemplate()
     {
         var tmpl = new ControlTemplate(typeof(Button));
         var bd = new FrameworkElementFactory(typeof(Border));
         bd.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Button.BackgroundProperty));
         bd.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Button.BorderBrushProperty));
         bd.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Button.BorderThicknessProperty));
-        bd.SetValue(Border.CornerRadiusProperty, new CornerRadius(8));
+        bd.SetValue(Border.CornerRadiusProperty, new CornerRadius(10));
         var cp = new FrameworkElementFactory(typeof(ContentPresenter));
         cp.SetValue(ContentPresenter.HorizontalAlignmentProperty, System.Windows.HorizontalAlignment.Center);
         cp.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
@@ -12528,8 +12529,8 @@ public partial class MainWindow : Window
         {
             Content             = text,
             Background          = Brushes.Transparent,
-            Foreground          = new SolidColorBrush(Color.FromRgb(0x3b, 0x82, 0xf6)),
-            FontFamily          = new FontFamily("Segoe UI"),
+            Foreground          = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88)),
+            FontFamily          = new FontFamily("Cascadia Code, Consolas, monospace"),
             FontSize            = 12,
             BorderThickness     = new Thickness(0),
             Cursor              = Cursors.Hand,

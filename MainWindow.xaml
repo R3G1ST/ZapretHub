@@ -37,6 +37,10 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="HasDropShadow" Value="True"/>
+            <Setter Property="Placement" Value="Right"/>
+            <Setter Property="HorizontalOffset" Value="10"/>
+            <Setter Property="FontFamily" Value="Cascadia Code, Consolas, monospace"/>
+            <Setter Property="FontSize" Value="11"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToolTip">
@@ -861,10 +865,14 @@
                             </Button>
                         </StackPanel>
                         <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0,0,0,12">
-                            <Ellipse x:Name="NetDot" Width="5" Height="5" Fill="#333344" Margin="0,0,0,4" HorizontalAlignment="Center"/>
-                            <Ellipse x:Name="VpnDot" Width="5" Height="5" Fill="#333344" Margin="0,0,0,4" HorizontalAlignment="Center"/>
-                            <Ellipse x:Name="ZapretDot" Width="5" Height="5" Fill="#333344" Margin="0,0,0,4" HorizontalAlignment="Center"/>
-                            <Ellipse x:Name="TgWsDot" Width="5" Height="5" Fill="#333344" HorizontalAlignment="Center"/>
+                            <Ellipse x:Name="NetDot" Width="5" Height="5" Fill="#333344" Margin="0,0,0,4" HorizontalAlignment="Center"
+                                     ToolTip="Сеть: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="10"/>
+                            <Ellipse x:Name="VpnDot" Width="5" Height="5" Fill="#333344" Margin="0,0,0,4" HorizontalAlignment="Center"
+                                     ToolTip="VPN: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="10"/>
+                            <Ellipse x:Name="ZapretDot" Width="5" Height="5" Fill="#333344" Margin="0,0,0,4" HorizontalAlignment="Center"
+                                     ToolTip="Zapret: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="10"/>
+                            <Ellipse x:Name="TgWsDot" Width="5" Height="5" Fill="#333344" HorizontalAlignment="Center"
+                                     ToolTip="TgWsProxy: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="10"/>
                             <TextBlock x:Name="NetLbl" Text="NET" FontFamily="Cascadia Code, Consolas, monospace" FontSize="7"
                                        Foreground="#333344" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                         </StackPanel>
