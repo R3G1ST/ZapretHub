@@ -137,6 +137,7 @@ public class AppSettings
     public bool PreviousDnsWasDhcp { get; set; } = true;
     public List<string> SelectedGameServices { get; set; } = new();
     public List<string> SelectedGames { get; set; } = new();
+    public string GitHubToken { get; set; } = "";
 }
 
 public record GameTrackStats

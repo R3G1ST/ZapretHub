@@ -68,6 +68,7 @@
         <PathGeometry x:Key="DnsIcon">M 20,20 H 30 V 22 H 20 Z M 20,24 H 26 V 26 H 20 Z M30,17V16A13.9871,13.9871,0,1,0,19.23,29.625l-.46-1.9463A12.0419,12.0419,0,0,1,16,28c-.19,0-.375-.0186-.563-.0273A20.3044,20.3044,0,0,1,12.0259,17Zm-2.0415-2H21.9751A24.2838,24.2838,0,0,0,19.2014,4.4414,12.0228,12.0228,0,0,1,27.9585,15ZM16.563,4.0273A20.3044,20.3044,0,0,1,19.9741,15H12.0259A20.3044,20.3044,0,0,1,15.437,4.0273C15.625,4.0186,15.81,4,16,4S16.375,4.0186,16.563,4.0273Zm-3.7644.4141A24.2838,24.2838,0,0,0,10.0249,15H4.0415A12.0228,12.0228,0,0,1,12.7986,4.4414Zm0,23.1172A12.0228,12.0228,0,0,1,4.0415,17h5.9834A24.2838,24.2838,0,0,0,12.7986,27.5586Z</PathGeometry>
         <PathGeometry x:Key="ExternalLinkIcon">M392.857,292.354h-18.274c-2.669,0-4.859,0.855-6.563,2.573c-1.718,1.708-2.573,3.897-2.573,6.563v91.361 c0,12.563-4.47,23.315-13.415,32.262c-8.945,8.945-19.701,13.414-32.264,13.414H82.224c-12.562,0-23.317-4.469-32.264-13.414 c-8.945-8.946-13.417-19.698-13.417-32.262V155.31c0-12.562,4.471-23.313,13.417-32.259c8.947-8.947,19.702-13.418,32.264-13.418 h200.994c2.669,0,4.859-0.859,6.57-2.57c1.711-1.713,2.566-3.9,2.566-6.567V82.221c0-2.662-0.855-4.853-2.566-6.563 c-1.711-1.713-3.901-2.568-6.57-2.568H82.224c-22.648,0-42.016,8.042-58.102,24.125C8.042,113.297,0,132.665,0,155.313v237.542 c0,22.647,8.042,42.018,24.123,58.095c16.086,16.084,35.454,24.13,58.102,24.13h237.543c22.647,0,42.017-8.046,58.101-24.13 c16.085-16.077,24.127-35.447,24.127-58.095v-91.358c0-2.669-0.856-4.859-2.574-6.57 C397.709,293.209,395.519,292.354,392.857,292.354z M506.199,41.971c-3.617-3.617-7.905-5.424-12.85-5.424H347.171c-4.948,0-9.233,1.807-12.847,5.424 c-3.617,3.615-5.428,7.898-5.428,12.847s1.811,9.233,5.428,12.85l50.247,50.248L198.424,304.067 c-1.906,1.903-2.856,4.093-2.856,6.563c0,2.479,0.953,4.668,2.856,6.571l32.548,32.544c1.903,1.903,4.093,2.852,6.567,2.852 s4.665-0.948,6.567-2.852l186.148-186.148l50.251,50.248c3.614,3.617,7.898,5.426,12.847,5.426s9.233-1.809,12.851-5.426 c3.617-3.616,5.424-7.898,5.424-12.847V54.818C511.626,49.866,509.813,45.586,506.199,41.971z</PathGeometry>
         <PathGeometry x:Key="LikeIcon">M8,11.47A18.74,18.74,0,0,0,10.69,8.9a18.74,18.74,0,0,0,1.76-2.42A6.42,6.42,0,0,0,13,5.41l1.74-4.57a4.45,4.45,0,0,1,2.83,2A4,4,0,0,1,18,4.77a2.67,2.67,0,0,1-.09.55L16.72,9.05h5.22a2,2,0,0,1,2,1.85,19.32,19.32,0,0,1-.32,5.44,33.83,33.83,0,0,1-1.23,4.34,3.78,3.78,0,0,1-3.58,2.49,25.54,25.54,0,0,1-6.28-.66A45.85,45.85,0,0,1,8,21.26V11.47Z M5,9H1a1,1,0,0,0-1,1V22a1,1,0,0,0,1,1H5a1,1,0,0,0,1-1V10A1,1,0,0,0,5,9ZM3,21a1,1,0,1,1,1-1A1,1,0,0,1,3,21Z</PathGeometry>
+        <PathGeometry x:Key="BellIcon">M12,2C7.6,2,4,5.6,4,10v4l-2,2v1h20v-1l-2-2v-4C20,5.6,16.4,2,12,2z M10,20c0,1.1,0.9,2,2,2s2-0.9,2-2H10z</PathGeometry>
         <Style x:Key="SidebarBtn" TargetType="Button">
             <Setter Property="Width" Value="40"/>
             <Setter Property="Height" Value="40"/>
@@ -747,6 +748,21 @@
                                    FontWeight="Bold" Foreground="#00ff88" VerticalAlignment="Center"/>
                     </StackPanel>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="NotifyBtn" Style="{StaticResource SidebarBtn}"
+                                Width="34" Height="34" Margin="0,0,4,0"
+                                WindowChrome.IsHitTestVisibleInChrome="True"
+                                Click="NotifyBtn_Click" ToolTip="Уведомления">
+                            <Grid>
+                                <Path Data="{StaticResource BellIcon}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="16" Height="16" Stretch="Uniform"/>
+                                <Border x:Name="NotifyBadge" Background="#ef4444" CornerRadius="8"
+                                        Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                        Margin="0,-4,-4,0" Visibility="Collapsed">
+                                    <TextBlock x:Name="NotifyBadgeText" Text="0" FontSize="9" FontWeight="Bold"
+                                               Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               FontFamily="Cascadia Code, Consolas, monospace"/>
+                                </Border>
+                            </Grid>
+                        </Button>
                         <Button Style="{StaticResource FlatBtnCentered}"
                                 Width="34" Height="18.62" MinWidth="34" MinHeight="18.62" Padding="0,0,0,1" FontSize="14"
                                 WindowChrome.IsHitTestVisibleInChrome="True"
@@ -764,6 +780,39 @@
                                   Stretch="Uniform"/>
                         </Button>
                     </StackPanel>
+                </Grid>
+            </Border>
+            <Border x:Name="NotifyPanel" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Margin="0,54,80,0" Width="340" MaxHeight="420"
+                    Background="#07070c" BorderBrush="#0a0a12" BorderThickness="1"
+                    CornerRadius="10" Visibility="Collapsed" Panel.ZIndex="100">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="4" Opacity="0.6"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Background="#07070c" BorderBrush="#0a0a12" BorderThickness="0,0,0,1" Padding="14,10,14,10">
+                        <Grid>
+                            <TextBlock Text="Уведомления" FontFamily="Cascadia Code, Consolas, monospace"
+                                       FontSize="11" FontWeight="Bold" Foreground="#5a6a7a" VerticalAlignment="Center"/>
+                            <Button x:Name="ClearNotifyBtn" HorizontalAlignment="Right"
+                                    Style="{StaticResource FlatBtn}" FontSize="10"
+                                    Click="ClearNotifyBtn_Click" Padding="8,4" Foreground="#5a6a7a">
+                                <TextBlock Text="Очистить" FontFamily="Cascadia Code, Consolas, monospace"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,6">
+                        <StackPanel x:Name="NotifyList">
+                            <TextBlock x:Name="NotifyEmptyText" Text="Нет уведомлений"
+                                       FontFamily="Cascadia Code, Consolas, monospace"
+                                       FontSize="11" Foreground="#5a6a7a" HorizontalAlignment="Center"
+                                       Margin="0,20,0,20" Visibility="Visible"/>
+                        </StackPanel>
+                    </ScrollViewer>
                 </Grid>
             </Border>
             <Grid Grid.Row="1" x:Name="ContentGrid">
