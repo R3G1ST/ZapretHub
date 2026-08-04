@@ -291,7 +291,7 @@ public partial class ZapretConfigWindow : Window
             StatusText.Text = "Запуск полного тестирования конфигов...\n\n" +
                              "💡 Советуем вам подождать 10 минуток на полное сканирование.\n" +
                              "В дальнейшем это сэкономит вам кучу времени и нервов!\n\n" +
-                             "Приложение найдёт все идеальные конфиги (12/12 тестов) и выберет лучший.";
+                             "Приложение найдёт все идеальные конфиги и выберет лучший.";
 
             await Task.Delay(3000);
 
@@ -382,11 +382,11 @@ public partial class ZapretConfigWindow : Window
                 StatusIcon.Fill = new SolidColorBrush(Color.FromRgb(0x22, 0xc5, 0x5e));
 
                 var topConfigs = string.Join("\n", idealConfigs.Take(5).Select((c, i) =>
-                    $"{i + 1}. {c.Name} (пинг: {c.AveragePing} мс, тестов: {c.SuccessCount}/12)"));
+                    $"{i + 1}. {c.Name} (пинг: {c.AveragePing} мс, тестов: {c.SuccessCount}/{c.Tests.Count})"));
 
                 StatusText.Text = $"🎉 Поздравляю с полным тестированием!\n\n" +
                                  $"Найдено {idealConfigs.Count} идеальных конфигов.\n" +
-                                 $"Все они прошли 12/12 тестов без ошибок!\n\n" +
+                                 $"Все они прошли все тесты без ошибок!\n\n" +
                                  $"Ваш топ конфигов на следующие разы:\n\n{topConfigs}";
 
                 SecondaryBtn.Content = "Выбрать конфиг";
@@ -416,7 +416,7 @@ public partial class ZapretConfigWindow : Window
                 StatusIcon.Fill = new SolidColorBrush(Color.FromRgb(0xea, 0xb3, 0x08));
 
                 var topConfigs = string.Join("\n", partialConfigs.Take(5).Select((c, i) =>
-                    $"{i + 1}. {c.Name} (пинг: {c.AveragePing} мс, тестов: {c.SuccessCount}/12)"));
+                    $"{i + 1}. {c.Name} (пинг: {c.AveragePing} мс, тестов: {c.SuccessCount}/{c.Tests.Count})"));
 
                 StatusText.Text = "Идеальных конфигов не обнаружено.\n\n" +
                                  $"Но найдено {partialConfigs.Count} частично рабочих конфигов.\n" +
@@ -436,7 +436,7 @@ public partial class ZapretConfigWindow : Window
                 TimeRemainingText.Visibility = Visibility.Collapsed;
                 LogContainer.Visibility = Visibility.Collapsed;
                 StatusPanel.Visibility = Visibility.Visible;
-                StatusText.Text = "Не найдено рабочих конфигов с 12/12 успешными тестами.\n\n" +
+                StatusText.Text = "Не найдено рабочих конфигов с успешными тестами.\n\n" +
                                  "Возможно, ваша сеть имеет особые ограничения. Попробуйте повторить тест позже.";
                 StopIndeterminateAnimation();
                 StatusIcon.Visibility = Visibility.Visible;
@@ -710,6 +710,7 @@ public partial class ZapretConfigWindow : Window
         {
             Text = "Активный конфиг: ",
             FontSize = 15,
+            FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
             Foreground = Brushes.White,
             FontWeight = FontWeights.Bold
         };
@@ -718,9 +719,10 @@ public partial class ZapretConfigWindow : Window
         {
             Text = _cache.CurrentConfig,
             FontSize = 15,
+            FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
             Foreground = new SolidColorBrush(usingPartialConfigs
-                ? Color.FromRgb(0xea, 0xb3, 0x08)
-                : Color.FromRgb(0x22, 0xc5, 0x5e)),
+                ? Color.FromRgb(0xef, 0x44, 0x44)
+                : Color.FromRgb(0x00, 0xff, 0x88)),
             FontWeight = FontWeights.Bold
         };
 
@@ -732,8 +734,8 @@ public partial class ZapretConfigWindow : Window
         {
             ConfigListPanel.Children.Add(new Border
             {
-                Background = new SolidColorBrush(Color.FromRgb(0x2a, 0x20, 0x08)),
-                BorderBrush = new SolidColorBrush(Color.FromRgb(0xea, 0xb3, 0x08)),
+                Background = new SolidColorBrush(Color.FromRgb(0x2a, 0x08, 0x08)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(0xef, 0x44, 0x44)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(10),
                 Padding = new Thickness(12, 10, 12, 10),
@@ -742,7 +744,8 @@ public partial class ZapretConfigWindow : Window
                 {
                     Text = "Идеальных конфигов не найдено. Ниже показаны частично рабочие варианты без ошибок и недоступных сервисов. Если что-то будет работать нестабильно, переключитесь на другой конфиг.",
                     FontSize = 12,
-                    Foreground = new SolidColorBrush(Color.FromRgb(0xff, 0xf3, 0xc4)),
+                    FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+                    Foreground = new SolidColorBrush(Color.FromRgb(0xff, 0xc4, 0xc4)),
                     TextWrapping = TextWrapping.Wrap
                 }
             });
@@ -763,16 +766,19 @@ public partial class ZapretConfigWindow : Window
 
         var badge = new Border
         {
-            Background = new SolidColorBrush(Color.FromRgb(0x1e, 0x2a, 0x3a)),
+            Background = new SolidColorBrush(Color.FromRgb(0x08, 0x08, 0x0e)),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(0x18, 0x18, 0x20)),
+            BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(6),
             Padding = new Thickness(8, 3, 8, 3),
             Child = new TextBlock
             {
                 Text = $"{selectableConfigs.Count} конфигов",
                 FontSize = 11,
+                FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
                 Foreground = new SolidColorBrush(usingPartialConfigs
-                    ? Color.FromRgb(0xea, 0xb3, 0x08)
-                    : Color.FromRgb(0x3b, 0x82, 0xf6))
+                    ? Color.FromRgb(0xef, 0x44, 0x44)
+                    : Color.FromRgb(0x00, 0xff, 0x88))
             }
         };
 
@@ -789,11 +795,11 @@ public partial class ZapretConfigWindow : Window
             var border = new Border
             {
                 Background = isCurrent
-                    ? new SolidColorBrush(Color.FromRgb(0x1a, 0x25, 0x3a))
-                    : new SolidColorBrush(Color.FromRgb(0x1a, 0x1a, 0x1c)),
+                    ? new SolidColorBrush(Color.FromRgb(0x08, 0x14, 0x10))
+                    : new SolidColorBrush(Color.FromRgb(0x08, 0x08, 0x0e)),
                 BorderBrush = isCurrent
-                    ? new SolidColorBrush(Color.FromRgb(0x3b, 0x82, 0xf6))
-                    : new SolidColorBrush(Color.FromRgb(0x26, 0x26, 0x2a)),
+                    ? new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88))
+                    : new SolidColorBrush(Color.FromRgb(0x18, 0x18, 0x20)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(10),
                 Padding = new Thickness(14, 12, 14, 12),
@@ -831,8 +837,9 @@ public partial class ZapretConfigWindow : Window
             {
                 Text = config.Name,
                 FontSize = 13,
+                FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
                 FontWeight = FontWeights.SemiBold,
-                Foreground = new SolidColorBrush(config.IsValid ? Color.FromRgb(0x22, 0xc5, 0x5e) : Color.FromRgb(0xea, 0xb3, 0x08)),
+                Foreground = new SolidColorBrush(config.IsValid ? Color.FromRgb(0x00, 0xff, 0x88) : Color.FromRgb(0xef, 0x44, 0x44)),
                 VerticalAlignment = VerticalAlignment.Center
             };
             nameRow.Children.Add(nameText);
@@ -841,7 +848,9 @@ public partial class ZapretConfigWindow : Window
             {
                 var activeBadge = new Border
                 {
-                    Background = new SolidColorBrush(Color.FromRgb(0x1e, 0x30, 0x4a)),
+                    Background = new SolidColorBrush(Color.FromRgb(0x08, 0x14, 0x10)),
+                    BorderBrush = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88)),
+                    BorderThickness = new Thickness(1),
                     CornerRadius = new CornerRadius(4),
                     Padding = new Thickness(6, 2, 6, 2),
                     Margin = new Thickness(8, 0, 0, 0),
@@ -849,7 +858,8 @@ public partial class ZapretConfigWindow : Window
                     {
                         Text = "активный",
                         FontSize = 10,
-                        Foreground = new SolidColorBrush(Color.FromRgb(0x3b, 0x82, 0xf6))
+                        FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+                        Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88))
                     }
                 };
                 nameRow.Children.Add(activeBadge);
@@ -859,9 +869,10 @@ public partial class ZapretConfigWindow : Window
             {
                 Text = config.IsFromMod
                     ? config.ModName ?? "?"
-                    : $"Пинг: {config.AveragePing} мс  •  Тесты: {config.SuccessCount}/12" + (config.IsPartiallyUsable ? "  •  частично" : ""),
+                    : $"Пинг: {config.AveragePing} мс  •  Тесты: {config.SuccessCount}/{config.Tests.Count}" + (config.IsPartiallyUsable ? "  •  частично" : ""),
                 FontSize = 11,
-                Foreground = new SolidColorBrush(Color.FromRgb(0x55, 0x55, 0x58)),
+                FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+                Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a)),
                 Margin = new Thickness(0, 4, 0, 0)
             };
 
@@ -873,7 +884,7 @@ public partial class ZapretConfigWindow : Window
                 Text = isCurrent ? "✓" : "→",
                 FontSize = 14,
                 Foreground = isCurrent
-                    ? new SolidColorBrush(Color.FromRgb(0x3b, 0x82, 0xf6))
+                    ? new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88))
                     : new SolidColorBrush(Color.FromRgb(0x33, 0x33, 0x36)),
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -909,12 +920,12 @@ public partial class ZapretConfigWindow : Window
             border.MouseEnter += (s, e) =>
             {
                 if (!isCurrent)
-                    border.Background = new SolidColorBrush(Color.FromRgb(0x20, 0x20, 0x23));
+                    border.Background = new SolidColorBrush(Color.FromRgb(0x0a, 0x0a, 0x12));
             };
             border.MouseLeave += (s, e) =>
             {
                 if (!isCurrent)
-                    border.Background = new SolidColorBrush(Color.FromRgb(0x1a, 0x1a, 0x1c));
+                    border.Background = new SolidColorBrush(Color.FromRgb(0x08, 0x08, 0x0e));
             };
 
             ConfigListPanel.Children.Add(border);

@@ -945,6 +945,10 @@ public partial class MainWindow : Window
         if (_modsLoaded) RefreshModsLists();
     }
 
+    private void ModsInfoBtn_Click(object sender, RoutedEventArgs e) => ModsInfoLayer.Visibility = Visibility.Visible;
+    private void ModsInfoBackdrop_Click(object sender, RoutedEventArgs e) => ModsInfoLayer.Visibility = Visibility.Collapsed;
+    private void ModsInfoCloseBtn_Click(object sender, RoutedEventArgs e) => ModsInfoLayer.Visibility = Visibility.Collapsed;
+
     private void ModsCardLists_Click(object s, RoutedEventArgs e)
     {
         ShowModsSubScreen(ModsListsChoiceScreen, "Списки обхода");
@@ -6564,8 +6568,8 @@ public partial class MainWindow : Window
                 Grid.SetColumn(nameText, 1);
                 row.Children.Add(dot); row.Children.Add(nameText);
                 if (isRunning && !string.IsNullOrEmpty(proc)) {
-                    var procPill = new Border { Background = new SolidColorBrush(Color.FromRgb(0x33, 0x33, 0x33)), CornerRadius = new CornerRadius(4), Padding = new Thickness(8, 2, 8, 2), VerticalAlignment = VerticalAlignment.Center };
-                    procPill.Child = new TextBlock { Text = proc, Foreground = new SolidColorBrush(Color.FromRgb(0xd1, 0xd5, 0xdb)), FontSize = 11 };
+                    var procPill = new Border { Background = new SolidColorBrush(Color.FromRgb(0x0d, 0x1a, 0x14)), CornerRadius = new CornerRadius(6), Padding = new Thickness(8, 2, 8, 2), VerticalAlignment = VerticalAlignment.Center };
+                    procPill.Child = new TextBlock { Text = proc, Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88)), FontSize = 11 };
                     Grid.SetColumn(procPill, 2); row.Children.Add(procPill);
                 }
                 appsPanel.Children.Add(row);
@@ -6574,11 +6578,11 @@ public partial class MainWindow : Window
             AddAppUI("Discord", a.DiscordRunning, a.DiscordProcName);
             AddAppUI("Zapret", a.ZapretRunning, a.ZapretProcName);
             AddAppUI("tg-ws-proxy", a.TgWsProxyRunning, a.TgWsProxyProcName);
-            AddRichCard(DiagResults, "Статус приложений", appsPanel, Color.FromRgb(0x8b, 0x5c, 0xf6));
+            AddRichCard(DiagResults, "Статус приложений", appsPanel, Color.FromRgb(0x00, 0xff, 0x88));
         }
 
         string noteText = "Примечание! Отправка медиафайлов (именно отправка) даже с включённым TgWsProxy может работать нестабильно, файлы могут загружаться очень долго. К сожалению, это не решить без использования VPN. Но просмотр и загрузка видео, стикеров и любого другого контента в Telegram должны работать идеально!";
-        AddCard(DiagResults, "Важное примечание", noteText, Color.FromRgb(0x3b, 0x82, 0xf6));
+        AddCard(DiagResults, "Важное примечание", noteText, Color.FromRgb(0x00, 0xd4, 0xff));
 
         if (r.DcResults.Count > 0)
         {
@@ -6586,7 +6590,7 @@ public partial class MainWindow : Window
             var srvPanel = new WrapPanel { Orientation = Orientation.Horizontal };
             foreach (var dc in r.DcResults)
             {
-                var srvBlock = new Border { Background = new SolidColorBrush(Color.FromRgb(0x1e, 0x1e, 0x1e)), CornerRadius = new CornerRadius(8), BorderBrush = new SolidColorBrush(Color.FromRgb(0x33, 0x33, 0x33)), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 10, 10), Padding = new Thickness(14, 12, 14, 12), Width = 150 };
+                var srvBlock = new Border { Background = new SolidColorBrush(Color.FromRgb(0x0a, 0x0a, 0x12)), CornerRadius = new CornerRadius(10), BorderBrush = new SolidColorBrush(Color.FromRgb(0x18, 0x18, 0x20)), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 10, 10), Padding = new Thickness(14, 12, 14, 12), Width = 150 };
                 var srvStack = new StackPanel();
                 var headerGrid = new Grid();
                 headerGrid.Children.Add(new TextBlock { Text = $"DC {dc.DcId}", Foreground = Brushes.White, FontWeight = FontWeights.Bold, FontSize = 14 });
@@ -6594,7 +6598,7 @@ public partial class MainWindow : Window
                 Color dotColor = (dc.Ok && ping <= 100) ? Color.FromRgb(0x22, 0xc5, 0x5e) : (dc.Ok && ping <= 200) ? Color.FromRgb(0xea, 0xb3, 0x08) : Color.FromRgb(0xef, 0x44, 0x44);
                 headerGrid.Children.Add(new Ellipse { Width = 10, Height = 10, Fill = new SolidColorBrush(dotColor), HorizontalAlignment = System.Windows.HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center });
                 srvStack.Children.Add(headerGrid);
-                srvStack.Children.Add(new TextBlock { Text = dc.Ip, Foreground = new SolidColorBrush(Color.FromRgb(0x9c, 0xa3, 0xaf)), FontSize = 12, Margin = new Thickness(0, 8, 0, 0) });
+                srvStack.Children.Add(new TextBlock { Text = dc.Ip, Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a)), FontSize = 12, Margin = new Thickness(0, 8, 0, 0) });
                 srvStack.Children.Add(new TextBlock { Text = !dc.Ok ? "Недоступен" : $"{ping} мс", Foreground = new SolidColorBrush(dotColor), FontSize = 12, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 4, 0, 0) });
                 srvBlock.Child = srvStack; srvPanel.Children.Add(srvBlock);
             }
@@ -6607,8 +6611,8 @@ public partial class MainWindow : Window
                     Text = "Примечание: У вас включен TgWsProxy. Даже если выше указано, что сервера недоступны, не переживайте, на вашем ПК Telegram будет работать нормально.\n\n" +
                            "Связь с TG идет через этот прокси, а диагностика проверяет сервера прямой отправкой пакетов, которые блокируются. Поэтому они и помечаются как «недоступные».\n\n" +
                            "Важно: Сервера будут помечены как стабильные и пинг будет нормальным только в том случае, если у вас включен VPN, а без него они всегда будут «недоступны» :). Так что всё ок!",
-                    Foreground = new SolidColorBrush(Color.FromRgb(0x9c, 0xa3, 0xaf)),
-                    FontSize = 14,
+                    Foreground = new SolidColorBrush(Color.FromRgb(0x77, 0x77, 0x7a)),
+                    FontSize = 13,
                     FontStyle = FontStyles.Italic,
                     TextWrapping = TextWrapping.Wrap,
                     Margin = new Thickness(0, 4, 0, 0)
@@ -6616,7 +6620,7 @@ public partial class MainWindow : Window
                 serverContainer.Children.Add(serverNoteText);
             }
 
-            AddRichCard(DiagResults, "Доступность серверов Telegram", serverContainer, Color.FromRgb(0x0e, 0xa5, 0xe9));
+            AddRichCard(DiagResults, "Доступность серверов Telegram", serverContainer, Color.FromRgb(0x00, 0xff, 0x88));
         }
 
         DiagProg.Value = 100;
@@ -6648,9 +6652,9 @@ public partial class MainWindow : Window
 
         var tb = new TextBlock {
             Text = body,
-            FontFamily = new FontFamily("Segoe UI"),
-            FontSize = 14,
-            Foreground = new SolidColorBrush(Color.FromRgb(0xd1, 0xd5, 0xdb)),
+            FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
+            FontSize = 13,
+            Foreground = new SolidColorBrush(Color.FromRgb(0xaa, 0xaa, 0xaa)),
             TextWrapping = TextWrapping.Wrap,
             LineHeight = 22
         };
@@ -6661,9 +6665,11 @@ public partial class MainWindow : Window
     {
         var card = new Border
         {
-            Background = new SolidColorBrush(Color.FromRgb(0x25, 0x25, 0x25)),
-            CornerRadius = new CornerRadius(10),
-            Margin = new Thickness(0, 0, 0, 14),
+            Background = new SolidColorBrush(Color.FromRgb(0x08, 0x08, 0x0e)),
+            CornerRadius = new CornerRadius(12),
+            Margin = new Thickness(0, 0, 0, 12),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(0x18, 0x18, 0x20)),
+            BorderThickness = new Thickness(1),
             ClipToBounds = true,
         };
 
@@ -6672,7 +6678,7 @@ public partial class MainWindow : Window
         var bar = new Border
         {
             Background = new SolidColorBrush(accentColor),
-            Width = 4,
+            Width = 3,
             HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
         };
 
@@ -6736,10 +6742,10 @@ public partial class MainWindow : Window
         titlePanel.Children.Add(new TextBlock
         {
             Text = titleText,
-            FontFamily = new FontFamily("Segoe UI"),
-            FontSize = 16,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = Brushes.White,
+            FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
+            FontSize = 14,
+            FontWeight = FontWeights.Bold,
+            Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88)),
             TextWrapping = TextWrapping.Wrap,
             VerticalAlignment = VerticalAlignment.Center
         });
@@ -6774,6 +6780,36 @@ public partial class MainWindow : Window
     {
         _settingsOpen = false;
         AnimateSettings(open: false);
+    }
+
+    private void SettingsSection_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is Border header && header.Tag is string section)
+        {
+            StackPanel? content = null;
+            TextBlock? arrow = null;
+
+            switch (section)
+            {
+                case "Paths":     content = SectionPathsContent;     arrow = SectionPathsArrow;     break;
+                case "Autostart": content = SectionAutostartContent; arrow = SectionAutostartArrow; break;
+                case "Components":content = SectionComponentsContent;arrow = SectionComponentsArrow;break;
+                case "TgWs":      content = SectionTgWsContent;      arrow = SectionTgWsArrow;      break;
+                case "Mode":      content = SectionModeContent;      arrow = SectionModeArrow;      break;
+                case "Other":     content = SectionOtherContent;     arrow = SectionOtherArrow;     break;
+                case "About":     content = SectionAboutContent;     arrow = SectionAboutArrow;     break;
+                case "Links":     content = SectionLinksContent;     arrow = SectionLinksArrow;     break;
+                case "Backup":    content = SectionBackupContent;    arrow = SectionBackupArrow;    break;
+                case "Reset":     content = SectionResetContent;     arrow = SectionResetArrow;     break;
+            }
+
+            if (content != null && arrow != null)
+            {
+                bool isVisible = content.Visibility == Visibility.Visible;
+                content.Visibility = isVisible ? Visibility.Collapsed : Visibility.Visible;
+                arrow.Text = isVisible ? ">" : "▼";
+            }
+        }
     }
 
     private void AnimateSettings(bool open)
@@ -13440,9 +13476,9 @@ public partial class MainWindow : Window
 
             var card = new Border
             {
-                Background = new SolidColorBrush(Color.FromRgb(0x25, 0x25, 0x25)),
+                Background = new SolidColorBrush(Color.FromRgb(0x08, 0x08, 0x0e)),
                 CornerRadius = new CornerRadius(10),
-                BorderBrush = new SolidColorBrush(isActive ? Color.FromRgb(0x22, 0xc5, 0x5e) : Color.FromRgb(0x33, 0x33, 0x33)),
+                BorderBrush = new SolidColorBrush(isActive ? Color.FromRgb(0x00, 0xff, 0x88) : Color.FromRgb(0x18, 0x18, 0x20)),
                 BorderThickness = isActive ? new Thickness(1.5) : new Thickness(1.0),
                 Padding = new Thickness(12, 7, 12, 7),
                 Margin = new Thickness(0, 0, 0, 5),
@@ -13460,17 +13496,19 @@ public partial class MainWindow : Window
             {
                 Width = 26, Height = 26,
                 CornerRadius = new CornerRadius(7),
-                Background = new SolidColorBrush(isActive ? Color.FromRgb(0x05, 0x2e, 0x16) : Color.FromRgb(0x1a, 0x2a, 0x3a)),
+                Background = new SolidColorBrush(isActive ? Color.FromRgb(0x08, 0x14, 0x10) : Color.FromRgb(0x08, 0x08, 0x0e)),
+                BorderBrush = new SolidColorBrush(isActive ? Color.FromRgb(0x00, 0xff, 0x88) : Color.FromRgb(0x18, 0x18, 0x20)),
+                BorderThickness = new Thickness(1),
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
                 VerticalAlignment = System.Windows.VerticalAlignment.Center
             };
             iconBorder.Child = new TextBlock
             {
                 Text = dns.Name.Substring(0, 1).ToUpper(),
-                FontFamily = new FontFamily("Segoe UI"),
+                FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
                 FontSize = 12,
                 FontWeight = FontWeights.Bold,
-                Foreground = new SolidColorBrush(isActive ? Color.FromRgb(0x22, 0xc5, 0x5e) : Color.FromRgb(0x3b, 0x82, 0xf6)),
+                Foreground = new SolidColorBrush(isActive ? Color.FromRgb(0x00, 0xff, 0x88) : Color.FromRgb(0x5a, 0x6a, 0x7a)),
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                 VerticalAlignment = System.Windows.VerticalAlignment.Center
             };
@@ -13481,9 +13519,9 @@ public partial class MainWindow : Window
             namePanel.Children.Add(new TextBlock
             {
                 Text = dns.Name,
-                FontFamily = new FontFamily("Segoe UI"),
+                FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
                 FontSize = 13,
-                Foreground = Brushes.White,
+                Foreground = new SolidColorBrush(Color.FromRgb(0xf0, 0xf0, 0xf0)),
                 FontWeight = FontWeights.SemiBold
             });
 
@@ -13491,7 +13529,9 @@ public partial class MainWindow : Window
             {
                 var activeBadge = new Border
                 {
-                    Background = new SolidColorBrush(Color.FromRgb(0x05, 0x2e, 0x16)),
+                    Background = new SolidColorBrush(Color.FromRgb(0x08, 0x14, 0x10)),
+                    BorderBrush = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88)),
+                    BorderThickness = new Thickness(1),
                     CornerRadius = new CornerRadius(3),
                     Padding = new Thickness(4, 1, 4, 1.5),
                     Margin = new Thickness(6, 0, 0, 0),
@@ -13500,9 +13540,9 @@ public partial class MainWindow : Window
                 activeBadge.Child = new TextBlock
                 {
                     Text = "активен",
-                    FontFamily = new FontFamily("Segoe UI"),
+                    FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
                     FontSize = 9,
-                    Foreground = new SolidColorBrush(Color.FromRgb(0x4a, 0xde, 0x80)),
+                    Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88)),
                     FontWeight = FontWeights.Bold
                 };
                 namePanel.Children.Add(activeBadge);
@@ -13513,9 +13553,9 @@ public partial class MainWindow : Window
             info.Children.Add(new TextBlock
             {
                 Text = dns.Description,
-                FontFamily = new FontFamily("Segoe UI"),
+                FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
                 FontSize = 10.5,
-                Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88)),
+                Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a)),
                 Margin = new Thickness(0, 1, 0, 0),
                 TextWrapping = TextWrapping.Wrap,
                 MaxHeight = 30,
@@ -13527,9 +13567,9 @@ public partial class MainWindow : Window
                 info.Children.Add(new TextBlock
                 {
                     Text = $"{dns.Primary} | {dns.Secondary}",
-                    FontFamily = new FontFamily("Consolas"),
+                    FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
                     FontSize = 9.5,
-                    Foreground = new SolidColorBrush(Color.FromRgb(0x55, 0x55, 0x58)),
+                    Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a)),
                     Margin = new Thickness(0, 2, 0, 0)
                 });
             }
@@ -13543,10 +13583,10 @@ public partial class MainWindow : Window
 
             card.MouseLeftButtonUp += DnsCard_Click;
             card.MouseEnter += (_, _) => {
-                if (!isActive) card.Background = new SolidColorBrush(Color.FromRgb(0x2d, 0x2d, 0x2d));
+                if (!isActive) card.Background = new SolidColorBrush(Color.FromRgb(0x0a, 0x0a, 0x12));
             };
             card.MouseLeave += (_, _) => {
-                if (!isActive) card.Background = new SolidColorBrush(Color.FromRgb(0x25, 0x25, 0x25));
+                if (!isActive) card.Background = new SolidColorBrush(Color.FromRgb(0x08, 0x08, 0x0e));
             };
 
             DnsListContainer.Children.Add(card);
@@ -13555,15 +13595,15 @@ public partial class MainWindow : Window
         DnsListContainer.Children.Add(new Border
         {
             Height = 1,
-            Background = new SolidColorBrush(Color.FromRgb(0x2a, 0x2a, 0x2d)),
+            Background = new SolidColorBrush(Color.FromRgb(0x0a, 0x0a, 0x12)),
             Margin = new Thickness(0, 5, 0, 8)
         });
 
         var resetCard = new Border
         {
-            Background = new SolidColorBrush(Color.FromRgb(0x25, 0x25, 0x25)),
+            Background = new SolidColorBrush(Color.FromRgb(0x08, 0x08, 0x0e)),
             CornerRadius = new CornerRadius(10),
-            BorderBrush = new SolidColorBrush(Color.FromRgb(0x33, 0x33, 0x33)),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(0x18, 0x18, 0x20)),
             BorderThickness = new Thickness(1.0),
             Padding = new Thickness(12, 7, 12, 7),
             Margin = new Thickness(0, 0, 0, 5),
@@ -13579,7 +13619,9 @@ public partial class MainWindow : Window
         {
             Width = 24, Height = 24,
             CornerRadius = new CornerRadius(6),
-            Background = new SolidColorBrush(Color.FromRgb(0x45, 0x1a, 0x1a)),
+            Background = new SolidColorBrush(Color.FromRgb(0x1a, 0x08, 0x08)),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(0xef, 0x44, 0x44)),
+            BorderThickness = new Thickness(1),
             HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
             VerticalAlignment = System.Windows.VerticalAlignment.Center
         };
@@ -13598,17 +13640,17 @@ public partial class MainWindow : Window
         resetInfo.Children.Add(new TextBlock
         {
             Text = "Сбросить все настройки DNS",
-            FontFamily = new FontFamily("Segoe UI"),
+            FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
             FontSize = 12.5,
-            Foreground = Brushes.White,
+            Foreground = new SolidColorBrush(Color.FromRgb(0xf0, 0xf0, 0xf0)),
             FontWeight = FontWeights.SemiBold
         });
         resetInfo.Children.Add(new TextBlock
         {
             Text = "Вернуть настройки сетевых адаптеров на автоматическое получение DNS (DHCP)",
-            FontFamily = new FontFamily("Segoe UI"),
+            FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
             FontSize = 10,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88)),
+            Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a)),
             Margin = new Thickness(0, 1, 0, 0),
             TextWrapping = TextWrapping.Wrap,
             MaxHeight = 28,
@@ -13623,12 +13665,12 @@ public partial class MainWindow : Window
 
         resetCard.MouseLeftButtonUp += (s, e) => ShowResetAllDnsConfirmDialog();
         resetCard.MouseEnter += (_, _) => {
-            resetCard.Background = new SolidColorBrush(Color.FromRgb(0x2d, 0x2d, 0x2d));
+            resetCard.Background = new SolidColorBrush(Color.FromRgb(0x0a, 0x0a, 0x12));
             resetCard.BorderBrush = new SolidColorBrush(Color.FromRgb(0xef, 0x44, 0x44));
         };
         resetCard.MouseLeave += (_, _) => {
-            resetCard.Background = new SolidColorBrush(Color.FromRgb(0x25, 0x25, 0x25));
-            resetCard.BorderBrush = new SolidColorBrush(Color.FromRgb(0x33, 0x33, 0x33));
+            resetCard.Background = new SolidColorBrush(Color.FromRgb(0x08, 0x08, 0x0e));
+            resetCard.BorderBrush = new SolidColorBrush(Color.FromRgb(0x18, 0x18, 0x20));
         };
 
         DnsListContainer.Children.Add(resetCard);
@@ -13643,7 +13685,7 @@ public partial class MainWindow : Window
         _isDialogOpen = true;
 
         var cts = new CancellationTokenSource();
-        Color accentColor = Color.FromRgb(0xea, 0xb3, 0x08);
+        Color accentColor = Color.FromRgb(0x00, 0xff, 0x88);
 
         var overlay = new Border
         {
@@ -13656,7 +13698,7 @@ public partial class MainWindow : Window
 
         var dialogCard = new Border
         {
-            Background = new SolidColorBrush(Color.FromRgb(0x16, 0x16, 0x18)),
+            Background = new SolidColorBrush(Color.FromRgb(0x03, 0x03, 0x06)),
             BorderBrush = new SolidColorBrush(accentColor),
             BorderThickness = new Thickness(0, 3, 0, 0),
             CornerRadius = new CornerRadius(14),
@@ -13680,8 +13722,9 @@ public partial class MainWindow : Window
         {
             Text = $"Диагностика: {dns.Name}",
             FontSize = 16,
+            FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
             FontWeight = FontWeights.Bold,
-            Foreground = Brushes.White,
+            Foreground = new SolidColorBrush(Color.FromRgb(0xf0, 0xf0, 0xf0)),
             TextAlignment = TextAlignment.Center,
             Margin = new Thickness(0, 0, 0, 14)
         };
@@ -13695,17 +13738,17 @@ public partial class MainWindow : Window
         };
         var logBorder = new Border
         {
-            Background = new SolidColorBrush(Color.FromRgb(0x0f, 0x0f, 0x11)),
-            BorderBrush = new SolidColorBrush(Color.FromRgb(0x2d, 0x2d, 0x30)),
+            Background = new SolidColorBrush(Color.FromRgb(0x06, 0x06, 0x09)),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(0x0a, 0x0a, 0x12)),
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(8),
             Padding = new Thickness(10)
         };
         var logText = new TextBlock
         {
-            FontFamily = new FontFamily("Consolas"),
+            FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
             FontSize = 11,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xc5, 0x5e)),
+            Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88)),
             TextWrapping = TextWrapping.Wrap,
             LineHeight = 16
         };
@@ -13718,7 +13761,7 @@ public partial class MainWindow : Window
             Height = 3,
             IsIndeterminate = true,
             Foreground = new SolidColorBrush(accentColor),
-            Background = new SolidColorBrush(Color.FromRgb(0x2e, 0x2e, 0x2e)),
+            Background = new SolidColorBrush(Color.FromRgb(0x07, 0x07, 0x0c)),
             Margin = new Thickness(0, 0, 0, 14)
         };
         cardContent.Children.Add(progressBar);
@@ -13727,8 +13770,9 @@ public partial class MainWindow : Window
         {
             Text = "Выполняется диагностика DNS-серверов...",
             FontSize = 13,
+            FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
             FontWeight = FontWeights.SemiBold,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88)),
+            Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a)),
             TextAlignment = TextAlignment.Center,
             Margin = new Thickness(0, 0, 0, 16)
         };

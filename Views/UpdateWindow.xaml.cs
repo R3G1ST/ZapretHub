@@ -22,12 +22,12 @@ public partial class UpdateWindow : Window
     private void ShowWarningState()
     {
         StopIndeterminateAnimation();
-        SetProgressBar(0, "#3b82f6");
+        SetProgressBar(0, "#00ff88");
         SetStatusIcon("WarningIcon", "#eab308", true);
-        StatusText.Foreground = Brush("#888888");
+        StatusText.Foreground = Brush("#5a6a7a");
         StatusText.Text = "Перед проверкой убедитесь что:\n\n• VPN отключён\n• Zapret / tg-ws-proxy остановлены";
         PrimaryBtn.Content = "Проверить обновления";
-        PrimaryBtn.Background = Brush("#3b82f6");
+        PrimaryBtn.Background = Brush("#00ff88");
         PrimaryBtn.Visibility = Visibility.Visible;
         SecondaryBtn.Content = "Закрыть";
     }
@@ -36,8 +36,8 @@ public partial class UpdateWindow : Window
     {
         PrimaryBtn.Visibility = Visibility.Collapsed;
         StatusIcon.Visibility = Visibility.Collapsed;
-        StatusText.Foreground = Brush("#888888");
-        SetProgressBar(0, "#3b82f6");
+        StatusText.Foreground = Brush("#5a6a7a");
+        SetProgressBar(0, "#00ff88");
         StartIndeterminateAnimation();
     }
 
@@ -74,12 +74,12 @@ public partial class UpdateWindow : Window
     {
         StopIndeterminateAnimation();
         _downloadUrl = downloadUrl;
-        SetStatusIcon("RocketIcon", "#3b82f6", false);
+        SetStatusIcon("RocketIcon", "#00ff88", false);
         StatusText.Text = $"Доступна новая версия, {newVersion}";
         StatusText.Foreground = Brush("#f0f0f0");
-        SetProgressBar(BarWidth, "#3b82f6");
+        SetProgressBar(BarWidth, "#00ff88");
         PrimaryBtn.Content = "Установить";
-        PrimaryBtn.Background = Brush("#3b82f6");
+        PrimaryBtn.Background = Brush("#00ff88");
         PrimaryBtn.Visibility = Visibility.Visible;
         SecondaryBtn.Content = "Закрыть";
     }
@@ -144,7 +144,7 @@ public partial class UpdateWindow : Window
             this.Height = 260;
             StartIndeterminateAnimation();
             StatusText.Text = "Скачивание обновления...";
-            StatusText.Foreground = Brush("#888888");
+            StatusText.Foreground = Brush("#5a6a7a");
 
             try
             {
@@ -153,7 +153,7 @@ public partial class UpdateWindow : Window
                     {
                         StopIndeterminateAnimation();
                         StatusText.Text = $"Скачивание... {progress}%";
-                        SetProgressBar(BarWidth * progress / 100, "#3b82f6");
+                        SetProgressBar(BarWidth * progress / 100, "#00ff88");
                     }));
             }
             catch
@@ -176,12 +176,12 @@ public partial class UpdateWindow : Window
 
         if (secContent == "Закрыть" && primContent == "Установить" && PrimaryBtn.Visibility == Visibility.Visible)
         {
-            SetStatusIcon("WarningIcon", "#eab308", true);
-            StatusText.Text = "Ты точно не хочешь обновить приложение?\n\nВ обновлении куча нового! То, что могло не работать раньше, теперь может работать стабильнее, а также добавлены полезные фишки и улучшения.";
-            StatusText.Foreground = Brush("#eab308");
+            SetStatusIcon("WarningIcon", "#ef4444", true);
+            StatusText.Text = "Вы пропустите важные исправления и улучшения.\n\nПродолжить без обновления?";
+            StatusText.Foreground = Brush("#ef4444");
 
             PrimaryBtn.Content = "Обновить";
-            PrimaryBtn.Background = Brush("#22c55e");
+            PrimaryBtn.Background = Brush("#00ff88");
 
             SecondaryBtn.Content = "Закрыть!";
             SecondaryBtn.Width = 100;
