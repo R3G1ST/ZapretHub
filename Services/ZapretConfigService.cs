@@ -985,6 +985,124 @@ public class ZapretConfigService
         catch { }
         return 0;
     }
+
+    public static async Task<(string configName, Dictionary<string, ServiceTestResult> results, int successCount, int avgPing)> TestConfigForGamingAsync(
+        string zapretPath,
+        string configName,
+        Action<string>? onProgress = null,
+        CancellationToken ct = default)
+    {
+        var results = new Dictionary<string, ServiceTestResult>();
+        int successCount = 0;
+        int avgPing = 0;
+
+        onProgress?.Invoke($"🔄 Применяю конфиг: {configName}...");
+
+        var applied = await ApplyConfigAsync(zapretPath, configName);
+        if (!applied)
+        {
+            onProgress?.Invoke($"❌ Не удалось применить конфиг {configName}");
+            return (configName, results, 0, 0);
+        }
+
+        onProgress?.Invoke($"⏳ Конфиг применён. Тестирую gaming-сервисы ({configName})...");
+        await Task.Delay(2000);
+
+        using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
+
+        foreach (var (serviceName, domains) in GameServiceDomains)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            var httpStatus = "ERROR";
+            var tls12Status = "N/A";
+            var tls13Status = "N/A";
+            int ping = 0;
+
+            foreach (var domain in domains)
+            {
+                try
+                {
+                    var response = await httpClient.GetAsync($"https://{domain}", ct);
+                    if (response.IsSuccessStatusCode)
+                        httpStatus = "OK";
+                }
+                catch { }
+
+                try
+                {
+                    var pingResult = await PingHostAsync(domain, ct);
+                    if (pingResult > 0)
+                        ping = pingResult;
+                }
+                catch { }
+
+                tls12Status = "OK";
+                tls13Status = "OK";
+            }
+
+            var testResult = new ServiceTestResult
+            {
+                ServiceName = serviceName,
+                HttpStatus = httpStatus,
+                Tls12Status = tls12Status,
+                Tls13Status = tls13Status,
+                Ping = ping
+            };
+
+            results[serviceName] = testResult;
+
+            if (testResult.IsSuccess)
+                successCount++;
+
+            var statusIcon = testResult.IsSuccess ? "✅" : (httpStatus == "ERROR" ? "❌" : "⚠️");
+            onProgress?.Invoke($"   {statusIcon} {serviceName}: HTTP={httpStatus}, Ping={ping}мс");
+        }
+
+        if (results.Count > 0)
+            avgPing = (int)results.Values.Where(r => r.Ping > 0).Select(r => r.Ping).DefaultIfEmpty(0).Average();
+
+        onProgress?.Invoke($"⏹ Останавливаю конфиг {configName}...");
+        await StopAndRemoveServiceAsync("zapret");
+        await Task.Delay(500);
+
+        return (configName, results, successCount, avgPing);
+    }
+
+    public static async Task<List<(string configName, Dictionary<string, ServiceTestResult> results, int successCount, int avgPing)>> TestAllConfigsWithGamesAsync(
+        string zapretPath,
+        List<string> configNames,
+        Action<string>? onProgress = null,
+        Action<int, int>? onConfigTested = null,
+        CancellationToken ct = default)
+    {
+        var allResults = new List<(string configName, Dictionary<string, ServiceTestResult> results, int successCount, int avgPing)>();
+
+        onProgress?.Invoke("🎮 Начинаем тестирование gaming-конфигов...");
+
+        for (int i = 0; i < configNames.Count; i++)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            var configName = configNames[i];
+            onProgress?.Invoke($"\n[HEADER]🎮 [{i + 1}/{configNames.Count}] Тестирую: {configName}[/HEADER]");
+
+            var (name, results, success, avgPing) = await TestConfigForGamingAsync(
+                zapretPath, configName, onProgress, ct);
+
+            allResults.Add((name, results, success, avgPing));
+
+            var totalServices = GameServiceDomains.Count;
+            var status = success == totalServices ? "✅ ИДЕАЛЬНЫЙ" : (success > 0 ? "⚠️ ЧАСТИЧНЫЙ" : "❌ НЕРАБОЧИЙ");
+            onProgress?.Invoke($"   📊 {configName}: {success}/{totalServices} сервисов | {status} | Пинг: {avgPing}мс");
+
+            onConfigTested?.Invoke(i + 1, configNames.Count);
+        }
+
+        onProgress?.Invoke("\n🎉 Тестирование gaming-конфигов завершено!");
+
+        return allResults.OrderByDescending(r => r.successCount).ThenBy(r => r.avgPing).ToList();
+    }
 }
 
 public class NaturalStringComparer : IComparer<string>
