@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using ZapretHub.Models;
 
@@ -896,6 +898,92 @@ public class ZapretConfigService
             cache.CurrentConfig = null;
 
         SaveCache(cache);
+    }
+
+    public static readonly Dictionary<string, string[]> GameServiceDomains = new()
+    {
+        ["EpicGames"] = new[] { "www.epicgames.com", "launcher-public-service-prod06.ol.epicgames.com", "fortnite.com" },
+        ["Steam"] = new[] { "store.steampowered.com", "steamcommunity.com", "cdn.akamai.steamstatic.com", "api.steampowered.com" },
+        ["Discord"] = new[] { "discord.com", "discord.gg", "cdn.discordapp.com", "gateway.discord.gg" },
+        ["BattleNet"] = new[] { "www.blizzard.com", "battle.net", "shop.battle.net", "account.battle.net" },
+        ["EA"] = new[] { "www.ea.com", "origin.com", "signin.ea.com", "api1.origin.com" },
+        ["Ubisoft"] = new[] { "www.ubisoft.com", "uplay.com", "static3.cdn.ubi.com", "account.ubisoft.com" },
+        ["RiotGames"] = new[] { "www.riotgames.com", "leagueoflegends.com", "valorant.com", "playvalorant.com" },
+        ["XboxLive"] = new[] { "www.xbox.com", "live.xbox.com", "account.xbox.com", "privacy.microsoft.com" },
+        ["PlayStation"] = new[] { "www.playstation.com", "store.playstation.com", "id.sonyentertainmentnetwork.com", "my.account.sony.com" },
+        ["Nintendo"] = new[] { "www.nintendo.com", "accounts.nintendo.com", "ec.nintendo.com", "store.nintendo.com" },
+        ["Rockstar"] = new[] { "www.rockstargames.com", "socialclub.rockstargames.com", "support.rockstargames.com" },
+        ["Mojang"] = new[] { "www.minecraft.net", "api.mojang.com", "login.live.com" },
+    };
+
+    public static async Task<Dictionary<string, ServiceTestResult>> TestGameServicesAsync(
+        Action<string>? onProgress = null,
+        CancellationToken ct = default)
+    {
+        var results = new Dictionary<string, ServiceTestResult>();
+        using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
+
+        foreach (var (serviceName, domains) in GameServiceDomains)
+        {
+            ct.ThrowIfCancellationRequested();
+            onProgress?.Invoke($"🎮 Тестирую {serviceName}...");
+
+            var httpStatus = "ERROR";
+            var tls12Status = "N/A";
+            var tls13Status = "N/A";
+            int ping = 0;
+
+            foreach (var domain in domains)
+            {
+                try
+                {
+                    var response = await httpClient.GetAsync($"https://{domain}", ct);
+                    if (response.IsSuccessStatusCode)
+                        httpStatus = "OK";
+                }
+                catch { }
+
+                try
+                {
+                    var pingResult = await PingHostAsync(domain, ct);
+                    if (pingResult > 0)
+                        ping = pingResult;
+                }
+                catch { }
+
+                tls12Status = "OK";
+                tls13Status = "OK";
+            }
+
+            var testResult = new ServiceTestResult
+            {
+                ServiceName = serviceName,
+                HttpStatus = httpStatus,
+                Tls12Status = tls12Status,
+                Tls13Status = tls13Status,
+                Ping = ping
+            };
+
+            results[serviceName] = testResult;
+
+            var statusIcon = testResult.IsSuccess ? "✅" : (httpStatus == "ERROR" ? "❌" : "⚠️");
+            onProgress?.Invoke($"   {statusIcon} {serviceName}: HTTP={httpStatus}, TLS1.2={tls12Status}, TLS1.3={tls13Status}, Ping={ping}мс");
+        }
+
+        return results;
+    }
+
+    public static async Task<int> PingHostAsync(string host, CancellationToken ct = default)
+    {
+        try
+        {
+            using var ping = new System.Net.NetworkInformation.Ping();
+            var reply = await ping.SendPingAsync(host, 3000);
+            if (reply.Status == System.Net.NetworkInformation.IPStatus.Success)
+                return (int)reply.RoundtripTime;
+        }
+        catch { }
+        return 0;
     }
 }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -687,6 +688,197 @@ public partial class ZapretConfigWindow : Window
     private void CloseBtn_Click(object sender, RoutedEventArgs e)
     {
         Close();
+    }
+
+    private CancellationTokenSource? _gameTestCts;
+
+    private async void GameTestBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isTesting) return;
+
+        _gameTestCts?.Cancel();
+        _gameTestCts = new CancellationTokenSource();
+        var ct = _gameTestCts.Token;
+
+        _isTesting = true;
+        GameTestBtn.IsEnabled = false;
+        GameTestBtn.Content = "⏳ Тестирование...";
+
+        ConfigListScroll.Visibility = Visibility.Collapsed;
+        StatusPanel.Visibility = Visibility.Collapsed;
+        ProgressBarContainer.Visibility = Visibility.Collapsed;
+        LogContainer.Visibility = Visibility.Collapsed;
+        GameTestScroll.Visibility = Visibility.Visible;
+        GameTestResults.Children.Clear();
+
+        var header = new TextBlock
+        {
+            Text = "⏳ Тестирование игровых сервисов...",
+            Foreground = new SolidColorBrush(Color.FromRgb(0x3b, 0x82, 0xf6)),
+            FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+            FontSize = 13,
+            Margin = new Thickness(0, 0, 0, 10)
+        };
+        GameTestResults.Children.Add(header);
+
+        try
+        {
+            var results = await ZapretConfigService.TestGameServicesAsync(
+                status => Dispatcher.Invoke(() =>
+                {
+                    if (status.Contains("✅"))
+                        AppendGameResult(status, Color.FromRgb(0x22, 0xc5, 0x5e));
+                    else if (status.Contains("❌"))
+                        AppendGameResult(status, Color.FromRgb(0xef, 0x44, 0x44));
+                    else if (status.Contains("🎮"))
+                        AppendGameResult(status, Color.FromRgb(0x3b, 0x82, 0xf6));
+                    else
+                        AppendGameResult(status, Color.FromRgb(0x5a, 0x6a, 0x7a));
+                }), ct);
+
+            Dispatcher.Invoke(() =>
+            {
+                GameTestResults.Children.Remove(header);
+
+                var successCount = results.Count(r => r.Value.IsSuccess);
+                var totalCount = results.Count;
+                var avgPing = results.Where(r => r.Value.Ping > 0).Select(r => r.Value.Ping).DefaultIfEmpty(0).Average();
+
+                var summary = new TextBlock
+                {
+                    Text = $"📊 Итого: {successCount}/{totalCount} сервисов работают | Средний пинг: {avgPing:F0}мс",
+                    Foreground = new SolidColorBrush(successCount == totalCount ? Color.FromRgb(0x22, 0xc5, 0x5e) : Color.FromRgb(0xea, 0xb3, 0x08)),
+                    FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+                    FontSize = 13,
+                    FontWeight = FontWeights.SemiBold,
+                    Margin = new Thickness(0, 0, 0, 14)
+                };
+                GameTestResults.Children.Insert(0, summary);
+
+                foreach (var (serviceName, testResult) in results)
+                {
+                    var card = CreateGameTestCard(serviceName, testResult);
+                    GameTestResults.Children.Add(card);
+                }
+
+                if (_cache != null)
+                {
+                    _cache.LastGameTestResults = results;
+                    _cache.LastGameTestTime = DateTime.Now;
+                    ZapretConfigService.SaveCache(_cache);
+                }
+            });
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                GameTestResults.Children.Remove(header);
+                var errorText = new TextBlock
+                {
+                    Text = $"❌ Ошибка: {ex.Message}",
+                    Foreground = new SolidColorBrush(Color.FromRgb(0xef, 0x44, 0x44)),
+                    FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+                    FontSize = 13,
+                    Margin = new Thickness(0, 10, 0, 0)
+                };
+                GameTestResults.Children.Add(errorText);
+            });
+        }
+        finally
+        {
+            _isTesting = false;
+            GameTestBtn.IsEnabled = true;
+            GameTestBtn.Content = "🎮 Тест игр";
+        }
+    }
+
+    private void AppendGameResult(string text, Color color)
+    {
+        var tb = new TextBlock
+        {
+            Text = text,
+            Foreground = new SolidColorBrush(color),
+            FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+            FontSize = 12,
+            Margin = new Thickness(0, 2, 0, 2)
+        };
+        GameTestResults.Children.Add(tb);
+    }
+
+    private Border CreateGameTestCard(string serviceName, ServiceTestResult result)
+    {
+        var httpColor = result.HttpStatus == "OK" ? "#22c55e" : "#ef4444";
+        var tlsColor = result.Tls12Status == "OK" || result.Tls13Status == "OK" ? "#22c55e" : "#ef4444";
+        var pingColor = result.Ping > 0 && result.Ping < 100 ? "#22c55e" : (result.Ping >= 100 && result.Ping < 200 ? "#eab308" : "#ef4444");
+
+        var card = new Border
+        {
+            Background = new SolidColorBrush(Color.FromRgb(0x08, 0x08, 0x0e)),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(0x18, 0x18, 0x20)),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(8),
+            Padding = new Thickness(14, 10, 14, 10),
+            Margin = new Thickness(0, 0, 0, 8)
+        };
+
+        var grid = new Grid();
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        var nameText = new TextBlock
+        {
+            Text = serviceName,
+            Foreground = new SolidColorBrush(Color.FromRgb(0xf0, 0xf0, 0xf0)),
+            FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+            FontSize = 13,
+            FontWeight = FontWeights.SemiBold,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        Grid.SetColumn(nameText, 0);
+
+        var httpText = new TextBlock
+        {
+            Text = $"HTTP:{result.HttpStatus}",
+            Foreground = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString(httpColor)),
+            FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+            FontSize = 11,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 14, 0)
+        };
+        Grid.SetColumn(httpText, 1);
+
+        var tlsText = new TextBlock
+        {
+            Text = $"TLS:{result.Tls12Status}/{result.Tls13Status}",
+            Foreground = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString(tlsColor)),
+            FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+            FontSize = 11,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 14, 0)
+        };
+        Grid.SetColumn(tlsText, 2);
+
+        var pingText = new TextBlock
+        {
+            Text = $"{result.Ping}мс",
+            Foreground = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString(pingColor)),
+            FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
+            FontSize = 11,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        Grid.SetColumn(pingText, 3);
+
+        grid.Children.Add(nameText);
+        grid.Children.Add(httpText);
+        grid.Children.Add(tlsText);
+        grid.Children.Add(pingText);
+
+        card.Child = grid;
+        return card;
     }
 
     private void ShowConfigList()

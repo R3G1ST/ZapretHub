@@ -7,11 +7,16 @@ public class ZapretConfig
 {
     public string Name { get; set; } = "";
     public Dictionary<string, ServiceTestResult> Tests { get; set; } = new();
+    public Dictionary<string, ServiceTestResult> GameTests { get; set; } = new();
     public int SuccessCount { get; set; }
+    public int GameSuccessCount { get; set; }
     public int ErrorCount { get; set; }
     public int AveragePing { get; set; }
+    public int GameAveragePing { get; set; }
     public bool IsValid { get; set; }
+    public bool IsGameValid { get; set; }
     public bool IsPartiallyUsable => !IsValid && SuccessCount > 0;
+    public bool IsGamePartiallyUsable => !IsGameValid && GameSuccessCount > 0;
     public bool IsFromMod { get; set; } = false;
     public string? ModName { get; set; } = null;
 }
@@ -35,6 +40,9 @@ public class ZapretConfigCache
     public string CurrentConfig { get; set; } = "";
     public List<ZapretConfig> ValidConfigs { get; set; } = new();
     public List<ZapretConfig> PartialConfigs { get; set; } = new();
+    public Dictionary<string, ServiceTestResult>? LastGameTestResults { get; set; }
+    public string? LastGameTestedConfig { get; set; }
+    public DateTime? LastGameTestTime { get; set; }
 
     public bool HasAnyConfigs => ValidConfigs.Count > 0 || PartialConfigs.Count > 0;
 
