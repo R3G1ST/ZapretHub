@@ -696,57 +696,92 @@ public partial class MainWindow : Window
 
             if (st.ZapretRunning)
             {
-                await StopZapretServiceAsync();
+                if (_settings.ZapretVersion == ZapretVersion.V2)
+                    await StopZapretV2Async();
+                else
+                    await StopZapretServiceAsync();
                 _zapretToggleFails = 0;
             }
             else
             {
-                if (!string.IsNullOrEmpty(_settings.ZapretPath) && File.Exists(_settings.ZapretPath))
+                if (_settings.ZapretVersion == ZapretVersion.V2)
                 {
-                    var isServiceBat = System.IO.Path.GetFileName(_settings.ZapretPath).Equals("service.bat", StringComparison.OrdinalIgnoreCase);
-                    var cache = ZapretConfigService.LoadCache();
-
-                    if (isServiceBat)
+                    if (string.IsNullOrEmpty(_settings.Zapret2Path) || !File.Exists(_settings.Zapret2Path))
                     {
-                        if (cache == null || !cache.HasAnyConfigs)
+                        AppendLog("Укажите путь к winws2.exe / nfqws2 в настройках", "warn");
+                        return;
+                    }
+
+                    ZapretToggleBtn.IsEnabled = false;
+                    var originalContent = ZapretToggleBtn.Content;
+                    ZapretToggleBtn.Content = "Запуск...";
+
+                    try
+                    {
+                        var psi = new ProcessStartInfo(_settings.Zapret2Path)
                         {
-                            ShowFullScanRequiredNotification(
-                                "Конфиги Zapret не найдены",
-                                "Приложение не смогло обнаружить рабочие конфиги для Zapret.\n\n" +
-                                "Сначала пройдите полное сканирование, чтобы ZapretHub нашёл доступные конфиги и подготовил запуск сервиса.");
-                            _zapretToggleFails = 0;
-                            return;
+                            UseShellExecute = true,
+                            WorkingDirectory = Path.GetDirectoryName(_settings.Zapret2Path)
+                        };
+                        Process.Start(psi);
+                    }
+                    catch (Exception ex)
+                    {
+                        AppendLog($"Ошибка запуска Zapret v2: {ex.Message}", "error");
+                    }
+
+                    ZapretToggleBtn.IsEnabled = true;
+                    ZapretToggleBtn.Content = originalContent;
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(_settings.ZapretPath) && File.Exists(_settings.ZapretPath))
+                    {
+                        var isServiceBat = System.IO.Path.GetFileName(_settings.ZapretPath).Equals("service.bat", StringComparison.OrdinalIgnoreCase);
+                        var cache = ZapretConfigService.LoadCache();
+
+                        if (isServiceBat)
+                        {
+                            if (cache == null || !cache.HasAnyConfigs)
+                            {
+                                ShowFullScanRequiredNotification(
+                                    "Конфиги Zapret не найдены",
+                                    "Приложение не смогло обнаружить рабочие конфиги для Zapret.\n\n" +
+                                    "Сначала пройдите полное сканирование, чтобы ZapretHub нашёл доступные конфиги и подготовил запуск сервиса.");
+                                _zapretToggleFails = 0;
+                                return;
+                            }
+
+                            if (string.IsNullOrEmpty(cache.CurrentConfig))
+                            {
+                                _zapretToggleFails = 0;
+                                return;
+                            }
+
+                            ZapretToggleBtn.IsEnabled = false;
+                            var originalContent = ZapretToggleBtn.Content;
+                            ZapretToggleBtn.Content = "Запуск...";
+
+                            bool success = await ZapretConfigService.ApplyConfigAsync(_settings.ZapretPath, cache.CurrentConfig);
+
+                            ZapretToggleBtn.IsEnabled = true;
+                            ZapretToggleBtn.Content = originalContent;
+
+                            if (!success)
+                            {
+                                TrackZapretStartFail();
+                                return;
+                            }
                         }
-
-                        if (string.IsNullOrEmpty(cache.CurrentConfig))
+                        else
                         {
-                            _zapretToggleFails = 0;
-                            return;
-                        }
-
-                        ZapretToggleBtn.IsEnabled = false;
-                        var originalContent = ZapretToggleBtn.Content;
-                        ZapretToggleBtn.Content = "Запуск...";
-
-                        bool success = await ZapretConfigService.ApplyConfigAsync(_settings.ZapretPath, cache.CurrentConfig);
-
-                        ZapretToggleBtn.IsEnabled = true;
-                        ZapretToggleBtn.Content = originalContent;
-
-                        if (!success)
-                        {
-                            TrackZapretStartFail();
-                            return;
+                            Process.Start(new ProcessStartInfo(_settings.ZapretPath) { UseShellExecute = true });
                         }
                     }
                     else
                     {
-                        Process.Start(new ProcessStartInfo(_settings.ZapretPath) { UseShellExecute = true });
+                        return;
                     }
-                }
-                else
-                {
-                    return;
                 }
             }
 
@@ -788,6 +823,17 @@ public partial class MainWindow : Window
             try { p.Kill(); p.Dispose(); } catch { }
         foreach (var p in Process.GetProcessesByName("winws.exe"))
             try { p.Kill(); p.Dispose(); } catch { }
+    }
+
+    private static async Task StopZapretV2Async()
+    {
+        foreach (var p in Process.GetProcessesByName("winws2"))
+            try { p.Kill(); p.Dispose(); } catch { }
+        foreach (var p in Process.GetProcessesByName("winws2.exe"))
+            try { p.Kill(); p.Dispose(); } catch { }
+        foreach (var p in Process.GetProcessesByName("nfqws2"))
+            try { p.Kill(); p.Dispose(); } catch { }
+        await Task.Delay(500);
     }
 
     private async void TgWsToggle_Click(object s, RoutedEventArgs e)
@@ -5733,6 +5779,7 @@ public partial class MainWindow : Window
 
         if (_settings.EnableZapret
             && !st.ZapretRunning
+            && _settings.ZapretVersion == ZapretVersion.V1
             && !string.IsNullOrWhiteSpace(_settings.ZapretPath)
             && File.Exists(_settings.ZapretPath))
         {
@@ -5887,8 +5934,12 @@ public partial class MainWindow : Window
         var st = DiagnosticsEngine.CheckAppStatus();
         bool zapretNeeded = _settings.EnableZapret
             && !st.ZapretRunning
-            && !string.IsNullOrWhiteSpace(_settings.ZapretPath)
-            && File.Exists(_settings.ZapretPath);
+            && ((_settings.ZapretVersion == ZapretVersion.V2
+                && !string.IsNullOrWhiteSpace(_settings.Zapret2Path)
+                && File.Exists(_settings.Zapret2Path))
+               || (_settings.ZapretVersion == ZapretVersion.V1
+                && !string.IsNullOrWhiteSpace(_settings.ZapretPath)
+                && File.Exists(_settings.ZapretPath)));
         bool tgwsNeeded = _settings.EnableTgWsProxy
             && !st.TgWsProxyRunning
             && !string.IsNullOrWhiteSpace(_settings.TgWsProxyPath)
@@ -5949,24 +6000,42 @@ public partial class MainWindow : Window
         if (zapretNeeded)
         {
             AppendLog("Zapret не запущен — запускаю...", "info");
-            var isServiceBat = Path.GetFileName(_settings.ZapretPath)
-                .Equals("service.bat", StringComparison.OrdinalIgnoreCase);
 
-            if (isServiceBat)
-            {
-                var cache = ZapretConfigService.LoadCache();
-                bool success = await ZapretConfigService.ApplyConfigAsync(
-                    _settings.ZapretPath, cache?.CurrentConfig ?? "");
-                zapretOk = success;
-            }
-            else
+            if (_settings.ZapretVersion == ZapretVersion.V2)
             {
                 try
                 {
-                    Process.Start(new ProcessStartInfo(_settings.ZapretPath) { UseShellExecute = true });
+                    var psi = new ProcessStartInfo(_settings.Zapret2Path)
+                    {
+                        UseShellExecute = true,
+                        WorkingDirectory = Path.GetDirectoryName(_settings.Zapret2Path)
+                    };
+                    Process.Start(psi);
                     zapretOk = true;
                 }
-                catch (Exception ex) { AppendLog($"Ошибка: {ex.Message}", "error"); }
+                catch (Exception ex) { AppendLog($"Ошибка Zapret v2: {ex.Message}", "error"); }
+            }
+            else
+            {
+                var isServiceBat = Path.GetFileName(_settings.ZapretPath)
+                    .Equals("service.bat", StringComparison.OrdinalIgnoreCase);
+
+                if (isServiceBat)
+                {
+                    var cache = ZapretConfigService.LoadCache();
+                    bool success = await ZapretConfigService.ApplyConfigAsync(
+                        _settings.ZapretPath, cache?.CurrentConfig ?? "");
+                    zapretOk = success;
+                }
+                else
+                {
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo(_settings.ZapretPath) { UseShellExecute = true });
+                        zapretOk = true;
+                    }
+                    catch (Exception ex) { AppendLog($"Ошибка: {ex.Message}", "error"); }
+                }
             }
 
             if (zapretOk) AppendLog("✓ Zapret запущен", "ok");
@@ -6920,6 +6989,7 @@ public partial class MainWindow : Window
     {
         _settingsLoaded = false;
         ZapretBox.Text   = _settings.ZapretPath;
+        Zapret2Box.Text  = _settings.Zapret2Path;
         TgWsBox.Text     = _settings.TgWsProxyPath;
         AutoTgWsCB.IsChecked    = _settings.AutostartTgWsProxy;
         AutoAppCB.IsChecked     = _settings.AutostartApp;
@@ -6945,6 +7015,7 @@ public partial class MainWindow : Window
         ForceNetOkCB.IsChecked = _settings.ForceNetworkOk;
         LoadKeyLabels();
         InitGameServicesCheckboxes();
+        UpdateVersionBadge();
         _settingsLoaded = true;
     }
 
@@ -7256,6 +7327,64 @@ public partial class MainWindow : Window
     {
         var p = BrowseExe("Выберите tg-ws-proxy");
         if (p != null) TgWsBox.Text = p;
+    }
+
+    private void BrowseZapret2_Click(object s, RoutedEventArgs e)
+    {
+        var p = BrowseExe("Выберите winws2.exe / nfqws2");
+        if (p != null) Zapret2Box.Text = p;
+    }
+
+    private void Zapret2Box_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (!_settingsLoaded) return;
+        _settings.Zapret2Path = Zapret2Box.Text.Trim();
+        SettingsService.Save(_settings);
+    }
+
+    private void ZapretVersionBadge_Click(object sender, MouseButtonEventArgs e)
+    {
+        ZapretVersionPopup.Visibility = ZapretVersionPopup.Visibility == Visibility.Visible
+            ? Visibility.Collapsed : Visibility.Visible;
+        UpdateVersionPopupHighlight();
+    }
+
+    private void ZapretV1Option_Click(object sender, MouseButtonEventArgs e)
+    {
+        _settings.ZapretVersion = ZapretVersion.V1;
+        SettingsService.Save(_settings);
+        ZapretVersionPopup.Visibility = Visibility.Collapsed;
+        UpdateVersionBadge();
+    }
+
+    private void ZapretV2Option_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_settings.Zapret2Path) || !File.Exists(_settings.Zapret2Path))
+        {
+            AppendLog("Укажите путь к winws2.exe / nfqws2 в настройках", "warn");
+            ZapretVersionPopup.Visibility = Visibility.Collapsed;
+            return;
+        }
+        _settings.ZapretVersion = ZapretVersion.V2;
+        SettingsService.Save(_settings);
+        ZapretVersionPopup.Visibility = Visibility.Collapsed;
+        UpdateVersionBadge();
+    }
+
+    private void UpdateVersionBadge()
+    {
+        var isV2 = _settings.ZapretVersion == ZapretVersion.V2;
+        ZapretVersionLbl.Text = isV2 ? "v2" : "v1";
+        ZapretVersionBadge.Background = new SolidColorBrush(Color.FromRgb((byte)(isV2 ? 0x0a : 0x0a), (byte)(isV2 ? 0x10 : 0x1a), (byte)(isV2 ? 0x1a : 0x12)));
+        ZapretVersionBadge.BorderBrush = new SolidColorBrush(Color.FromArgb(0x30, 0x00, 0xff, 0x88));
+        UpdateVersionPopupHighlight();
+    }
+
+    private void UpdateVersionPopupHighlight()
+    {
+        var isV2 = _settings.ZapretVersion == ZapretVersion.V2;
+        ZapretV1Option.Background = new SolidColorBrush(isV2 ? Color.FromRgb(8, 8, 14) : Color.FromRgb(10, 26, 18));
+        ZapretV2Option.Background = new SolidColorBrush(isV2 ? Color.FromRgb(10, 26, 18) : Color.FromRgb(8, 8, 14));
     }
 
     private void ReOnboard_Click(object s, RoutedEventArgs e)

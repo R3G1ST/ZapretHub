@@ -4824,10 +4824,27 @@
          TextAlignment="Left"
          Padding="8,0,8,0"
          TextChanged="TgWsBox_TextChanged"/>
-                                    <Button Grid.Column="1" Content="…" Style="{StaticResource OutlineBtn}"
+                                     <Button Grid.Column="1" Content="…" Style="{StaticResource OutlineBtn}"
                                             Height="32" Padding="0" Margin="4,0,0,0" FontSize="14"
                                             WindowChrome.IsHitTestVisibleInChrome="True"
                                             Click="BrowseTgWs_Click"/>
+                                </Grid>
+                                <TextBlock Text="Zapret v2 (winws2.exe / nfqws2)" FontFamily="Cascadia Code, Consolas, monospace" FontSize="12"
+                                           Foreground="#f0f0f0" Margin="0,0,0,4"/>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="38"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="Zapret2Box" Style="{StaticResource InputBox}" Height="32"
+         HorizontalScrollBarVisibility="Hidden"
+         TextAlignment="Left"
+         Padding="8,0,8,0"
+         TextChanged="Zapret2Box_TextChanged"/>
+                                    <Button Grid.Column="1" Content="…" Style="{StaticResource OutlineBtn}"
+                                            Height="32" Padding="0" Margin="4,0,0,0" FontSize="14"
+                                            WindowChrome.IsHitTestVisibleInChrome="True"
+                                            Click="BrowseZapret2_Click"/>
                                 </Grid>
                                 </StackPanel>
                                 <Border x:Name="SectionAutostartHeader" Background="#08080e" CornerRadius="8"
@@ -5292,11 +5309,12 @@
                                      <Border Background="#0a0a12" CornerRadius="6"
                                              BorderBrush="#0a0a12" BorderThickness="1"
                                              Padding="15,12" Margin="0,0,0,8">
-                                         <StackPanel>
+                                             <StackPanel>
                                              <Grid>
                                                  <Grid.ColumnDefinitions>
                                                      <ColumnDefinition Width="Auto"/>
                                                      <ColumnDefinition Width="*"/>
+                                                     <ColumnDefinition Width="Auto"/>
                                                      <ColumnDefinition Width="Auto"/>
                                                  </Grid.ColumnDefinitions>
                                                  <Border Width="32" Height="32" CornerRadius="9"
@@ -5322,7 +5340,17 @@
                                                                    Foreground="#5a6a7a"/>
                                                     </StackPanel>
                                                 </StackPanel>
-                                                <Button x:Name="ZapretToggleBtn" Grid.Column="2"
+                                                <Border x:Name="ZapretVersionBadge" Grid.Column="2"
+                                                        Background="#0a1a12" CornerRadius="6"
+                                                        BorderBrush="#00ff8830" BorderThickness="1"
+                                                        Padding="8,3" Margin="0,0,8,0"
+                                                        VerticalAlignment="Center" Cursor="Hand"
+                                                        MouseLeftButtonDown="ZapretVersionBadge_Click">
+                                                    <TextBlock x:Name="ZapretVersionLbl" Text="v1"
+                                                               FontFamily="Cascadia Code, Consolas, monospace" FontSize="10"
+                                                               Foreground="#00ff88" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <Button x:Name="ZapretToggleBtn" Grid.Column="3"
                                                          Style="{StaticResource AccentBtn}"
                                                          Padding="10,6" FontSize="12"
                                                         WindowChrome.IsHitTestVisibleInChrome="True"
@@ -5346,6 +5374,35 @@
                                                          Foreground="#00ff88"
                                                          Background="#07070c"
                                                          BorderThickness="0"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border x:Name="ZapretVersionPopup" Background="#0d0d14" CornerRadius="8"
+                                            BorderBrush="#181820" BorderThickness="1"
+                                            Padding="4" Margin="40,0,0,4"
+                                            Visibility="Collapsed" Panel.ZIndex="100">
+                                        <StackPanel>
+                                            <Border x:Name="ZapretV1Option" Background="#0a1a12" CornerRadius="6"
+                                                    Padding="10,8" Cursor="Hand" Margin="0,0,0,2"
+                                                    MouseLeftButtonDown="ZapretV1Option_Click">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Ellipse Width="6" Height="6" Fill="#00ff88" Margin="0,0,8,0"
+                                                             VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Zapret v1 (nfqws/winws)"
+                                                               FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
+                                                               Foreground="#e0e0e0" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <Border x:Name="ZapretV2Option" Background="#08080e" CornerRadius="6"
+                                                    Padding="10,8" Cursor="Hand"
+                                                    MouseLeftButtonDown="ZapretV2Option_Click">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Ellipse Width="6" Height="6" Fill="#5a6a7a" Margin="0,0,8,0"
+                                                             VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Zapret v2 (nfqws2/winws2)"
+                                                               FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
+                                                               Foreground="#5a6a7a" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Border>
                                         </StackPanel>
                                     </Border>
                                     <Border Background="#0a0a12" CornerRadius="6"

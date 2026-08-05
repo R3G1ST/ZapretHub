@@ -97,9 +97,13 @@ public class DiagReport
 
 public enum FixMode { Full, Fast }
 
+public enum ZapretVersion { V1, V2 }
+
 public class AppSettings
 {
     public string ZapretPath { get; set; } = "";
+    public string Zapret2Path { get; set; } = "";
+    public ZapretVersion ZapretVersion { get; set; } = ZapretVersion.V1;
     public string TgWsProxyPath { get; set; } = "";
     public bool AutostartZapret { get; set; } = false;
     public bool AutostartTgWsProxy { get; set; } = false;
