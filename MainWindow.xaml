@@ -853,7 +853,7 @@
                             </Button>
                         </StackPanel>
                         <StackPanel x:Name="IndicatorsPanel" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0,0,0,12"
-                                    Background="#01010101">
+                                    Background="#07070c">
                             <Border Width="20" Height="20">
                                 <Ellipse x:Name="NetDot" Width="6" Height="6" Fill="#333344"
                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
