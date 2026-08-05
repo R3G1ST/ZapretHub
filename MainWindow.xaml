@@ -739,6 +739,15 @@
                         <TextBlock Text="ZapretHub" FontFamily="Cascadia Code, Consolas, monospace" FontSize="14"
                                    FontWeight="Bold" Foreground="#00ff88" VerticalAlignment="Center"/>
                     </StackPanel>
+                    <StackPanel x:Name="DownloadProgressPanel" Grid.Column="1" Orientation="Horizontal"
+                                VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed">
+                        <TextBlock x:Name="DownloadProgressText" Text="Загрузка..."
+                                   FontFamily="Cascadia Code, Consolas, monospace" FontSize="10"
+                                   Foreground="#5a6a7a" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ProgressBar x:Name="DownloadProgressBar" Width="120" Height="4"
+                                     Minimum="0" Maximum="100" Foreground="#00ff88" Background="#181820"
+                                     BorderThickness="0" VerticalAlignment="Center"/>
+                    </StackPanel>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button x:Name="NotifyBtn" Style="{StaticResource SidebarBtn}"
                                 Width="34" Height="34" Margin="0,0,4,0"
@@ -852,24 +861,24 @@
                                 <Path Data="{StaticResource SettingsIcon}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="18" Height="18" Stretch="Uniform"/>
                             </Button>
                         </StackPanel>
-                        <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0,0,0,12" Background="#07070c">
-                            <Border x:Name="NetBorder" Width="20" Height="20" Background="#01010101"
-                                    ToolTip="Сеть: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
+                        <StackPanel x:Name="IndicatorsPanel" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0,0,0,12"
+                                    Background="#01010101" ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
+                            <StackPanel.ToolTip>
+                                <ToolTip x:Name="IndicatorsToolTip"/>
+                            </StackPanel.ToolTip>
+                            <Border Width="20" Height="20">
                                 <Ellipse x:Name="NetDot" Width="6" Height="6" Fill="#333344"
                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <Border x:Name="VpnBorder" Width="20" Height="20" Background="#01010101" Margin="0,-4,0,0"
-                                    ToolTip="VPN: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
+                            <Border Width="20" Height="20" Margin="0,-4,0,0">
                                 <Ellipse x:Name="VpnDot" Width="6" Height="6" Fill="#333344"
                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <Border x:Name="ZapretBorder" Width="20" Height="20" Background="#01010101" Margin="0,-4,0,0"
-                                    ToolTip="Zapret: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
+                            <Border Width="20" Height="20" Margin="0,-4,0,0">
                                 <Ellipse x:Name="ZapretDot" Width="6" Height="6" Fill="#333344"
                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <Border x:Name="TgWsBorder" Width="20" Height="20" Background="#01010101" Margin="0,-4,0,0"
-                                    ToolTip="TgWsProxy: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
+                            <Border Width="20" Height="20" Margin="0,-4,0,0">
                                 <Ellipse x:Name="TgWsDot" Width="6" Height="6" Fill="#333344"
                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>

@@ -5198,6 +5198,12 @@ public partial class MainWindow : Window
                     NetLbl.Foreground = redBrush;
                 }
 
+                var netStatus = netOk ? "OK" : "Ошибка";
+                var vpnStatus = vpn ? "OK" : "Выкл";
+                var zapretStatus = st.ZapretRunning ? "Запущен" : "Остановлен";
+                var tgwsStatus = st.TgWsProxyRunning ? "Запущен" : "Остановлен";
+                IndicatorsToolTip.Content = $"Сеть: {netStatus}\nVPN: {vpnStatus}\nZapret: {zapretStatus}\nTgWsProxy: {tgwsStatus}";
+
                 if (!_isInGame && !_discord.IsScanning)
                     _discord.SetAllGood(st.ZapretRunning, st.TgWsProxyRunning);
 
@@ -6508,35 +6514,7 @@ public partial class MainWindow : Window
 
     private void SetupIndicatorTooltips()
     {
-        void Setup(Border border, string text)
-        {
-            System.Windows.Controls.ToolTip tt = null;
-            border.MouseEnter += (_, _) =>
-            {
-                if (tt != null) return;
-                tt = new System.Windows.Controls.ToolTip
-                {
-                    Content = text,
-                    Placement = System.Windows.Controls.Primitives.PlacementMode.Right,
-                    HorizontalOffset = 14
-                };
-                border.ToolTip = tt;
-                tt.IsOpen = true;
-            };
-            border.MouseLeave += (_, _) =>
-            {
-                if (tt != null)
-                {
-                    tt.IsOpen = false;
-                    tt = null;
-                }
-                border.ToolTip = null;
-            };
-        }
-        Setup(NetBorder, "Сеть: проверка...");
-        Setup(VpnBorder, "VPN: проверка...");
-        Setup(ZapretBorder, "Zapret: проверка...");
-        Setup(TgWsBorder, "TgWsProxy: проверка...");
+        IndicatorsToolTip.Content = "Сеть: проверка...\nVPN: проверка...\nZapret: проверка...\nTgWsProxy: проверка...";
     }
 
     private void SetConnectedFromStatus()
@@ -15210,11 +15188,22 @@ public partial class MainWindow : Window
             {
                 updateBtn.Content = "Загрузка...";
                 updateBtn.IsEnabled = false;
+                Dispatcher.Invoke(() =>
+                {
+                    DownloadProgressPanel.Visibility = Visibility.Visible;
+                    DownloadProgressText.Text = "Загрузка...";
+                    DownloadProgressBar.Value = 0;
+                });
                 try
                 {
                     await UpdateService.DownloadAndInstallAsync(dlUrl, progress =>
                     {
-                        Dispatcher.Invoke(() => updateBtn.Content = $"Загрузка {progress}%");
+                        Dispatcher.Invoke(() =>
+                        {
+                            updateBtn.Content = $"Загрузка {progress}%";
+                            DownloadProgressText.Text = $"Загрузка {progress}%";
+                            DownloadProgressBar.Value = progress;
+                        });
                     });
                 }
                 catch (InvalidOperationException)
@@ -15231,6 +15220,7 @@ public partial class MainWindow : Window
                     {
                         updateBtn.Content = "Ошибка";
                         updateBtn.IsEnabled = true;
+                        DownloadProgressPanel.Visibility = Visibility.Collapsed;
                     });
                 }
             };
@@ -15305,14 +15295,28 @@ public partial class MainWindow : Window
         if (string.IsNullOrWhiteSpace(text)) return text;
         var lines = text.Split('\n');
         var result = new System.Collections.Generic.List<string>();
+        bool skippedFirst = false;
         foreach (var raw in lines)
         {
-            var line = raw.TrimStart('#', ' ');
-            if (string.IsNullOrWhiteSpace(line)) continue;
+            var trimmed = raw.Trim();
+            if (string.IsNullOrWhiteSpace(trimmed))
+            {
+                if (result.Count > 0 && result[^1] != "")
+                    result.Add("");
+                continue;
+            }
+            if (!skippedFirst && (trimmed.StartsWith("## ZapretHub") || trimmed.StartsWith("## v")))
+            {
+                skippedFirst = true;
+                continue;
+            }
+            var line = trimmed.TrimStart('#', ' ');
             if (line.StartsWith("- ")) line = line[2..];
             line = line.Replace("**", "");
             result.Add(line.Trim());
         }
+        while (result.Count > 0 && result[^1] == "")
+            result.RemoveAt(result.Count - 1);
         return string.Join("\n", result);
     }
 }

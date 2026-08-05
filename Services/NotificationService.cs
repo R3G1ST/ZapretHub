@@ -45,6 +45,18 @@ public static class NotificationService
         {
             _store = new NotificationStore();
         }
+        var seen = new System.Collections.Generic.HashSet<string>();
+        var deduped = new System.Collections.Generic.List<AppNotification>();
+        foreach (var n in _store.Notifications)
+        {
+            if (seen.Add(n.Version))
+                deduped.Add(n);
+        }
+        if (deduped.Count != _store.Notifications.Count)
+        {
+            _store.Notifications = deduped;
+            SaveStore();
+        }
         return _store;
     }
 
