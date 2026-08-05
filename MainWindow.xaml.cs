@@ -6515,8 +6515,8 @@ public partial class MainWindow : Window
         {
             _popupCloseTimer?.Stop();
             IndicatorsTooltipText.Text = GetIndicatorStatusText();
-            var panelPos = IndicatorsPanel.TransformToAncestor(MainPageContainer).Transform(new Point(0, 0));
-            IndicatorsTooltip.Margin = new Thickness(8, panelPos.Y - 70, 0, 0);
+            var panelPos = IndicatorsPanel.TransformToAncestor(ContentGrid).Transform(new Point(0, 0));
+            IndicatorsTooltip.Margin = new Thickness(panelPos.X + 28, panelPos.Y - 70, 0, 0);
             IndicatorsTooltip.Visibility = Visibility.Visible;
         };
         IndicatorsPanel.MouseLeave += (_, _) =>

@@ -876,14 +876,11 @@
                     </DockPanel>
                 </Border>
                 <!-- CONTENT AREA -->
-                <Grid Grid.Column="1" x:Name="MainPageContainer" ClipToBounds="False" Background="#030306">
-                    <Border x:Name="IndicatorsTooltip" Background="#0a0a12" BorderBrush="#00ff88" BorderThickness="1"
-                            CornerRadius="6" Padding="10,8" Visibility="Collapsed" Panel.ZIndex="200" HorizontalAlignment="Left" VerticalAlignment="Top">
-                        <TextBlock x:Name="IndicatorsTooltipText" FontFamily="Cascadia Code, Consolas, monospace"
-                                   FontSize="10" Foreground="#f0f0f0" TextWrapping="Wrap"/>
-                    </Border>
-                    <ScrollViewer x:Name="MainPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Background="#030306">
-                        <Grid>
+                <Grid Grid.Column="1" x:Name="MainPageContainer" Background="#030306">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid x:Name="MainPage" Grid.Row="0" Background="#030306">
                             <Grid IsHitTestVisible="False" ClipToBounds="True" 
                                   Panel.ZIndex="-1"
                                   VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
@@ -948,7 +945,12 @@
                                     </Rectangle.Fill>
                                 </Rectangle>
                             </Grid>
-                            <StackPanel Margin="32,24,32,24" Panel.ZIndex="1">
+                            <Grid Panel.ZIndex="1" Margin="32,24,32,24">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,4">
                             <Path Data="{StaticResource BoltIcon}" 
                                   Fill="#e0e0e0"
@@ -1187,14 +1189,20 @@
                                         Click="ClearLog_Click"/>
                             </StackPanel>
                         </Grid>
-                        <RichTextBox x:Name="LogBox" Style="{StaticResource LogBox}"
-                                     Height="270" Margin="0,8,0,16">
+                    </StackPanel>
+                        <RichTextBox x:Name="LogBox" Grid.Row="1" Style="{StaticResource LogBox}"
+                                     Margin="0,8,0,0">
                             <FlowDocument PagePadding="0"/>
                         </RichTextBox>
-                    </StackPanel>
+                            </Grid>
                         </Grid>
-                </ScrollViewer>
                 </Grid>
+                <Border x:Name="IndicatorsTooltip" Grid.Column="1" Background="#0a0a12" BorderBrush="#00ff88" BorderThickness="1"
+                        CornerRadius="6" Padding="10,8" Visibility="Collapsed" Panel.ZIndex="200"
+                        HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False">
+                    <TextBlock x:Name="IndicatorsTooltipText" FontFamily="Cascadia Code, Consolas, monospace"
+                               FontSize="10" Foreground="#f0f0f0" TextWrapping="Wrap"/>
+                </Border>
                 <Grid Grid.Column="1" x:Name="GamePage" Visibility="Collapsed" Background="#030306">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
