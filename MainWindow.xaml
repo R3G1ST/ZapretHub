@@ -807,16 +807,11 @@
                     </ScrollViewer>
                 </Grid>
             </Border>
-            <Grid Grid.Row="1" x:Name="ContentGrid" PreviewMouseDown="ContentGrid_PreviewMouseDown">
+                <Grid Grid.Row="1" x:Name="ContentGrid" PreviewMouseDown="ContentGrid_PreviewMouseDown">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="56"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Border x:Name="IndicatorsTooltip" Background="#0a0a12" BorderBrush="#00ff88" BorderThickness="1"
-                        CornerRadius="6" Padding="10,8" Visibility="Collapsed" Panel.ZIndex="200">
-                    <TextBlock x:Name="IndicatorsTooltipText" FontFamily="Cascadia Code, Consolas, monospace"
-                               FontSize="10" Foreground="#f0f0f0" TextWrapping="Wrap"/>
-                </Border>
                 <!-- SIDEBAR -->
                 <Border Grid.Column="0" Background="#07070c" BorderBrush="#0a0a12" BorderThickness="0,0,1,0">
                     <DockPanel LastChildFill="False">
@@ -881,7 +876,12 @@
                     </DockPanel>
                 </Border>
                 <!-- CONTENT AREA -->
-                <Grid Grid.Column="1" x:Name="MainPageContainer" ClipToBounds="True" Background="#030306">
+                <Grid Grid.Column="1" x:Name="MainPageContainer" ClipToBounds="False" Background="#030306">
+                    <Border x:Name="IndicatorsTooltip" Background="#0a0a12" BorderBrush="#00ff88" BorderThickness="1"
+                            CornerRadius="6" Padding="10,8" Visibility="Collapsed" Panel.ZIndex="200" HorizontalAlignment="Left" VerticalAlignment="Top">
+                        <TextBlock x:Name="IndicatorsTooltipText" FontFamily="Cascadia Code, Consolas, monospace"
+                                   FontSize="10" Foreground="#f0f0f0" TextWrapping="Wrap"/>
+                    </Border>
                     <ScrollViewer x:Name="MainPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Background="#030306">
                         <Grid>
                             <Grid IsHitTestVisible="False" ClipToBounds="True" 
