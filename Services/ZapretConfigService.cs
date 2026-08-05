@@ -1623,21 +1623,23 @@ public class ZapretConfigService
 
     private static string ExtractProfileName(string args)
     {
+        var mode = args.Contains("--lua-init") ? "Lua" : (args.Contains("--wf-") ? "WinDivert" : "Direct");
+
         if (args.Contains("--filter-l7=http") && args.Contains("--filter-l7=tls"))
-            return "HTTP + TLS (основной)";
+            return $"{mode}: HTTP+TLS";
         if (args.Contains("--filter-l7=quic"))
-            return "QUIC";
+            return $"{mode}: QUIC";
         if (args.Contains("--filter-l7=http"))
-            return "HTTP only";
+            return $"{mode}: HTTP";
         if (args.Contains("--filter-l7=tls"))
-            return "TLS only";
+            return $"{mode}: TLS";
         if (args.Contains("--filter-tcp=80"))
-            return "TCP:80";
+            return $"{mode}: TCP:80";
         if (args.Contains("--filter-tcp=443"))
-            return "TCP:443";
+            return $"{mode}: TCP:443";
         if (args.Contains("--filter-udp=443"))
-            return "UDP:443";
-        return "профиль";
+            return $"{mode}: UDP:443";
+        return $"{mode}: профиль";
     }
 
     private static List<(string name, string args)> ParseWinws2FromShScript(string shPath)
@@ -1647,6 +1649,7 @@ public class ZapretConfigService
         {
             var content = File.ReadAllText(shPath);
             var winwsPatterns = new[] { "winws2", "nfqws2" };
+            int matchIdx = 0;
 
             foreach (var pattern in winwsPatterns)
             {
@@ -1679,7 +1682,9 @@ public class ZapretConfigService
 
                             if (!string.IsNullOrWhiteSpace(cleanArgs))
                             {
-                                var name = $"[{Path.GetFileNameWithoutExtension(shPath)}] {ExtractProfileName(cleanArgs)}";
+                                matchIdx++;
+                                var profileName = ExtractProfileName(cleanArgs);
+                                var name = $"[{Path.GetFileNameWithoutExtension(shPath)}] {profileName} #{matchIdx}";
                                 results.Add((name, cleanArgs));
                             }
                         }
