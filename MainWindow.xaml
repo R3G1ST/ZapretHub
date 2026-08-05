@@ -812,6 +812,11 @@
                     <ColumnDefinition Width="56"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
+                <Border x:Name="IndicatorsTooltip" Background="#0a0a12" BorderBrush="#00ff88" BorderThickness="1"
+                        CornerRadius="6" Padding="10,8" Visibility="Collapsed" Panel.ZIndex="200">
+                    <TextBlock x:Name="IndicatorsTooltipText" FontFamily="Cascadia Code, Consolas, monospace"
+                               FontSize="10" Foreground="#f0f0f0" TextWrapping="Wrap"/>
+                </Border>
                 <!-- SIDEBAR -->
                 <Border Grid.Column="0" Background="#07070c" BorderBrush="#0a0a12" BorderThickness="0,0,1,0">
                     <DockPanel LastChildFill="False">
@@ -873,12 +878,6 @@
                             <TextBlock x:Name="NetLbl" Text="NET" FontFamily="Cascadia Code, Consolas, monospace" FontSize="7"
                                        Foreground="#333344" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                         </StackPanel>
-                        <Popup x:Name="IndicatorsPopup" Placement="Absolute" AllowsTransparency="True" StaysOpen="False">
-                            <Border Background="#0a0a12" BorderBrush="#00ff88" BorderThickness="1" CornerRadius="6" Padding="10,8">
-                                <TextBlock x:Name="IndicatorsPopupText" FontFamily="Cascadia Code, Consolas, monospace"
-                                           FontSize="10" Foreground="#f0f0f0" TextWrapping="Wrap"/>
-                            </Border>
-                        </Popup>
                     </DockPanel>
                 </Border>
                 <!-- CONTENT AREA -->

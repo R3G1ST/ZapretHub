@@ -6510,28 +6510,14 @@ public partial class MainWindow : Window
 
     private void SetupIndicatorTooltips()
     {
-        IndicatorsPopupText.Text = "Сеть: проверка...\nVPN: проверка...\nZapret: проверка...\nTgWsProxy: проверка...";
-        IndicatorsPopup.Placement = System.Windows.Controls.Primitives.PlacementMode.Right;
-        IndicatorsPopup.PlacementTarget = IndicatorsPanel;
-        IndicatorsPopup.HorizontalOffset = 10;
-        IndicatorsPopup.VerticalOffset = -IndicatorsPanel.ActualHeight - 60;
-        IndicatorsPopup.MouseEnter += (_, _) => _popupCloseTimer?.Stop();
-        IndicatorsPopup.MouseLeave += (_, _) =>
-        {
-            _popupCloseTimer?.Stop();
-            _popupCloseTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
-            _popupCloseTimer.Tick += (_, _) =>
-            {
-                _popupCloseTimer.Stop();
-                IndicatorsPopup.IsOpen = false;
-            };
-            _popupCloseTimer.Start();
-        };
+        IndicatorsTooltipText.Text = "Сеть: проверка...\nVPN: проверка...\nZapret: проверка...\nTgWsProxy: проверка...";
         IndicatorsPanel.MouseEnter += (_, _) =>
         {
             _popupCloseTimer?.Stop();
-            IndicatorsPopupText.Text = GetIndicatorStatusText();
-            IndicatorsPopup.IsOpen = true;
+            IndicatorsTooltipText.Text = GetIndicatorStatusText();
+            var panelPos = IndicatorsPanel.TransformToAncestor(ContentGrid).Transform(new Point(0, 0));
+            IndicatorsTooltip.Margin = new Thickness(64, panelPos.Y - 70, 0, 0);
+            IndicatorsTooltip.Visibility = Visibility.Visible;
         };
         IndicatorsPanel.MouseLeave += (_, _) =>
         {
@@ -6540,7 +6526,7 @@ public partial class MainWindow : Window
             _popupCloseTimer.Tick += (_, _) =>
             {
                 _popupCloseTimer.Stop();
-                IndicatorsPopup.IsOpen = false;
+                IndicatorsTooltip.Visibility = Visibility.Collapsed;
             };
             _popupCloseTimer.Start();
         };
