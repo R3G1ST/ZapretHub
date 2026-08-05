@@ -693,8 +693,9 @@ public partial class MainWindow : Window
         try
         {
             var st = DiagnosticsEngine.CheckAppStatus();
+            bool isRunning = _settings.ZapretVersion == ZapretVersion.V2 ? st.Zapret2Running : st.ZapretRunning;
 
-            if (st.ZapretRunning)
+            if (isRunning)
             {
                 if (_settings.ZapretVersion == ZapretVersion.V2)
                     await StopZapretV2Async();
@@ -712,16 +713,30 @@ public partial class MainWindow : Window
                         return;
                     }
 
+                    var cache = ZapretConfigService.LoadCache();
+                    var v2Config = cache?.GetSelectableConfigs().FirstOrDefault(c => c.Name == cache?.CurrentConfig);
+                    var v2Args = v2Config?.Args;
+
+                    if (string.IsNullOrEmpty(v2Args))
+                    {
+                        AppendLog("Нет активного конфига V2. Выберите конфиг в настройках.", "warn");
+                        return;
+                    }
+
                     ZapretToggleBtn.IsEnabled = false;
                     var originalContent = ZapretToggleBtn.Content;
                     ZapretToggleBtn.Content = "Запуск...";
 
                     try
                     {
+                        var v2Root = ZapretConfigService.FindZapret2Root(Path.GetDirectoryName(_settings.Zapret2Path));
+                        var workDir = !string.IsNullOrEmpty(v2Root) ? v2Root : Path.GetDirectoryName(_settings.Zapret2Path);
+
                         var psi = new ProcessStartInfo(_settings.Zapret2Path)
                         {
+                            Arguments = v2Args,
                             UseShellExecute = true,
-                            WorkingDirectory = Path.GetDirectoryName(_settings.Zapret2Path)
+                            WorkingDirectory = workDir
                         };
                         Process.Start(psi);
                     }
@@ -789,7 +804,8 @@ public partial class MainWindow : Window
             UpdateActiveApps();
 
             var afterSt = DiagnosticsEngine.CheckAppStatus();
-            if (afterSt.ZapretRunning)
+            bool afterRunning = _settings.ZapretVersion == ZapretVersion.V2 ? afterSt.Zapret2Running : afterSt.ZapretRunning;
+            if (afterRunning)
                 _zapretToggleFails = 0;
             else
                 TrackZapretStartFail();
@@ -936,8 +952,10 @@ public partial class MainWindow : Window
 
             if (w.ConfigWasApplied)
             {
+                await Task.Delay(500);
                 var status = DiagnosticsEngine.CheckAppStatus();
-                if (!status.ZapretRunning)
+                bool running = _settings.ZapretVersion == ZapretVersion.V2 ? status.Zapret2Running : status.ZapretRunning;
+                if (!running)
                 {
                     ZapretToggle_Click(this, new RoutedEventArgs());
                 }
@@ -5224,13 +5242,15 @@ public partial class MainWindow : Window
                 var redBrush = new SolidColorBrush(Color.FromRgb(0xef, 0x44, 0x44));
 
                 VpnDot.Fill = vpn ? greenBrush : grayBrush;
-                ZapretDot.Fill = st.ZapretRunning ? greenBrush : grayBrush;
+
+                bool zapretOk = _settings.ZapretVersion == ZapretVersion.V2 ? st.Zapret2Running : st.ZapretRunning;
+                ZapretDot.Fill = zapretOk ? greenBrush : grayBrush;
                 TgWsDot.Fill = st.TgWsProxyRunning ? greenBrush : grayBrush;
 
-                ZapretDot2.Fill = st.ZapretRunning ? greenBrush : grayBrush;
-                ZapretStatusLbl.Text = st.ZapretRunning ? "Запущен" : "Не запущен";
-                ZapretStatusLbl.Foreground = st.ZapretRunning ? greenBrush : grayBrush;
-                if (st.ZapretRunning)
+                ZapretDot2.Fill = zapretOk ? greenBrush : grayBrush;
+                ZapretStatusLbl.Text = zapretOk ? "Запущен" : "Не запущен";
+                ZapretStatusLbl.Foreground = zapretOk ? greenBrush : grayBrush;
+                if (zapretOk)
                 {
                     ZapretToggleBtn.Style = (Style)FindResource("RedAccentBtn");
                     ZapretToggleBtn.Content = "■  Закрыть";
@@ -5253,7 +5273,7 @@ public partial class MainWindow : Window
                     Zapret2StatusPanel.Visibility = Visibility.Collapsed;
                 }
 
-                UpdateActiveConfigDisplay(st.ZapretRunning);
+                UpdateActiveConfigDisplay(zapretOk);
 
                 TgWsDot2.Fill = st.TgWsProxyRunning ? greenBrush : grayBrush;
                 TgWsStatusLbl.Text = st.TgWsProxyRunning ? "Запущен" : "Не запущен";
@@ -5283,10 +5303,10 @@ public partial class MainWindow : Window
                 }
 
                 if (!_isInGame && !_discord.IsScanning)
-                    _discord.SetAllGood(st.ZapretRunning, st.TgWsProxyRunning);
+                    _discord.SetAllGood(zapretOk, st.TgWsProxyRunning);
 
                 bool allEnabledRunning =
-                    (!_settings.EnableZapret || st.ZapretRunning) &&
+                    (!_settings.EnableZapret || zapretOk) &&
                     (!_settings.EnableTgWsProxy || st.TgWsProxyRunning);
                 bool anyEnabled = _settings.EnableZapret || _settings.EnableTgWsProxy;
 
@@ -5362,7 +5382,7 @@ public partial class MainWindow : Window
         await Task.Delay(d);
         AppendLog("СТАТУС СЕРВИСОВ И ПРИЛОЖЕНИЙ", "system");
         await Task.Delay(d);
-        AppendLog($"Обход блокировок (Zapret):    [ {(status.ZapretRunning ? "ЗАПУЩЕН" : "ВЫКЛЮЧЕН")} ]", status.ZapretRunning ? "ok" : "warn");
+        AppendLog($"Обход блокировок (Zapret):    [ {(status.ZapretRunning || status.Zapret2Running ? "ЗАПУЩЕН" : "ВЫКЛЮЧЕН")} ]", (status.ZapretRunning || status.Zapret2Running) ? "ok" : "warn");
         await Task.Delay(d);
         AppendLog($"Прокси для Telegram:          [ {(status.TgWsProxyRunning ? "ЗАПУЩЕН" : "ВЫКЛЮЧЕН")} ]", status.TgWsProxyRunning ? "ok" : "warn");
         await Task.Delay(d);
@@ -5915,11 +5935,12 @@ public partial class MainWindow : Window
                 await Task.Delay(2500);
 
                 var appStatus = DiagnosticsEngine.CheckAppStatus();
-                _discord.SetAllGood(appStatus.ZapretRunning, appStatus.TgWsProxyRunning);
+                bool appZapretOk = _settings.ZapretVersion == ZapretVersion.V2 ? appStatus.Zapret2Running : appStatus.ZapretRunning;
+                _discord.SetAllGood(appZapretOk, appStatus.TgWsProxyRunning);
 
                 if (_settings.EnableZapret)
                 {
-                    if (!appStatus.ZapretRunning)
+                    if (!appZapretOk)
                     {
                         TrackMainZapretStartFail();
                     }
@@ -5948,8 +5969,9 @@ public partial class MainWindow : Window
         _discord.SetFixing();
 
         var st = DiagnosticsEngine.CheckAppStatus();
+        bool stZapretOk = _settings.ZapretVersion == ZapretVersion.V2 ? st.Zapret2Running : st.ZapretRunning;
         bool zapretNeeded = _settings.EnableZapret
-            && !st.ZapretRunning
+            && !stZapretOk
             && ((_settings.ZapretVersion == ZapretVersion.V2
                 && !string.IsNullOrWhiteSpace(_settings.Zapret2Path)
                 && File.Exists(_settings.Zapret2Path))
@@ -6295,6 +6317,13 @@ public partial class MainWindow : Window
             foreach (var p in Process.GetProcessesByName("winws"))
                 try { p.Kill(); } catch { }
         }
+        if (_settings.EnableZapret && st.Zapret2Running)
+        {
+            foreach (var p in Process.GetProcessesByName("winws2"))
+                try { p.Kill(); } catch { }
+            foreach (var p in Process.GetProcessesByName("nfqws2"))
+                try { p.Kill(); } catch { }
+        }
         if (_settings.EnableTgWsProxy && st.TgWsProxyRunning)
         {
             foreach (var p in Process.GetProcessesByName("TgWsProxy"))
@@ -6595,7 +6624,8 @@ public partial class MainWindow : Window
         {
             t.Stop();
             var st = DiagnosticsEngine.CheckAppStatus();
-            bool allRunning = (!_settings.EnableZapret || st.ZapretRunning)
+            bool stOk = _settings.ZapretVersion == ZapretVersion.V2 ? st.Zapret2Running : st.ZapretRunning;
+            bool allRunning = (!_settings.EnableZapret || stOk)
                            && (!_settings.EnableTgWsProxy || st.TgWsProxyRunning);
             if (!allRunning) return;
 
@@ -6734,7 +6764,7 @@ public partial class MainWindow : Window
             }
             AddAppUI("Telegram", a.TelegramRunning, a.TelegramProcName);
             AddAppUI("Discord", a.DiscordRunning, a.DiscordProcName);
-            AddAppUI("Zapret", a.ZapretRunning, a.ZapretProcName);
+            AddAppUI("Zapret", a.ZapretRunning || a.Zapret2Running, a.ZapretRunning ? a.ZapretProcName : a.Zapret2ProcName);
             AddAppUI("tg-ws-proxy", a.TgWsProxyRunning, a.TgWsProxyProcName);
             AddRichCard(DiagResults, "Статус приложений", appsPanel, Color.FromRgb(0x00, 0xff, 0x88));
         }

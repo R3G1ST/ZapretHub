@@ -137,25 +137,76 @@ public class ZapretConfigService
             onProgress?.Invoke($"📋 Итого: {foundConfigs.Count} конфигов Zapret2");
 
             int idx = 0;
+            var winws2Exe = Path.Combine(zapret2Root, "binaries", "windows-x86_64", "winws2.exe");
+            if (!File.Exists(winws2Exe))
+                winws2Exe = zapretDir.Contains("winws2", StringComparison.OrdinalIgnoreCase)
+                    ? zapretDir : null;
+
             foreach (var (name, args) in foundConfigs)
             {
                 idx++;
-                onProgress?.Invoke($"[{idx}/{foundConfigs.Count}] {name}");
-                onProgress?.Invoke($"[HEADER]⚠️ {name} - ТРЕБУЕТ ТЕСТИРОВАНИЯ[/HEADER]");
+                onProgress?.Invoke($"[{idx}/{foundConfigs.Count}] Тестирую: {name}");
+                onConfigTested?.Invoke(idx, foundConfigs.Count);
+
+                bool processAlive = false;
+                int exitCode = -1;
+
+                if (!string.IsNullOrEmpty(winws2Exe) && File.Exists(winws2Exe))
+                {
+                    try
+                    {
+                        var testPsi = new ProcessStartInfo
+                        {
+                            FileName = winws2Exe,
+                            Arguments = args,
+                            UseShellExecute = false,
+                            CreateNoWindow = true,
+                            WorkingDirectory = zapret2Root,
+                            RedirectStandardError = true,
+                            RedirectStandardOutput = true
+                        };
+                        var proc = Process.Start(testPsi);
+                        if (proc != null)
+                        {
+                            await Task.Delay(3000);
+                            processAlive = !proc.HasExited;
+                            if (proc.HasExited)
+                                exitCode = proc.ExitCode;
+                            else
+                            {
+                                try { proc.Kill(); } catch { }
+                                exitCode = 0;
+                            }
+                            proc.Dispose();
+                        }
+                    }
+                    catch { }
+                }
+
+                var tests = new Dictionary<string, ServiceTestResult>();
+                tests["process"] = new ServiceTestResult
+                {
+                    ServiceName = "process",
+                    HttpStatus = processAlive ? "OK" : "FAIL",
+                    Tls12Status = processAlive ? "OK" : "FAIL",
+                    Tls13Status = processAlive ? "OK" : "FAIL",
+                    Ping = 0
+                };
 
                 configs.Add(new ZapretConfig
                 {
                     Name = name,
                     FilePath = "",
                     Args = args,
-                    IsValid = false,
-                    SuccessCount = 1,
-                    ErrorCount = 0,
-                    Tests = new Dictionary<string, ServiceTestResult>(),
+                    IsValid = processAlive,
+                    SuccessCount = processAlive ? 1 : 0,
+                    ErrorCount = processAlive ? 0 : 1,
+                    Tests = tests,
                     AveragePing = 0
                 });
 
-                onConfigTested?.Invoke(idx, foundConfigs.Count);
+                var icon = processAlive ? "✅" : "❌";
+                onProgress?.Invoke($"[HEADER]{icon} {name} - {(processAlive ? "РАБОТАЕТ" : "НЕ РАБОТАЕТ (код: " + exitCode + ")")}[/HEADER]");
             }
 
             return (configs, null);
@@ -637,15 +688,22 @@ public class ZapretConfigService
 
                 await StopZapretV2ProcessesAsync();
 
+                var v2Root = FindZapret2Root(zapretDir);
+                var workDir = !string.IsNullOrEmpty(v2Root) ? v2Root : zapretDir;
+
                 var psi = new ProcessStartInfo
                 {
                     FileName = zapretPath,
                     Arguments = args,
                     UseShellExecute = true,
-                    WorkingDirectory = zapretDir
+                    WorkingDirectory = workDir
                 };
-                Process.Start(psi);
-                return true;
+                var proc = Process.Start(psi);
+                await Task.Delay(1500);
+
+                var running = Process.GetProcesses()
+                    .Any(p => { try { return p.ProcessName.ToLower().Contains("winws2") || p.ProcessName.ToLower().Contains("nfqws2"); } catch { return false; } });
+                return running;
             }
 
             var configPath = Path.Combine(zapretDir, configName);
@@ -1551,7 +1609,7 @@ public class ZapretConfigService
         return allResults.OrderByDescending(r => r.successCount).ThenBy(r => r.avgPing).ToList();
     }
 
-    private static string? FindZapret2Root(string zapretDir)
+    public static string? FindZapret2Root(string zapretDir)
     {
         var dir = zapretDir;
         for (int i = 0; i < 5; i++)
