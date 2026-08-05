@@ -194,8 +194,7 @@ public class ZapretConfigService
                         {
                             FileName = winws2Exe,
                             Arguments = args,
-                            UseShellExecute = false,
-                            CreateNoWindow = true,
+                            UseShellExecute = true,
                             WorkingDirectory = zapret2Root
                         };
                         var testProc = Process.Start(testPsi);
@@ -1762,6 +1761,7 @@ public class ZapretConfigService
             var content = File.ReadAllText(shPath);
             var winwsPatterns = new[] { "winws2", "nfqws2" };
             int matchIdx = 0;
+            var zapretRoot = Path.GetDirectoryName(shPath) ?? "";
 
             foreach (var pattern in winwsPatterns)
             {
@@ -1794,7 +1794,36 @@ public class ZapretConfigService
                                 .Replace("\"", "")
                                 .Trim();
 
-                            if (!string.IsNullOrWhiteSpace(cleanArgs))
+                            cleanArgs = System.Text.RegularExpressions.Regex.Replace(
+                                cleanArgs, @"--uid\s+\S+:\S+", "");
+                            cleanArgs = System.Text.RegularExpressions.Regex.Replace(
+                                cleanArgs, @"--fwmark=\S+", "");
+                            cleanArgs = System.Text.RegularExpressions.Regex.Replace(
+                                cleanArgs, @"--qnum=\S+", "");
+                            cleanArgs = System.Text.RegularExpressions.Regex.Replace(
+                                cleanArgs, @"--wf-dup-check=\S+", "");
+                            cleanArgs = System.Text.RegularExpressions.Regex.Replace(
+                                cleanArgs, @"--wf-tcp-empty=\S+", "");
+                            cleanArgs = System.Text.RegularExpressions.Regex.Replace(
+                                cleanArgs, @"--ipset=\S+", "");
+
+                            cleanArgs = System.Text.RegularExpressions.Regex.Replace(
+                                cleanArgs, @"--lua-init=""[^""]*""", "");
+                            cleanArgs = System.Text.RegularExpressions.Regex.Replace(
+                                cleanArgs, @"--lua-init=@""[^""]*""", m =>
+                                {
+                                    var p = m.Value.Substring("--lua-init=@\"".Length).TrimEnd('"');
+                                    p = p.Replace("$ZAPRET_BASE", zapretRoot);
+                                    if (!File.Exists(p) && !p.Contains("\\"))
+                                        return "";
+                                    return $"--lua-init=@\"{p}\"";
+                                });
+
+                            cleanArgs = cleanArgs.Replace("$@", "").Trim();
+                            cleanArgs = System.Text.RegularExpressions.Regex.Replace(
+                                cleanArgs, @"\s{2,}", " ").Trim();
+
+                            if (!string.IsNullOrWhiteSpace(cleanArgs) && cleanArgs.Contains("--"))
                             {
                                 matchIdx++;
                                 var profileName = ExtractProfileName(cleanArgs);
