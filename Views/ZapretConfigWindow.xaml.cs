@@ -405,19 +405,27 @@ public partial class ZapretConfigWindow : Window
 
         try
         {
-            StatusText.Text = "Запуск полного тестирования конфигов...\n\n" +
-                             "💡 Советуем вам подождать 10 минуток на полное сканирование.\n" +
-                             "В дальнейшем это сэкономит вам кучу времени и нервов!\n\n" +
-                             "Приложение найдёт все идеальные конфиги и выберет лучший.";
-
-            await Task.Delay(3000);
+            if (_zapretVersion == ZapretVersion.V2)
+            {
+                StatusText.Text = "Сканирование конфигов Zapret2...\n\n" +
+                                 "Парсинг config.default и .sh скриптов.";
+                await Task.Delay(1500);
+            }
+            else
+            {
+                StatusText.Text = "Запуск полного тестирования конфигов...\n\n" +
+                                 "💡 Советуем вам подождать 10 минуток на полное сканирование.\n" +
+                                 "В дальнейшем это сэкономит вам кучу времени и нервов!\n\n" +
+                                 "Приложение найдёт все идеальные конфиги и выберет лучший.";
+                await Task.Delay(3000);
+            }
 
             StatusPanel.Visibility = Visibility.Collapsed;
             ProgressBarContainer.Visibility = Visibility.Visible;
             ProgressText.Visibility = Visibility.Visible;
             TimeRemainingText.Visibility = Visibility.Visible;
             ProgressText.Text = "Тестирование конфигов: 0%";
-            TimeRemainingText.Text = "Осталось: ~10 мин";
+            TimeRemainingText.Text = _zapretVersion == ZapretVersion.V2 ? "Осталось: ~5 сек" : "Осталось: ~10 мин";
             LogContainer.Visibility = Visibility.Visible;
 
             _testStartTime = DateTime.Now;

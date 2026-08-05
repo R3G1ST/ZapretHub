@@ -152,36 +152,16 @@ public class ZapretConfigService
             if (!string.IsNullOrEmpty(winws2Exe))
             {
                 onProgress?.Invoke("🔧 Проверяю бинарник winws2...");
-                try
-                {
-                    var helpPsi = new ProcessStartInfo
-                    {
-                        FileName = winws2Exe,
-                        Arguments = "--help",
-                        UseShellExecute = true,
-                        WorkingDirectory = zapret2Root,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    };
-                    var helpProc = Process.Start(helpPsi);
-                    if (helpProc != null)
-                    {
-                        await Task.Delay(1500);
-                        binaryWorks = true;
-                        try { helpProc.Kill(); } catch { }
-                        helpProc.Dispose();
-                        onProgress?.Invoke("✅ Бинарник winws2 работает");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    onProgress?.Invoke($"❌ Бинарник winws2 не запускается: {ex.Message}");
-                }
+                var fi = new FileInfo(winws2Exe);
+                binaryWorks = fi.Exists && fi.Length > 100_000;
+                if (binaryWorks)
+                    onProgress?.Invoke($"✅ Бинарник winws2 найден ({fi.Length / 1024} KB)");
+                else
+                    onProgress?.Invoke($"❌ Бинарник winws2 не найден или повреждён");
             }
             else
             {
-                onProgress?.Invoke("❌ winws2.exe не найден");
+                onProgress?.Invoke("❌ winws2.exe не найден в zapret2");
             }
 
             foreach (var (name, args) in foundConfigs)
