@@ -105,13 +105,21 @@ using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
                 }
             }
 
-            fileStream.Close();
+        fileStream.Close();
 
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = tempPath,
-                UseShellExecute = true
-            });
+        await Task.Delay(500);
+
+        var fi = new FileInfo(tempPath);
+        if (!fi.Exists || fi.Length < 1_000_000)
+        {
+            throw new IOException($"Файл повреждён: {fi.Length} байт");
+        }
+
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = tempPath,
+            UseShellExecute = true
+        });
 
             System.Windows.Application.Current.Shutdown();
         }
