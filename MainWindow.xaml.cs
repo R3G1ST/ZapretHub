@@ -15152,11 +15152,12 @@ public partial class MainWindow : Window
             headerRow.Children.Add(dateText);
             stack.Children.Add(headerRow);
 
+            TextBlock? notesText = null;
             if (!string.IsNullOrWhiteSpace(n.ReleaseNotes))
             {
                 var cleanNotes = StripMarkdown(n.ReleaseNotes);
                 var notesPreview = cleanNotes.Length > 120 ? cleanNotes[..120] + "..." : cleanNotes;
-                var notesText = new TextBlock
+                notesText = new TextBlock
                 {
                     Text = notesPreview,
                     FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
@@ -15243,10 +15244,14 @@ public partial class MainWindow : Window
                         stack.Children.Remove(notesExpand);
                         notesExpand = null;
                     }
+                    if (notesText != null)
+                        notesText.Visibility = Visibility.Visible;
                     expanded = false;
                 }
                 else if (!string.IsNullOrWhiteSpace(notificationNotes))
                 {
+                    if (notesText != null)
+                        notesText.Visibility = Visibility.Collapsed;
                     var fullNotes = StripMarkdown(notificationNotes);
                     notesExpand = new TextBlock
                     {
@@ -15257,7 +15262,7 @@ public partial class MainWindow : Window
                         TextWrapping = TextWrapping.Wrap,
                         Margin = new Thickness(0, 6, 0, 0)
                     };
-                    stack.Children.Insert(2, notesExpand);
+                    stack.Children.Insert(stack.Children.IndexOf(updateBtn), notesExpand);
                     expanded = true;
                 }
                 if (!n.IsRead)
