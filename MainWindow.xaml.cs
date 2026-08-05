@@ -15396,6 +15396,7 @@ public partial class MainWindow : Window
 
             updateBtn.Click += async (_, _) =>
             {
+                UpdateService.ResetDownloadState();
                 updateBtn.Content = "Загрузка...";
                 updateBtn.IsEnabled = false;
                 try

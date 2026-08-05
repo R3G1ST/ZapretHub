@@ -33,6 +33,13 @@ public class UpdateService
     public static event Action? OnDownloadStarted;
     public static event Action? OnDownloadFinished;
 
+    public static void ResetDownloadState()
+    {
+        _isDownloading = false;
+        _downloadingUrl = null;
+        DownloadProgress = 0;
+    }
+
     public static async Task<(bool hasUpdate, string newVersion, string downloadUrl, string error)> CheckAsync()
     {
         try

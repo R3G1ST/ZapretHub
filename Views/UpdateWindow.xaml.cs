@@ -146,6 +146,7 @@ public partial class UpdateWindow : Window
             StatusText.Text = "Скачивание обновления...";
             StatusText.Foreground = Brush("#5a6a7a");
 
+            UpdateService.ResetDownloadState();
             try
             {
                 await UpdateService.DownloadAndInstallAsync(_downloadUrl,
