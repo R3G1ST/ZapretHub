@@ -1553,28 +1553,33 @@ public class ZapretConfigService
 
     private static string? FindZapret2Root(string zapretDir)
     {
-        if (Directory.Exists(Path.Combine(zapretDir, "config.default")))
+        var dir = zapretDir;
+        for (int i = 0; i < 5; i++)
+        {
+            if (dir == null) break;
+            if (File.Exists(Path.Combine(dir, "config.default")))
+                return dir;
+            if (Directory.Exists(Path.Combine(dir, "lua")))
+                return dir;
+            dir = Path.GetDirectoryName(dir);
+        }
+
+        if (Directory.Exists(Path.Combine(zapretDir, "lua")))
             return zapretDir;
 
         foreach (var sub in Directory.GetDirectories(zapretDir))
         {
             if (File.Exists(Path.Combine(sub, "config.default")))
                 return sub;
+            if (Directory.Exists(Path.Combine(sub, "lua")))
+                return sub;
             foreach (var sub2 in Directory.GetDirectories(sub))
             {
                 if (File.Exists(Path.Combine(sub2, "config.default")))
                     return sub2;
+                if (Directory.Exists(Path.Combine(sub2, "lua")))
+                    return sub2;
             }
-        }
-
-        var luaDir = Path.Combine(zapretDir, "lua");
-        if (Directory.Exists(luaDir))
-            return zapretDir;
-
-        foreach (var sub in Directory.GetDirectories(zapretDir))
-        {
-            if (Directory.Exists(Path.Combine(sub, "lua")))
-                return sub;
         }
 
         return null;
@@ -1585,75 +1590,31 @@ public class ZapretConfigService
         var results = new List<(string name, string args)>();
         try
         {
-            var lines = File.ReadAllLines(configDefaultPath);
-            bool inNfqwsOpt = false;
-            var currentArgs = new List<string>();
+            var content = File.ReadAllText(configDefaultPath);
+            var nfqwsMatch = System.Text.RegularExpressions.Regex.Match(
+                content,
+                @"NFQWS2_OPT\s*=\s*""([\s\S]*?)""",
+                System.Text.RegularExpressions.RegexOptions.Multiline);
 
-            foreach (var line in lines)
+            if (!nfqwsMatch.Success)
+                return results;
+
+            var optValue = nfqwsMatch.Groups[1].Value.Trim();
+
+            var rules = optValue.Split(new[] { " --new " }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < rules.Length; i++)
             {
-                var trimmed = line.Trim();
+                var rule = rules[i].Trim();
+                if (string.IsNullOrWhiteSpace(rule)) continue;
+                if (!rule.StartsWith("--")) rule = "--" + rule;
 
-                if (trimmed.StartsWith("NFQWS2_OPT=") || trimmed.StartsWith("NFQWS2_OPT ="))
-                {
-                    inNfqwsOpt = true;
-                    var eqIdx = trimmed.IndexOf('=');
-                    if (eqIdx >= 0)
-                    {
-                        var afterEq = trimmed.Substring(eqIdx + 1).Trim();
-                        if (afterEq == "\"\"")
-                        {
-                            inNfqwsOpt = false;
-                            continue;
-                        }
-                        if (afterEq.StartsWith("\""))
-                        {
-                            afterEq = afterEq.Substring(1);
-                            if (afterEq.EndsWith("\""))
-                            {
-                                afterEq = afterEq.Substring(0, afterEq.Length - 1);
-                                inNfqwsOpt = false;
-                            }
-                            if (!string.IsNullOrWhiteSpace(afterEq))
-                                currentArgs.Add(afterEq);
-                        }
-                    }
-                    continue;
-                }
-
-                if (inNfqwsOpt)
-                {
-                    if (trimmed.EndsWith("\""))
-                    {
-                        trimmed = trimmed.Substring(0, trimmed.Length - 1);
-                        inNfqwsOpt = false;
-                    }
-                    if (!string.IsNullOrWhiteSpace(trimmed))
-                        currentArgs.Add(trimmed);
-                }
+                var name = ExtractProfileName(rule);
+                results.Add((name, rule));
             }
 
-            if (currentArgs.Count > 0)
+            if (results.Count == 0 && !string.IsNullOrWhiteSpace(optValue))
             {
-                var fullArgs = string.Join(" ", currentArgs)
-                    .Replace("<HOSTLIST>", "")
-                    .Replace("<HOSTLIST_NOAUTO>", "")
-                    .Replace("\n", " ")
-                    .Replace("\r", "");
-
-                var rules = fullArgs.Split(new[] { " --new " }, StringSplitOptions.RemoveEmptyEntries);
-                for (int i = 0; i < rules.Length; i++)
-                {
-                    var rule = rules[i].Trim();
-                    if (string.IsNullOrWhiteSpace(rule)) continue;
-
-                    var name = ExtractProfileName(rule);
-                    results.Add((name, rule));
-                }
-
-                if (results.Count == 0 && !string.IsNullOrWhiteSpace(fullArgs))
-                {
-                    results.Add(("NFQWS2 default", fullArgs));
-                }
+                results.Add(("NFQWS2 default", optValue.Replace("\n", " ").Replace("\r", " ")));
             }
         }
         catch { }
