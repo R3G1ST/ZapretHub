@@ -807,7 +807,7 @@
                     </ScrollViewer>
                 </Grid>
             </Border>
-            <Grid Grid.Row="1" x:Name="ContentGrid">
+            <Grid Grid.Row="1" x:Name="ContentGrid" PreviewMouseDown="ContentGrid_PreviewMouseDown">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="56"/>
                     <ColumnDefinition Width="*"/>
@@ -852,23 +852,23 @@
                                 <Path Data="{StaticResource SettingsIcon}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="18" Height="18" Stretch="Uniform"/>
                             </Button>
                         </StackPanel>
-                        <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0,0,0,12">
-                            <Border x:Name="NetBorder" Width="20" Height="20" Background="Transparent"
+                        <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0,0,0,12" Background="#07070c">
+                            <Border x:Name="NetBorder" Width="20" Height="20" Background="#01010101"
                                     ToolTip="Сеть: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
                                 <Ellipse x:Name="NetDot" Width="6" Height="6" Fill="#333344"
                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <Border x:Name="VpnBorder" Width="20" Height="20" Background="Transparent" Margin="0,-4,0,0"
+                            <Border x:Name="VpnBorder" Width="20" Height="20" Background="#01010101" Margin="0,-4,0,0"
                                     ToolTip="VPN: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
                                 <Ellipse x:Name="VpnDot" Width="6" Height="6" Fill="#333344"
                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <Border x:Name="ZapretBorder" Width="20" Height="20" Background="Transparent" Margin="0,-4,0,0"
+                            <Border x:Name="ZapretBorder" Width="20" Height="20" Background="#01010101" Margin="0,-4,0,0"
                                     ToolTip="Zapret: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
                                 <Ellipse x:Name="ZapretDot" Width="6" Height="6" Fill="#333344"
                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <Border x:Name="TgWsBorder" Width="20" Height="20" Background="Transparent" Margin="0,-4,0,0"
+                            <Border x:Name="TgWsBorder" Width="20" Height="20" Background="#01010101" Margin="0,-4,0,0"
                                     ToolTip="TgWsProxy: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
                                 <Ellipse x:Name="TgWsDot" Width="6" Height="6" Fill="#333344"
                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>

@@ -15006,6 +15006,18 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ContentGrid_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (NotifyPanel.Visibility == Visibility.Visible)
+        {
+            var pos = e.GetPosition(NotifyPanel);
+            if (pos.X < 0 || pos.Y < 0 || pos.X > NotifyPanel.ActualWidth || pos.Y > NotifyPanel.ActualHeight)
+            {
+                NotifyPanel.Visibility = Visibility.Collapsed;
+            }
+        }
+    }
+
     private void ClearNotifyBtn_Click(object sender, RoutedEventArgs e)
     {
         NotificationService.ClearAll();
@@ -15151,7 +15163,8 @@ public partial class MainWindow : Window
 
             if (!string.IsNullOrWhiteSpace(n.ReleaseNotes))
             {
-                var notesPreview = n.ReleaseNotes.Length > 120 ? n.ReleaseNotes[..120] + "..." : n.ReleaseNotes;
+                var cleanNotes = StripMarkdown(n.ReleaseNotes);
+                var notesPreview = cleanNotes.Length > 120 ? cleanNotes[..120] + "..." : cleanNotes;
                 var notesText = new TextBlock
                 {
                     Text = notesPreview,
@@ -15214,7 +15227,7 @@ public partial class MainWindow : Window
             {
                 if (!expanded && !string.IsNullOrWhiteSpace(notificationNotes))
                 {
-                    var fullNotes = notificationNotes;
+                    var fullNotes = StripMarkdown(notificationNotes);
                     notesExpand = new TextBlock
                     {
                         Text = fullNotes,
@@ -15255,6 +15268,22 @@ public partial class MainWindow : Window
         if (diff.TotalHours < 24) return $"{(int)diff.TotalHours} ч назад";
         if (diff.TotalDays < 7) return $"{(int)diff.TotalDays} дн назад";
         return timestamp.ToString("dd.MM.yyyy");
+    }
+
+    private static string StripMarkdown(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return text;
+        var lines = text.Split('\n');
+        var result = new System.Collections.Generic.List<string>();
+        foreach (var raw in lines)
+        {
+            var line = raw.TrimStart('#', ' ');
+            if (string.IsNullOrWhiteSpace(line)) continue;
+            if (line.StartsWith("- ")) line = line[2..];
+            line = line.Replace("**", "");
+            result.Add(line.Trim());
+        }
+        return string.Join("\n", result);
     }
 }
 
