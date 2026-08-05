@@ -15390,8 +15390,8 @@ public partial class MainWindow : Window
                 {
                     Dispatcher.Invoke(() =>
                     {
-                        updateBtn.Content = "Уже загружается";
-                        updateBtn.IsEnabled = false;
+                        updateBtn.Content = "Повторить";
+                        updateBtn.IsEnabled = true;
                     });
                 }
                 catch (Exception ex)

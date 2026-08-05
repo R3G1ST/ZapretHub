@@ -14,7 +14,19 @@ public class UpdateService
 
     private static bool _isDownloading;
     private static string? _downloadingUrl;
-    public static bool IsDownloading => _isDownloading;
+    private static DateTime _downloadStartedAt;
+    public static bool IsDownloading
+    {
+        get
+        {
+            if (_isDownloading && (DateTime.Now - _downloadStartedAt).TotalMinutes > 5)
+            {
+                _isDownloading = false;
+                _downloadingUrl = null;
+            }
+            return _isDownloading;
+        }
+    }
     public static int DownloadProgress { get; private set; }
     public static string? DownloadingUrl => _downloadingUrl;
     public static event Action<int>? OnProgress;
@@ -72,6 +84,7 @@ public class UpdateService
 
         _isDownloading = true;
         _downloadingUrl = downloadUrl;
+        _downloadStartedAt = DateTime.Now;
         DownloadProgress = 0;
         OnDownloadStarted?.Invoke();
         try
