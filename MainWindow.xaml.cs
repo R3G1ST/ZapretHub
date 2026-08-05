@@ -6511,6 +6511,10 @@ public partial class MainWindow : Window
     private void SetupIndicatorTooltips()
     {
         IndicatorsPopupText.Text = "Сеть: проверка...\nVPN: проверка...\nZapret: проверка...\nTgWsProxy: проверка...";
+        IndicatorsPopup.Placement = System.Windows.Controls.Primitives.PlacementMode.Right;
+        IndicatorsPopup.PlacementTarget = IndicatorsPanel;
+        IndicatorsPopup.HorizontalOffset = 10;
+        IndicatorsPopup.VerticalOffset = -IndicatorsPanel.ActualHeight - 60;
         IndicatorsPopup.MouseEnter += (_, _) => _popupCloseTimer?.Stop();
         IndicatorsPopup.MouseLeave += (_, _) =>
         {
@@ -6527,14 +6531,6 @@ public partial class MainWindow : Window
         {
             _popupCloseTimer?.Stop();
             IndicatorsPopupText.Text = GetIndicatorStatusText();
-            var screenPos = IndicatorsPopup.PointToScreen(new Point(0, 0));
-            var panelScreen = IndicatorsPanel.PointToScreen(new Point(0, 0));
-            var source = PresentationSource.FromVisual(this);
-            var dpi = source?.CompositionTarget?.TransformToDevice.M11 ?? 1.0;
-            var sidebarWidth = 56 * dpi;
-            IndicatorsPopup.Placement = System.Windows.Controls.Primitives.PlacementMode.Absolute;
-            IndicatorsPopup.HorizontalOffset = (panelScreen.X + sidebarWidth + 8) / dpi;
-            IndicatorsPopup.VerticalOffset = (panelScreen.Y - 80) / dpi;
             IndicatorsPopup.IsOpen = true;
         };
         IndicatorsPanel.MouseLeave += (_, _) =>
