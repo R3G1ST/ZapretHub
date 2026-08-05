@@ -86,7 +86,7 @@ public class UpdateService
 
     public static async Task DownloadAndInstallAsync(string downloadUrl, Action<int>? onProgress = null)
     {
-        if (_isDownloading)
+        if (IsDownloading)
             throw new InvalidOperationException("Загрузка уже выполняется");
 
         _isDownloading = true;
