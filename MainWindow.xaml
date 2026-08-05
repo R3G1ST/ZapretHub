@@ -35,19 +35,9 @@
             <Setter Property="Background" Value="#0a0a12"/>
             <Setter Property="BorderBrush" Value="#00ff88"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="0"/>
             <Setter Property="HasDropShadow" Value="True"/>
             <Setter Property="FontFamily" Value="Cascadia Code, Consolas, monospace"/>
             <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ToolTip">
-                        <Border Background="#0a0a12" BorderBrush="#00ff88" BorderThickness="1" CornerRadius="6" Padding="10,6" SnapsToDevicePixels="True">
-                            <ContentPresenter/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
         </Style>
         <PathGeometry x:Key="PowerIcon">M7.5,7.638 A7,7 0 1,0 16.5,7.638 M12,4 L12,11</PathGeometry>
         <PathGeometry x:Key="BoltIcon">M13,2 L3,14 L10,14 L9,22 L19,10 L12,10 Z</PathGeometry>
@@ -863,38 +853,26 @@
                             </Button>
                         </StackPanel>
                         <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0,0,0,12">
-                            <Grid Width="20" Height="20" Background="Transparent"
-                                  ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
-                                <Grid.ToolTip>
-                                    <ToolTip Content="Сеть: проверка..."/>
-                                </Grid.ToolTip>
+                            <Border x:Name="NetBorder" Width="20" Height="20" Background="Transparent"
+                                    ToolTip="Сеть: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
                                 <Ellipse x:Name="NetDot" Width="6" Height="6" Fill="#333344"
                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Grid>
-                            <Grid Width="20" Height="20" Background="Transparent" Margin="0,-4,0,0"
-                                  ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
-                                <Grid.ToolTip>
-                                    <ToolTip Content="VPN: проверка..."/>
-                                </Grid.ToolTip>
+                            </Border>
+                            <Border x:Name="VpnBorder" Width="20" Height="20" Background="Transparent" Margin="0,-4,0,0"
+                                    ToolTip="VPN: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
                                 <Ellipse x:Name="VpnDot" Width="6" Height="6" Fill="#333344"
                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Grid>
-                            <Grid Width="20" Height="20" Background="Transparent" Margin="0,-4,0,0"
-                                  ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
-                                <Grid.ToolTip>
-                                    <ToolTip Content="Zapret: проверка..."/>
-                                </Grid.ToolTip>
+                            </Border>
+                            <Border x:Name="ZapretBorder" Width="20" Height="20" Background="Transparent" Margin="0,-4,0,0"
+                                    ToolTip="Zapret: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
                                 <Ellipse x:Name="ZapretDot" Width="6" Height="6" Fill="#333344"
                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Grid>
-                            <Grid Width="20" Height="20" Background="Transparent" Margin="0,-4,0,0"
-                                  ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
-                                <Grid.ToolTip>
-                                    <ToolTip Content="TgWsProxy: проверка..."/>
-                                </Grid.ToolTip>
+                            </Border>
+                            <Border x:Name="TgWsBorder" Width="20" Height="20" Background="Transparent" Margin="0,-4,0,0"
+                                    ToolTip="TgWsProxy: проверка..." ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
                                 <Ellipse x:Name="TgWsDot" Width="6" Height="6" Fill="#333344"
                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Grid>
+                            </Border>
                             <TextBlock x:Name="NetLbl" Text="NET" FontFamily="Cascadia Code, Consolas, monospace" FontSize="7"
                                        Foreground="#333344" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                         </StackPanel>

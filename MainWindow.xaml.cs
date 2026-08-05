@@ -414,6 +414,8 @@ public partial class MainWindow : Window
             NotificationService.OnNotificationsChanged += () => Dispatcher.Invoke(UpdateNotifyBadge);
             NotificationService.StartPolling();
             UpdateNotifyBadge();
+
+            SetupIndicatorTooltips();
         }
         LoadFaqItems();
         UpdateSelectedConfigDisplay();
@@ -6502,6 +6504,39 @@ public partial class MainWindow : Window
             SetFixBtnConnected();
         };
         t.Start();
+    }
+
+    private void SetupIndicatorTooltips()
+    {
+        void Setup(Border border, string text)
+        {
+            System.Windows.Controls.ToolTip tt = null;
+            border.MouseEnter += (_, _) =>
+            {
+                if (tt != null) return;
+                tt = new System.Windows.Controls.ToolTip
+                {
+                    Content = text,
+                    Placement = System.Windows.Controls.Primitives.PlacementMode.Right,
+                    HorizontalOffset = 14
+                };
+                border.ToolTip = tt;
+                tt.IsOpen = true;
+            };
+            border.MouseLeave += (_, _) =>
+            {
+                if (tt != null)
+                {
+                    tt.IsOpen = false;
+                    tt = null;
+                }
+                border.ToolTip = null;
+            };
+        }
+        Setup(NetBorder, "Сеть: проверка...");
+        Setup(VpnBorder, "VPN: проверка...");
+        Setup(ZapretBorder, "Zapret: проверка...");
+        Setup(TgWsBorder, "TgWsProxy: проверка...");
     }
 
     private void SetConnectedFromStatus()
