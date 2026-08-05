@@ -149,6 +149,7 @@ public class ZapretConfigService
                 if (File.Exists(c)) { winws2Exe = c; break; }
 
             bool binaryWorks = false;
+            bool isAdmin = false;
             if (!string.IsNullOrEmpty(winws2Exe))
             {
                 onProgress?.Invoke("🔧 Проверяю бинарник winws2...");
@@ -158,6 +159,19 @@ public class ZapretConfigService
                     onProgress?.Invoke($"✅ Бинарник winws2 найден ({fi.Length / 1024} KB)");
                 else
                     onProgress?.Invoke($"❌ Бинарник winws2 не найден или повреждён");
+
+                try
+                {
+                    using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+                    var principal = new System.Security.Principal.WindowsPrincipal(identity);
+                    isAdmin = principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+                }
+                catch { }
+
+                if (isAdmin)
+                    onProgress?.Invoke("✅ Запущено от администратора — тестирование доступно");
+                else
+                    onProgress?.Invoke("⚠️ Нет прав администратора — пропускаю тест процесса");
             }
             else
             {
@@ -170,20 +184,48 @@ public class ZapretConfigService
                 onProgress?.Invoke($"[{idx}/{foundConfigs.Count}] {name}");
                 onConfigTested?.Invoke(idx, foundConfigs.Count);
 
+                bool configOk = binaryWorks;
+
+                if (configOk && isAdmin && !string.IsNullOrEmpty(winws2Exe))
+                {
+                    try
+                    {
+                        var testPsi = new ProcessStartInfo
+                        {
+                            FileName = winws2Exe,
+                            Arguments = args,
+                            UseShellExecute = false,
+                            CreateNoWindow = true,
+                            WorkingDirectory = zapret2Root
+                        };
+                        var testProc = Process.Start(testPsi);
+                        if (testProc != null)
+                        {
+                            await Task.Delay(3000);
+                            configOk = !testProc.HasExited;
+                            try { testProc.Kill(); } catch { }
+                            testProc.Dispose();
+                        }
+                    }
+                    catch { }
+                }
+
                 configs.Add(new ZapretConfig
                 {
                     Name = name,
                     FilePath = "",
                     Args = args,
-                    IsValid = binaryWorks,
-                    SuccessCount = binaryWorks ? 1 : 0,
-                    ErrorCount = binaryWorks ? 0 : 1,
+                    IsValid = configOk,
+                    SuccessCount = configOk ? 1 : 0,
+                    ErrorCount = configOk ? 0 : 1,
                     Tests = new Dictionary<string, ServiceTestResult>(),
                     AveragePing = 0
                 });
 
-                var icon = binaryWorks ? "✅" : "❌";
-                var note = binaryWorks ? "ГОТОВ к запуску" : "Бинарник не работает";
+                var icon = configOk ? "✅" : "❌";
+                var note = isAdmin
+                    ? (configOk ? "РАБОТАЕТ" : "НЕ РАБОТАЕТ")
+                    : (configOk ? "ГОТОВ (тест пропущен — нет прав)" : "НЕ РАБОТАЕТ");
                 onProgress?.Invoke($"[HEADER]{icon} {name} - {note}[/HEADER]");
             }
 
@@ -672,15 +714,35 @@ public class ZapretConfigService
                 var v2Root = FindZapret2Root(zapretDir);
                 var workDir = !string.IsNullOrEmpty(v2Root) ? v2Root : zapretDir;
 
-                var psi = new ProcessStartInfo
+                bool isAdmin = false;
+                try
                 {
-                    FileName = zapretPath,
-                    Arguments = args,
-                    UseShellExecute = true,
-                    WorkingDirectory = workDir
-                };
-                var proc = Process.Start(psi);
-                await Task.Delay(1500);
+                    using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+                    var principal = new System.Security.Principal.WindowsPrincipal(identity);
+                    isAdmin = principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+                }
+                catch { }
+
+                if (!isAdmin)
+                {
+                    return false;
+                }
+
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = zapretPath,
+                        Arguments = args,
+                        UseShellExecute = true,
+                        WorkingDirectory = workDir,
+                        Verb = "runas"
+                    };
+                    Process.Start(psi);
+                }
+                catch { return false; }
+
+                await Task.Delay(2000);
 
                 var running = Process.GetProcesses()
                     .Any(p => { try { return p.ProcessName.ToLower().Contains("winws2") || p.ProcessName.ToLower().Contains("nfqws2"); } catch { return false; } });

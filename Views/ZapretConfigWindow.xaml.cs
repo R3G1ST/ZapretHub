@@ -657,7 +657,30 @@ public partial class ZapretConfigWindow : Window
                     StatusIcon.Data = (Geometry)FindResource("WarningIcon");
                     StatusIcon.Fill = new SolidColorBrush(Color.FromRgb(0xef, 0x44, 0x44));
 
-                    if (isModConfig)
+                    if (_zapretVersion == ZapretVersion.V2)
+                    {
+                        bool isAdmin = false;
+                        try
+                        {
+                            using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+                            var principal = new System.Security.Principal.WindowsPrincipal(identity);
+                            isAdmin = principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+                        }
+                        catch { }
+
+                        StatusText.Text = isAdmin
+                            ? "Не удалось применить V2 конфиг.\n\n" +
+                              "winws2.exe завершился сразу после запуска.\n" +
+                              "Проверьте:\n" +
+                              "1. Путь к winws2.exe в настройках\n" +
+                              "2. Аргументы конфига корректны\n" +
+                              "3. Запустите zapret2 вручную из cmd для диагностики"
+                            : "Не удалось применить V2 конфиг.\n\n" +
+                              "⚠️ Требуются права администратора!\n" +
+                              "winws2.exe работает с сетевыми пакетами и требует elevated прав.\n\n" +
+                              "Перезапустите ZapretHub от администратора.";
+                    }
+                    else if (isModConfig)
                     {
                         StatusText.Text = "Не удалось применить конфиг.\n\n" +
                                          "Скорее всего в вашем моде ошибка, либо он вообще не подходит для стратегии. " +
