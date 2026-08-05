@@ -862,9 +862,9 @@
                             </Button>
                         </StackPanel>
                         <StackPanel x:Name="IndicatorsPanel" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0,0,0,12"
-                                    Background="#01010101" ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="14">
+                                    Background="#01010101">
                             <StackPanel.ToolTip>
-                                <ToolTip x:Name="IndicatorsToolTip"/>
+                                <ToolTip x:Name="IndicatorsToolTip" Placement="Relative" HorizontalOffset="20" VerticalOffset="0"/>
                             </StackPanel.ToolTip>
                             <Border Width="20" Height="20">
                                 <Ellipse x:Name="NetDot" Width="6" Height="6" Fill="#333344"
