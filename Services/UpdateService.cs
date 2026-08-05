@@ -54,7 +54,7 @@ using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
                 .GetName()
                 .Version?.ToString(3) ?? "0.0.0";
 
-            bool hasUpdate = new Version(latestVersion) > new Version(currentVersion);
+            bool hasUpdate = ParseVersion(latestVersion) > ParseVersion(currentVersion);
             return (hasUpdate, latestVersion, downloadUrl, "");
         }
         catch (Exception ex)
@@ -122,5 +122,11 @@ using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
             DownloadProgress = 0;
             OnDownloadFinished?.Invoke();
         }
+    }
+
+    private static Version ParseVersion(string ver)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(ver, @"^(\d+\.\d+\.\d+)");
+        return new Version(match.Success ? match.Groups[1].Value : "0.0.0");
     }
 }
