@@ -108,7 +108,7 @@ public class ZapretConfigService
                     Name = name,
                     FilePath = batFile,
                     IsValid = false,
-                    SuccessCount = 0,
+                    SuccessCount = 1,
                     ErrorCount = 0,
                     Tests = new Dictionary<string, ServiceTestResult>(),
                     AveragePing = 0
