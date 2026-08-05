@@ -6527,19 +6527,14 @@ public partial class MainWindow : Window
         {
             _popupCloseTimer?.Stop();
             IndicatorsPopupText.Text = GetIndicatorStatusText();
-            var sidebar = (System.Windows.FrameworkElement)IndicatorsPanel.Parent;
-            while (sidebar != null && sidebar.Parent is System.Windows.FrameworkElement fe)
-                sidebar = fe;
-            if (sidebar is System.Windows.Window w)
-            {
-                var panelPos = IndicatorsPanel.TransformToAncestor(w).Transform(new Point(0, 0));
-                var popupHeight = 100;
-                var y = panelPos.Y - popupHeight - 5;
-                if (y < 0) y = panelPos.Y + IndicatorsPanel.ActualHeight + 5;
-                IndicatorsPopup.Placement = System.Windows.Controls.Primitives.PlacementMode.Absolute;
-                IndicatorsPopup.HorizontalOffset = 64;
-                IndicatorsPopup.VerticalOffset = y;
-            }
+            var screenPos = IndicatorsPopup.PointToScreen(new Point(0, 0));
+            var panelScreen = IndicatorsPanel.PointToScreen(new Point(0, 0));
+            var source = PresentationSource.FromVisual(this);
+            var dpi = source?.CompositionTarget?.TransformToDevice.M11 ?? 1.0;
+            var sidebarWidth = 56 * dpi;
+            IndicatorsPopup.Placement = System.Windows.Controls.Primitives.PlacementMode.Absolute;
+            IndicatorsPopup.HorizontalOffset = (panelScreen.X + sidebarWidth + 8) / dpi;
+            IndicatorsPopup.VerticalOffset = (panelScreen.Y - 80) / dpi;
             IndicatorsPopup.IsOpen = true;
         };
         IndicatorsPanel.MouseLeave += (_, _) =>
