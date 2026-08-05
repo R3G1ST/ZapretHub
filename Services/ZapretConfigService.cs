@@ -137,77 +137,78 @@ public class ZapretConfigService
             onProgress?.Invoke($"📋 Итого: {foundConfigs.Count} конфигов Zapret2");
 
             int idx = 0;
-            var winws2Exe = Path.Combine(zapret2Root, "binaries", "windows-x86_64", "winws2.exe");
-            if (!File.Exists(winws2Exe))
-                winws2Exe = zapretDir.Contains("winws2", StringComparison.OrdinalIgnoreCase)
-                    ? zapretDir : null;
+
+            string? winws2Exe = null;
+            var candidates = new[]
+            {
+                Path.Combine(zapret2Root, "binaries", "windows-x86_64", "winws2.exe"),
+                Path.Combine(zapret2Root, "binaries", "winws2.exe"),
+                Path.Combine(zapret2Root, "winws2.exe"),
+            };
+            foreach (var c in candidates)
+                if (File.Exists(c)) { winws2Exe = c; break; }
+
+            bool binaryWorks = false;
+            if (!string.IsNullOrEmpty(winws2Exe))
+            {
+                onProgress?.Invoke("🔧 Проверяю бинарник winws2...");
+                try
+                {
+                    var helpPsi = new ProcessStartInfo
+                    {
+                        FileName = winws2Exe,
+                        Arguments = "--help",
+                        UseShellExecute = true,
+                        WorkingDirectory = zapret2Root,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+                    var helpProc = Process.Start(helpPsi);
+                    if (helpProc != null)
+                    {
+                        await Task.Delay(1500);
+                        binaryWorks = true;
+                        try { helpProc.Kill(); } catch { }
+                        helpProc.Dispose();
+                        onProgress?.Invoke("✅ Бинарник winws2 работает");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    onProgress?.Invoke($"❌ Бинарник winws2 не запускается: {ex.Message}");
+                }
+            }
+            else
+            {
+                onProgress?.Invoke("❌ winws2.exe не найден");
+            }
 
             foreach (var (name, args) in foundConfigs)
             {
                 idx++;
-                onProgress?.Invoke($"[{idx}/{foundConfigs.Count}] Тестирую: {name}");
+                onProgress?.Invoke($"[{idx}/{foundConfigs.Count}] {name}");
                 onConfigTested?.Invoke(idx, foundConfigs.Count);
-
-                bool processAlive = false;
-                int exitCode = -1;
-
-                if (!string.IsNullOrEmpty(winws2Exe) && File.Exists(winws2Exe))
-                {
-                    try
-                    {
-                        var testPsi = new ProcessStartInfo
-                        {
-                            FileName = winws2Exe,
-                            Arguments = args,
-                            UseShellExecute = false,
-                            CreateNoWindow = true,
-                            WorkingDirectory = zapret2Root,
-                            RedirectStandardError = true,
-                            RedirectStandardOutput = true
-                        };
-                        var proc = Process.Start(testPsi);
-                        if (proc != null)
-                        {
-                            await Task.Delay(3000);
-                            processAlive = !proc.HasExited;
-                            if (proc.HasExited)
-                                exitCode = proc.ExitCode;
-                            else
-                            {
-                                try { proc.Kill(); } catch { }
-                                exitCode = 0;
-                            }
-                            proc.Dispose();
-                        }
-                    }
-                    catch { }
-                }
-
-                var tests = new Dictionary<string, ServiceTestResult>();
-                tests["process"] = new ServiceTestResult
-                {
-                    ServiceName = "process",
-                    HttpStatus = processAlive ? "OK" : "FAIL",
-                    Tls12Status = processAlive ? "OK" : "FAIL",
-                    Tls13Status = processAlive ? "OK" : "FAIL",
-                    Ping = 0
-                };
 
                 configs.Add(new ZapretConfig
                 {
                     Name = name,
                     FilePath = "",
                     Args = args,
-                    IsValid = processAlive,
-                    SuccessCount = processAlive ? 1 : 0,
-                    ErrorCount = processAlive ? 0 : 1,
-                    Tests = tests,
+                    IsValid = binaryWorks,
+                    SuccessCount = binaryWorks ? 1 : 0,
+                    ErrorCount = binaryWorks ? 0 : 1,
+                    Tests = new Dictionary<string, ServiceTestResult>(),
                     AveragePing = 0
                 });
 
-                var icon = processAlive ? "✅" : "❌";
-                onProgress?.Invoke($"[HEADER]{icon} {name} - {(processAlive ? "РАБОТАЕТ" : "НЕ РАБОТАЕТ (код: " + exitCode + ")")}[/HEADER]");
+                var icon = binaryWorks ? "✅" : "❌";
+                var note = binaryWorks ? "ГОТОВ к запуску" : "Бинарник не работает";
+                onProgress?.Invoke($"[HEADER]{icon} {name} - {note}[/HEADER]");
             }
+
+            if (!binaryWorks)
+                onProgress?.Invoke("⚠️ Все конфиги помечены как нерабочие. Установите zapret2 через вкладку компонентов.");
 
             return (configs, null);
         }
@@ -1666,13 +1667,24 @@ public class ZapretConfigService
                 if (string.IsNullOrWhiteSpace(rule)) continue;
                 if (!rule.StartsWith("--")) rule = "--" + rule;
 
+                rule = rule.Replace("<HOSTLIST>", "")
+                           .Replace("<HOSTLIST_NOAUTO>", "")
+                           .Replace("\n", " ").Replace("\r", " ")
+                           .Trim();
+
+                if (string.IsNullOrWhiteSpace(rule)) continue;
+
                 var name = ExtractProfileName(rule);
                 results.Add((name, rule));
             }
 
             if (results.Count == 0 && !string.IsNullOrWhiteSpace(optValue))
             {
-                results.Add(("NFQWS2 default", optValue.Replace("\n", " ").Replace("\r", " ")));
+                var clean = optValue.Replace("<HOSTLIST>", "")
+                                    .Replace("<HOSTLIST_NOAUTO>", "")
+                                    .Replace("\n", " ").Replace("\r", " ").Trim();
+                if (!string.IsNullOrWhiteSpace(clean))
+                    results.Add(("NFQWS2 default", clean));
             }
         }
         catch { }
@@ -1735,6 +1747,8 @@ public class ZapretConfigService
                                 .Replace("$BIN_DIR", "")
                                 .Replace("$(dirname $0)", "")
                                 .Replace("${DIR}", "")
+                                .Replace("<HOSTLIST>", "")
+                                .Replace("<HOSTLIST_NOAUTO>", "")
                                 .Replace("\"", "")
                                 .Trim();
 
