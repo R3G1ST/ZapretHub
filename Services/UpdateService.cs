@@ -14,6 +14,11 @@ public class UpdateService
 
     private static bool _isDownloading;
     private static string? _downloadingUrl;
+    public static bool IsDownloading => _isDownloading;
+    public static int DownloadProgress { get; private set; }
+    public static event Action<int>? OnProgress;
+    public static event Action? OnDownloadStarted;
+    public static event Action? OnDownloadFinished;
 
     public static async Task<(bool hasUpdate, string newVersion, string downloadUrl, string error)> CheckAsync()
     {
@@ -64,6 +69,8 @@ using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
 
         _isDownloading = true;
         _downloadingUrl = downloadUrl;
+        DownloadProgress = 0;
+        OnDownloadStarted?.Invoke();
         try
         {
             string tempPath = Path.Combine(Path.GetTempPath(), "ZapretHub_Setup.exe");
@@ -89,7 +96,12 @@ using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
                 await fileStream.WriteAsync(buffer.AsMemory(0, read));
                 downloaded += read;
                 if (totalBytes > 0)
-                    onProgress?.Invoke((int)(downloaded * 100 / totalBytes));
+                {
+                    var pct = (int)(downloaded * 100 / totalBytes);
+                    DownloadProgress = pct;
+                    onProgress?.Invoke(pct);
+                    OnProgress?.Invoke(pct);
+                }
             }
 
             fileStream.Close();
@@ -106,6 +118,8 @@ using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
         {
             _isDownloading = false;
             _downloadingUrl = null;
+            DownloadProgress = 0;
+            OnDownloadFinished?.Invoke();
         }
     }
 }

@@ -5198,12 +5198,6 @@ public partial class MainWindow : Window
                     NetLbl.Foreground = redBrush;
                 }
 
-                var netStatus = netOk ? "OK" : "Ошибка";
-                var vpnStatus = vpn ? "OK" : "Выкл";
-                var zapretStatus = st.ZapretRunning ? "Запущен" : "Остановлен";
-                var tgwsStatus = st.TgWsProxyRunning ? "Запущен" : "Остановлен";
-                IndicatorsToolTip.Content = $"Сеть: {netStatus}\nVPN: {vpnStatus}\nZapret: {zapretStatus}\nTgWsProxy: {tgwsStatus}";
-
                 if (!_isInGame && !_discord.IsScanning)
                     _discord.SetAllGood(st.ZapretRunning, st.TgWsProxyRunning);
 
@@ -6514,7 +6508,25 @@ public partial class MainWindow : Window
 
     private void SetupIndicatorTooltips()
     {
-        IndicatorsToolTip.Content = "Сеть: проверка...\nVPN: проверка...\nZapret: проверка...\nTgWsProxy: проверка...";
+        IndicatorsPopupText.Text = "Сеть: проверка...\nVPN: проверка...\nZapret: проверка...\nTgWsProxy: проверка...";
+        IndicatorsPanel.MouseEnter += (_, _) =>
+        {
+            IndicatorsPopupText.Text = GetIndicatorStatusText();
+            IndicatorsPopup.IsOpen = true;
+        };
+        IndicatorsPanel.MouseLeave += (_, _) =>
+        {
+            IndicatorsPopup.IsOpen = false;
+        };
+    }
+
+    private string GetIndicatorStatusText()
+    {
+        var net = NetDot.Fill is SolidColorBrush scb && scb.Color.G > 100 ? "OK" : "Ошибка";
+        var vpn = VpnDot.Fill is SolidColorBrush scb2 && scb2.Color.G > 100 ? "OK" : "Выкл";
+        var zapret = ZapretDot.Fill is SolidColorBrush scb3 && scb3.Color.G > 100 ? "Запущен" : "Остановлен";
+        var tgws = TgWsDot.Fill is SolidColorBrush scb4 && scb4.Color.G > 100 ? "Запущен" : "Остановлен";
+        return $"Сеть: {net}\nVPN: {vpn}\nZapret: {zapret}\nTgWsProxy: {tgws}";
     }
 
     private void SetConnectedFromStatus()
@@ -15183,29 +15195,32 @@ public partial class MainWindow : Window
                 BorderThickness = new Thickness(0),
                 Cursor = System.Windows.Input.Cursors.Hand
             };
+
+            if (UpdateService.IsDownloading)
+            {
+                updateBtn.Content = $"Загрузка {UpdateService.DownloadProgress}%";
+                updateBtn.IsEnabled = false;
+            }
+
+            Action<int> progressHandler = null;
+            progressHandler = (pct) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    updateBtn.Content = $"Загрузка {pct}%";
+                    updateBtn.IsEnabled = false;
+                });
+            };
+            UpdateService.OnProgress += progressHandler;
+
             var dlUrl = n.DownloadUrl;
-            var ver = n.Version;
             updateBtn.Click += async (_, _) =>
             {
                 updateBtn.Content = "Загрузка...";
                 updateBtn.IsEnabled = false;
-                Dispatcher.Invoke(() =>
-                {
-                    DownloadProgressPanel.Visibility = Visibility.Visible;
-                    DownloadProgressText.Text = "Загрузка...";
-                    DownloadProgressBar.Value = 0;
-                });
                 try
                 {
-                    await UpdateService.DownloadAndInstallAsync(dlUrl, progress =>
-                    {
-                        Dispatcher.Invoke(() =>
-                        {
-                            updateBtn.Content = $"Загрузка {progress}%";
-                            DownloadProgressText.Text = $"Загрузка {progress}%";
-                            DownloadProgressBar.Value = progress;
-                        });
-                    });
+                    await UpdateService.DownloadAndInstallAsync(dlUrl, null);
                 }
                 catch (InvalidOperationException)
                 {
@@ -15221,7 +15236,6 @@ public partial class MainWindow : Window
                     {
                         updateBtn.Content = "Ошибка";
                         updateBtn.IsEnabled = true;
-                        DownloadProgressPanel.Visibility = Visibility.Collapsed;
                     });
                 }
             };

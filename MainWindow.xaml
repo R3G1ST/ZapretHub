@@ -739,15 +739,6 @@
                         <TextBlock Text="ZapretHub" FontFamily="Cascadia Code, Consolas, monospace" FontSize="14"
                                    FontWeight="Bold" Foreground="#00ff88" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <StackPanel x:Name="DownloadProgressPanel" Grid.Column="1" Orientation="Horizontal"
-                                VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed">
-                        <TextBlock x:Name="DownloadProgressText" Text="Загрузка..."
-                                   FontFamily="Cascadia Code, Consolas, monospace" FontSize="10"
-                                   Foreground="#5a6a7a" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <ProgressBar x:Name="DownloadProgressBar" Width="120" Height="4"
-                                     Minimum="0" Maximum="100" Foreground="#00ff88" Background="#181820"
-                                     BorderThickness="0" VerticalAlignment="Center"/>
-                    </StackPanel>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button x:Name="NotifyBtn" Style="{StaticResource SidebarBtn}"
                                 Width="34" Height="34" Margin="0,0,4,0"
@@ -863,9 +854,6 @@
                         </StackPanel>
                         <StackPanel x:Name="IndicatorsPanel" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0,0,0,12"
                                     Background="#01010101">
-                            <StackPanel.ToolTip>
-                                <ToolTip x:Name="IndicatorsToolTip" Placement="Relative" HorizontalOffset="20" VerticalOffset="0"/>
-                            </StackPanel.ToolTip>
                             <Border Width="20" Height="20">
                                 <Ellipse x:Name="NetDot" Width="6" Height="6" Fill="#333344"
                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -885,6 +873,13 @@
                             <TextBlock x:Name="NetLbl" Text="NET" FontFamily="Cascadia Code, Consolas, monospace" FontSize="7"
                                        Foreground="#333344" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                         </StackPanel>
+                        <Popup x:Name="IndicatorsPopup" Placement="Right" PlacementTarget="{x:Reference IndicatorsPanel}"
+                               HorizontalOffset="20" VerticalOffset="-60" AllowsTransparency="True" StaysOpen="False">
+                            <Border Background="#0a0a12" BorderBrush="#00ff88" BorderThickness="1" CornerRadius="6" Padding="10,8">
+                                <TextBlock x:Name="IndicatorsPopupText" FontFamily="Cascadia Code, Consolas, monospace"
+                                           FontSize="10" Foreground="#f0f0f0" TextWrapping="Wrap"/>
+                            </Border>
+                        </Popup>
                     </DockPanel>
                 </Border>
                 <!-- CONTENT AREA -->
