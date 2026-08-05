@@ -12,6 +12,7 @@ namespace ZapretHub.Services;
 public static class AutoDownloadService
 {
     private const string ZapretRepo = "Flowseal/zapret-discord-youtube";
+    private const string Zapret2Repo = "bol-van/zapret2";
     private const string TgWsProxyRepo = "Flowseal/tg-ws-proxy";
     private static readonly string InstallDir = @"C:\Zapret";
 
@@ -36,6 +37,7 @@ public static class AutoDownloadService
 
             onLog("Проверяю запущенные процессы...");
             bool zapretWasRunning = false;
+            bool zapret2WasRunning = false;
             bool tgWsProxyWasRunning = false;
 
             var winwsProcesses = System.Diagnostics.Process.GetProcessesByName("winws");
@@ -63,6 +65,33 @@ public static class AutoDownloadService
                 onLog("✅ Zapret остановлен");
             }
 
+            var winws2Processes = System.Diagnostics.Process.GetProcessesByName("winws2");
+            var nfqws2Processes = System.Diagnostics.Process.GetProcessesByName("nfqws2");
+            var allZapret2Procs = winws2Processes.Concat(nfqws2Processes).ToArray();
+            if (allZapret2Procs.Length > 0)
+            {
+                zapret2WasRunning = true;
+                onLog($"⚠️ Обнаружено {allZapret2Procs.Length} процессов Zapret2 (winws2/nfqws2)");
+                onLog("Останавливаю Zapret2...");
+
+                foreach (var proc in allZapret2Procs)
+                {
+                    try
+                    {
+                        proc.Kill(true);
+                        proc.WaitForExit(3000);
+                        proc.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        onLog($"⚠️ Не удалось остановить процесс {proc.ProcessName}.exe (PID {proc.Id}): {ex.Message}");
+                    }
+                }
+
+                await Task.Delay(1000);
+                onLog("✅ Zapret2 остановлен");
+            }
+
             var tgWsProxyProcesses = System.Diagnostics.Process.GetProcessesByName("TgWsProxy");
             if (tgWsProxyProcesses.Length > 0)
             {
@@ -88,7 +117,7 @@ public static class AutoDownloadService
                 onLog("✅ TgWsProxy остановлен");
             }
 
-            if (!zapretWasRunning && !tgWsProxyWasRunning)
+            if (!zapretWasRunning && !tgWsProxyWasRunning && !zapret2WasRunning)
             {
                 onLog("✅ Процессы не запущены, продолжаю установку");
             }
@@ -100,21 +129,26 @@ public static class AutoDownloadService
             try
             {
                 bool hasExistingZapret = false;
+                bool hasExistingZapret2 = false;
                 bool hasExistingTgWsProxy = false;
 
                 if (Directory.Exists(mainInstallDir))
                 {
                     var existingServiceBat = FindFile(mainInstallDir, "service.bat");
                     var existingTgWsProxy = FindFile(mainInstallDir, "TgWsProxy.exe");
+                    var existingZapret2 = FindFile(mainInstallDir, "winws2.exe") ?? FindFile(mainInstallDir, "nfqws2.exe");
 
                     hasExistingZapret = !string.IsNullOrEmpty(existingServiceBat);
+                    hasExistingZapret2 = !string.IsNullOrEmpty(existingZapret2);
                     hasExistingTgWsProxy = !string.IsNullOrEmpty(existingTgWsProxy);
 
-                    if (hasExistingZapret || hasExistingTgWsProxy)
+                    if (hasExistingZapret || hasExistingTgWsProxy || hasExistingZapret2)
                     {
                         onLog("⚠️ Найдена существующая установка:");
                         if (hasExistingZapret)
                             onLog($"   • Zapret (service.bat)");
+                        if (hasExistingZapret2)
+                            onLog($"   • Zapret2 (winws2/nfqws2)");
                         if (hasExistingTgWsProxy)
                             onLog($"   • TgWsProxy (TgWsProxy.exe)");
 
@@ -395,10 +429,88 @@ public static class AutoDownloadService
                     onProgress(0.95);
                 }
 
+                // === Zapret2 (bol-van/zapret2) ===
+                string? zapret2ExePath = null;
+                bool useLocalZapret2 = forceReserve;
+
+                if (!useLocalZapret2)
+                {
+                    try
+                    {
+                        onLog("");
+                        onLog("Получаю информацию о последней версии Zapret2...");
+                        var zapret2Info = await GetLatestReleaseInfoAsync(Zapret2Repo);
+                        if (zapret2Info != null)
+                        {
+                            onLog($"✅ Найдена версия Zapret2: {zapret2Info.Version}");
+                            onLog("Скачиваю Zapret2...");
+
+                            var zapret2Archive = await DownloadFileAsync(
+                                zapret2Info.DownloadUrl,
+                                Path.Combine(Path.GetTempPath(), "zapret2_autoinstall.zip"),
+                                p => onProgress(0.65 + p * 0.10));
+
+                            if (zapret2Archive == null)
+                            {
+                                onLog("⚠️ Не удалось скачать Zapret2 с GitHub.");
+                                useLocalZapret2 = true;
+                            }
+                            else
+                            {
+                                onLog("Распаковываю Zapret2...");
+                                var zapret2Dir = Path.Combine(mainInstallDir, "zapret2");
+                                Directory.CreateDirectory(zapret2Dir);
+
+                                try
+                                {
+                                    await Task.Run(() => ZipFile.ExtractToDirectory(zapret2Archive, zapret2Dir, overwriteFiles: true));
+                                }
+                                catch (Exception ex)
+                                {
+                                    onLog($"⚠️ Ошибка распаковки Zapret2: {ex.Message}");
+                                    useLocalZapret2 = true;
+                                }
+
+                                if (!useLocalZapret2)
+                                {
+                                    var foundExe = FindFile(zapret2Dir, "winws2.exe") ?? FindFile(zapret2Dir, "nfqws2.exe");
+                                    if (foundExe != null)
+                                    {
+                                        zapret2ExePath = foundExe;
+                                        onLog($"✅ Zapret2 установлен: {zapret2ExePath}");
+
+                                        var v2Dir = Path.GetDirectoryName(zapret2ExePath);
+                                        if (!string.IsNullOrEmpty(v2Dir))
+                                        {
+                                            var versionFile = Path.Combine(v2Dir, "zapret2_version.txt");
+                                            File.WriteAllText(versionFile, zapret2Info.Version);
+                                            onLog($"✓ Сохранена версия Zapret2: {zapret2Info.Version}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        onLog("⚠️ Zapret2 распакован, но exe-файл не найден (winws2.exe / nfqws2.exe)");
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            onLog("⚠️ Не удалось получить информацию о Zapret2 с GitHub.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        onLog($"⚠️ Ошибка работы с GitHub для Zapret2: {ex.Message}");
+                    }
+                }
+
                 onLog("Сохраняю настройки в приложении...");
                 var settings = SettingsService.Load();
                 settings.ZapretPath = serviceBat;
                 settings.TgWsProxyPath = tgWsExe;
+                if (!string.IsNullOrEmpty(zapret2ExePath))
+                    settings.Zapret2Path = zapret2ExePath;
                 SettingsService.Save(settings);
 
                 try
@@ -439,6 +551,12 @@ public static class AutoDownloadService
                     onLog("Вы можете запустить его через панель сервисов или service.bat");
                 }
 
+                if (zapret2WasRunning && !string.IsNullOrEmpty(zapret2ExePath))
+                {
+                    onLog("ℹ️ Zapret2 был остановлен для обновления");
+                    onLog("Вы можете запустить его через панель сервисов");
+                }
+
                 if (tgWsProxyWasRunning && !string.IsNullOrEmpty(tgWsExe))
                 {
                     onLog("Перезапускаю TgWsProxy...");
@@ -458,7 +576,7 @@ public static class AutoDownloadService
                     }
                 }
 
-                if (!zapretWasRunning && !tgWsProxyWasRunning)
+                if (!zapretWasRunning && !tgWsProxyWasRunning && !zapret2WasRunning)
                 {
                     onLog("ℹ️ Процессы не были запущены, перезапуск не требуется");
                 }
@@ -537,8 +655,9 @@ public static class AutoDownloadService
     {
         var serviceBat = FindFile(targetDir, "service.bat");
         var tgwsProxy = FindFile(targetDir, "TgWsProxy.exe");
+        var zapret2Exe = FindFile(targetDir, "winws2.exe") ?? FindFile(targetDir, "nfqws2.exe");
 
-        return !string.IsNullOrEmpty(serviceBat) || !string.IsNullOrEmpty(tgwsProxy);
+        return !string.IsNullOrEmpty(serviceBat) || !string.IsNullOrEmpty(tgwsProxy) || !string.IsNullOrEmpty(zapret2Exe);
     }
 
     private static async Task<ReleaseInfo?> GetLatestReleaseInfoAsync(string repo)
@@ -575,6 +694,20 @@ public static class AutoDownloadService
                         var downloadUrl = asset.GetProperty("browser_download_url").GetString() ?? "";
 
                         if (name.Contains("zapret-discord-youtube") && name.EndsWith(".rar"))
+                        {
+                            return new ReleaseInfo { Version = version, DownloadUrl = downloadUrl };
+                        }
+                    }
+                }
+
+                if (repo.Contains("zapret2"))
+                {
+                    foreach (var asset in assets.EnumerateArray())
+                    {
+                        var name = asset.GetProperty("name").GetString()?.ToLower() ?? "";
+                        var downloadUrl = asset.GetProperty("browser_download_url").GetString() ?? "";
+
+                        if (name.Contains("zapret2") && name.EndsWith(".zip"))
                         {
                             return new ReleaseInfo { Version = version, DownloadUrl = downloadUrl };
                         }
