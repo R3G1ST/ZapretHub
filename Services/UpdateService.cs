@@ -26,10 +26,12 @@ public class UpdateService
         try
         {
             using var handler = new HttpClientHandler
-{
-    ServerCertificateCustomValidationCallback = (_, _, _, _) => true
-};
-using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
+            {
+                ServerCertificateCustomValidationCallback = (_, _, _, _) => true,
+                AllowAutoRedirect = true,
+                MaxAutomaticRedirections = 10
+            };
+            using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
             http.DefaultRequestHeaders.UserAgent.ParseAdd("ZapretHub/1.0");
 
             var json = await http.GetStringAsync(ApiUrl);
@@ -78,12 +80,15 @@ using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
 
             using var handler = new HttpClientHandler
             {
-                ServerCertificateCustomValidationCallback = (_, _, _, _) => true
+                ServerCertificateCustomValidationCallback = (_, _, _, _) => true,
+                AllowAutoRedirect = true,
+                MaxAutomaticRedirections = 10
             };
-            using var http = new HttpClient(handler);
+            using var http = new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(10) };
             http.DefaultRequestHeaders.UserAgent.ParseAdd("ZapretHub/1.0");
 
             using var response = await http.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
             var totalBytes = response.Content.Headers.ContentLength ?? 0;
             using var stream = await response.Content.ReadAsStreamAsync();
             using var fileStream = File.Create(tempPath);
