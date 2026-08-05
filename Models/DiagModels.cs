@@ -64,6 +64,8 @@ public class AppStatus
     public string DiscordProcName { get; set; } = "";
     public bool ZapretRunning { get; set; }
     public string ZapretProcName { get; set; } = "";
+    public bool Zapret2Running { get; set; }
+    public string Zapret2ProcName { get; set; } = "";
     public bool GoodbyeDpiRunning { get; set; }
     public string GoodbyeDpiProcName { get; set; } = "";
     public bool WarpRunning { get; set; }

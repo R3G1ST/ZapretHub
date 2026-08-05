@@ -58,7 +58,8 @@ public class ZapretConfigService
     public static async Task<(List<ZapretConfig> configs, Process? process)> TestAllConfigsAsync(
         string zapretPath,
         Action<string>? onProgress = null,
-        Action<int, int>? onConfigTested = null)
+        Action<int, int>? onConfigTested = null,
+        ZapretVersion version = ZapretVersion.V1)
     {
         var configs = new List<ZapretConfig>();
         Process? process = null;
@@ -67,6 +68,55 @@ public class ZapretConfigService
         if (string.IsNullOrEmpty(zapretDir) || !Directory.Exists(zapretDir))
         {
             onProgress?.Invoke("❌ Ошибка: директория Zapret не найдена");
+            return (configs, null);
+        }
+
+        if (version == ZapretVersion.V2)
+        {
+            var searchDir = Directory.Exists(Path.Combine(zapretDir, "zapret2"))
+                ? Path.Combine(zapretDir, "zapret2")
+                : zapretDir;
+
+            var batFiles = Directory.GetFiles(searchDir, "*.bat", SearchOption.TopDirectoryOnly)
+                .Where(f =>
+                {
+                    var name = Path.GetFileName(f);
+                    return !name.StartsWith("service", StringComparison.OrdinalIgnoreCase)
+                        && !name.StartsWith("uninstall", StringComparison.OrdinalIgnoreCase);
+                })
+                .OrderBy(f => Path.GetFileName(f), new NaturalStringComparer())
+                .ToList();
+
+            if (batFiles.Count == 0)
+            {
+                onProgress?.Invoke("❌ Конфиги (.bat) не найдены в " + searchDir);
+                return (configs, null);
+            }
+
+            onProgress?.Invoke($"📋 Найдено {batFiles.Count} конфигов Zapret2");
+
+            int idx = 0;
+            foreach (var batFile in batFiles)
+            {
+                idx++;
+                var name = Path.GetFileName(batFile);
+                onProgress?.Invoke($"[{idx}/{batFiles.Count}] {name}");
+                onProgress?.Invoke($"[HEADER]⚠️ {name} - ТРЕБУЕТ ТЕСТИРОВАНИЯ[/HEADER]");
+
+                configs.Add(new ZapretConfig
+                {
+                    Name = name,
+                    FilePath = batFile,
+                    IsValid = false,
+                    SuccessCount = 0,
+                    ErrorCount = 0,
+                    Tests = new Dictionary<string, ServiceTestResult>(),
+                    AveragePing = 0
+                });
+
+                onConfigTested?.Invoke(idx, batFiles.Count);
+            }
+
             return (configs, null);
         }
 
@@ -522,7 +572,7 @@ public class ZapretConfigService
         return $"{httpEmoji} {http} | {tls12Emoji} {tls12} | {tls13Emoji} {tls13}";
     }
 
-    public static async Task<bool> ApplyConfigAsync(string zapretPath, string configName)
+    public static async Task<bool> ApplyConfigAsync(string zapretPath, string configName, ZapretVersion version = ZapretVersion.V1)
     {
         try
         {
@@ -538,6 +588,27 @@ public class ZapretConfigService
                 return false;
             }
 
+            if (version == ZapretVersion.V2)
+            {
+                var args = await ParseConfigArgsV2Async(configPath, zapretDir);
+                if (string.IsNullOrEmpty(args))
+                {
+                    return false;
+                }
+
+                await StopZapretV2ProcessesAsync();
+
+                var psi = new ProcessStartInfo
+                {
+                    FileName = zapretPath,
+                    Arguments = args,
+                    UseShellExecute = true,
+                    WorkingDirectory = zapretDir
+                };
+                Process.Start(psi);
+                return true;
+            }
+
             var binPath = Path.Combine(zapretDir, "bin");
             var winwsExe = Path.Combine(binPath, "winws.exe");
             if (!File.Exists(winwsExe))
@@ -545,8 +616,8 @@ public class ZapretConfigService
                 return false;
             }
 
-            var args = await ParseConfigArgsAsync(configPath, zapretDir, binPath);
-            if (string.IsNullOrEmpty(args))
+            var argsV1 = await ParseConfigArgsAsync(configPath, zapretDir, binPath);
+            if (string.IsNullOrEmpty(argsV1))
             {
                 return false;
             }
@@ -555,7 +626,7 @@ public class ZapretConfigService
 
             EnableTcpTimestamps();
 
-            var success = await CreateServiceAsync("zapret", winwsExe, args, configName);
+            var success = await CreateServiceAsync("zapret", winwsExe, argsV1, configName);
 
             if (success)
             {
@@ -620,6 +691,123 @@ public class ZapretConfigService
         {
             return "";
         }
+    }
+
+    private static async Task<string> ParseConfigArgsV2Async(string configPath, string zapretDir)
+    {
+        try
+        {
+            var lines = await File.ReadAllLinesAsync(configPath);
+
+            var listsPath = Path.Combine(zapretDir, "lists");
+            var fullText = "";
+            bool capture = false;
+
+            string[] exeNames = ["winws2.exe", "nfqws2.exe", "winws.exe", "nfqws.exe"];
+
+            foreach (var line in lines)
+            {
+                var trimmed = line.Trim();
+
+                foreach (var exeName in exeNames)
+                {
+                    if (trimmed.Contains(exeName))
+                    {
+                        capture = true;
+                        var idx = trimmed.IndexOf(exeName);
+                        if (idx >= 0)
+                        {
+                            trimmed = trimmed.Substring(idx + exeName.Length).Trim();
+                        }
+                        break;
+                    }
+                }
+
+                if (!capture) continue;
+
+                if (trimmed.EndsWith("^"))
+                {
+                    trimmed = trimmed.Substring(0, trimmed.Length - 1).Trim();
+                }
+
+                fullText += " " + trimmed;
+            }
+
+            fullText = fullText.Replace("%BIN%", Path.Combine(zapretDir, "") + "\\");
+            fullText = fullText.Replace("%LISTS%", listsPath + "\\");
+            fullText = fullText.Replace("%GameFilter%", "12");
+            fullText = fullText.Replace("%GameFilterTCP%", "12");
+            fullText = fullText.Replace("%GameFilterUDP%", "12");
+
+            fullText = fullText.Replace("\"", "");
+
+            fullText = System.Text.RegularExpressions.Regex.Replace(fullText, @"\s+", " ").Trim();
+
+            return fullText;
+        }
+        catch
+        {
+            return "";
+        }
+    }
+
+    private static async Task StopZapretV2ProcessesAsync()
+    {
+        string[] processNames = ["winws2", "nfqws2"];
+        foreach (var name in processNames)
+        {
+            var procs = Process.GetProcessesByName(name);
+            foreach (var proc in procs)
+            {
+                try
+                {
+                    proc.Kill(true);
+                    proc.WaitForExit(3000);
+                    proc.Dispose();
+                }
+                catch { }
+            }
+        }
+        await Task.Delay(500);
+    }
+
+    public static List<string> ScanBatFiles(string zapretDir, ZapretVersion version = ZapretVersion.V1)
+    {
+        if (!Directory.Exists(zapretDir))
+            return new List<string>();
+
+        var batFiles = Directory.GetFiles(zapretDir, "*.bat", SearchOption.TopDirectoryOnly)
+            .Where(f =>
+            {
+                var name = Path.GetFileName(f);
+                return !name.StartsWith("service", StringComparison.OrdinalIgnoreCase)
+                    && !name.StartsWith("uninstall", StringComparison.OrdinalIgnoreCase);
+            })
+            .OrderBy(f => Path.GetFileName(f), new NaturalStringComparer())
+            .Select(Path.GetFileName)
+            .ToList();
+
+        if (version == ZapretVersion.V2)
+        {
+            var zapret2Dir = Path.Combine(zapretDir, "zapret2");
+            if (Directory.Exists(zapret2Dir))
+            {
+                var v2BatFiles = Directory.GetFiles(zapret2Dir, "*.bat", SearchOption.TopDirectoryOnly)
+                    .Where(f =>
+                    {
+                        var name = Path.GetFileName(f);
+                        return !name.StartsWith("service", StringComparison.OrdinalIgnoreCase)
+                            && !name.StartsWith("uninstall", StringComparison.OrdinalIgnoreCase);
+                    })
+                    .OrderBy(f => Path.GetFileName(f), new NaturalStringComparer())
+                    .Select(Path.GetFileName)
+                    .ToList();
+
+                return v2BatFiles;
+            }
+        }
+
+        return batFiles;
     }
 
     private static List<string> SplitArgs(string line)

@@ -225,6 +225,17 @@ public static class DiagnosticsEngine
             var tg = Match("telegram"); if (tg != "") { status.TelegramRunning = true; status.TelegramProcName = tg; }
             var dc = Match("discord");  if (dc != "") { status.DiscordRunning = true;  status.DiscordProcName = dc; }
             var zp = Match("zapret");   if (zp != "") { status.ZapretRunning = true;   status.ZapretProcName = zp; }
+
+            foreach (var name in names)
+            {
+                if (name.Contains("winws2") || name.Contains("nfqws2"))
+                {
+                    status.Zapret2Running = true;
+                    status.Zapret2ProcName = name;
+                    break;
+                }
+            }
+
             var gd = Match("goodbyedpi"); if (gd != "") { status.GoodbyeDpiRunning = true; status.GoodbyeDpiProcName = gd; }
             var wp = Match("warp");     if (wp != "") { status.WarpRunning = true;     status.WarpProcName = wp; }
             var tw = Match("tgwsproxy"); if (tw != "") { status.TgWsProxyRunning = true; status.TgWsProxyProcName = tw; }

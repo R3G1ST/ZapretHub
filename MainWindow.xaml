@@ -5374,6 +5374,19 @@
                                                          Foreground="#00ff88"
                                                          Background="#07070c"
                                                          BorderThickness="0"/>
+                                            <StackPanel x:Name="Zapret2StatusPanel" Orientation="Horizontal" Margin="0,6,0,0"
+                                                        Visibility="Collapsed">
+                                                <Ellipse x:Name="Zapret2Dot" Width="6" Height="6"
+                                                         Fill="#5a6a7a" VerticalAlignment="Center"
+                                                         Margin="0,0,5,0"/>
+                                                <TextBlock Text="Zapret2: "
+                                                           FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
+                                                           Foreground="#5a6a7a" VerticalAlignment="Center"/>
+                                                <TextBlock x:Name="Zapret2StatusLbl"
+                                                           Text="Не запущен"
+                                                           FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
+                                                           Foreground="#5a6a7a" VerticalAlignment="Center"/>
+                                            </StackPanel>
                                         </StackPanel>
                                     </Border>
                                     <Border x:Name="ZapretVersionPopup" Background="#0d0d14" CornerRadius="8"

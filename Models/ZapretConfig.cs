@@ -6,6 +6,7 @@ namespace ZapretHub.Models;
 public class ZapretConfig
 {
     public string Name { get; set; } = "";
+    public string FilePath { get; set; } = "";
     public Dictionary<string, ServiceTestResult> Tests { get; set; } = new();
     public Dictionary<string, ServiceTestResult> GameTests { get; set; } = new();
     public int SuccessCount { get; set; }

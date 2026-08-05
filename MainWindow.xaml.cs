@@ -884,10 +884,14 @@ public partial class MainWindow : Window
             _configWindow = null;
         }
 
-        if (string.IsNullOrEmpty(_settings.ZapretPath) || !File.Exists(_settings.ZapretPath))
+        string zapretPath = _settings.ZapretVersion == ZapretVersion.V2
+            ? _settings.Zapret2Path
+            : _settings.ZapretPath;
+
+        if (string.IsNullOrEmpty(zapretPath) || !File.Exists(zapretPath))
             return;
 
-        var w = new Views.ZapretConfigWindow(_settings.ZapretPath, testMode, _settings.SelectedGameServices, _settings.SelectedGames);
+        var w = new Views.ZapretConfigWindow(zapretPath, testMode, _settings.SelectedGameServices, _settings.SelectedGames, _settings.ZapretVersion);
         _configWindow = w;
         w.Owner = this;
         w.Closed += (_, _) =>
@@ -5235,6 +5239,18 @@ public partial class MainWindow : Window
                 {
                     ZapretToggleBtn.Style = (Style)FindResource("AccentBtn");
                     ZapretToggleBtn.Content = CreateButtonContentWithIcon("PlayIcon", "Запустить", Brushes.White);
+                }
+
+                if (_settings.ZapretVersion == ZapretVersion.V2)
+                {
+                    Zapret2StatusPanel.Visibility = Visibility.Visible;
+                    Zapret2Dot.Fill = st.Zapret2Running ? greenBrush : grayBrush;
+                    Zapret2StatusLbl.Text = st.Zapret2Running ? "Запущен" : "Не запущен";
+                    Zapret2StatusLbl.Foreground = st.Zapret2Running ? greenBrush : grayBrush;
+                }
+                else
+                {
+                    Zapret2StatusPanel.Visibility = Visibility.Collapsed;
                 }
 
                 UpdateActiveConfigDisplay(st.ZapretRunning);

@@ -24,6 +24,7 @@ public partial class ZapretConfigWindow : Window
     private readonly bool _testMode;
     private readonly List<string> _selectedGameServices;
     private readonly List<string> _selectedGames;
+    private readonly ZapretVersion _zapretVersion;
     private ZapretConfigCache? _cache;
     private bool _isTesting = false;
     private Process? _testProcess = null;
@@ -32,13 +33,14 @@ public partial class ZapretConfigWindow : Window
 
     public bool ConfigWasApplied { get; private set; } = false;
 
-    public ZapretConfigWindow(string zapretPath, bool testMode, List<string>? selectedGameServices = null, List<string>? selectedGames = null)
+    public ZapretConfigWindow(string zapretPath, bool testMode, List<string>? selectedGameServices = null, List<string>? selectedGames = null, ZapretVersion zapretVersion = ZapretVersion.V1)
     {
         InitializeComponent();
         _zapretPath = zapretPath;
         _testMode = testMode;
         _selectedGameServices = selectedGameServices ?? new();
         _selectedGames = selectedGames ?? new();
+        _zapretVersion = zapretVersion;
         Loaded += OnLoaded;
         Closing += OnClosing;
 
@@ -442,7 +444,8 @@ public partial class ZapretConfigWindow : Window
                         else
                             TimeRemainingText.Text = $"Осталось: ~{(int)(estimatedSecondsRemaining / 60)} мин";
                     }
-                })
+                }),
+                _zapretVersion
             );
 
             _testProcess = testProcess;
@@ -595,7 +598,7 @@ public partial class ZapretConfigWindow : Window
                 var originalContent = SecondaryBtn.Content;
                 SecondaryBtn.Content = "Применение...";
 
-                bool success = await ZapretConfigService.ApplyConfigAsync(_zapretPath, _cache.CurrentConfig);
+                bool success = await ZapretConfigService.ApplyConfigAsync(_zapretPath, _cache.CurrentConfig, _zapretVersion);
 
                 SecondaryBtn.IsEnabled = true;
                 PrimaryBtn.IsEnabled = true;
