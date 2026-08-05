@@ -15100,6 +15100,19 @@ public partial class MainWindow : Window
         NotifyList.Children.Clear();
         var store = NotificationService.GetStore();
 
+        var seen = new System.Collections.Generic.HashSet<string>();
+        var deduped = new System.Collections.Generic.List<Models.AppNotification>();
+        foreach (var n in store.Notifications)
+        {
+            if (seen.Add(n.Version))
+                deduped.Add(n);
+        }
+        if (deduped.Count != store.Notifications.Count)
+        {
+            store.Notifications = deduped;
+            NotificationService.SaveStore();
+        }
+
         if (store.Notifications.Count == 0)
         {
             NotifyEmptyText.Visibility = Visibility.Visible;
@@ -15204,6 +15217,14 @@ public partial class MainWindow : Window
                         Dispatcher.Invoke(() => updateBtn.Content = $"Загрузка {progress}%");
                     });
                 }
+                catch (InvalidOperationException)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        updateBtn.Content = "Уже загружается";
+                        updateBtn.IsEnabled = false;
+                    });
+                }
                 catch (Exception ex)
                 {
                     Dispatcher.Invoke(() =>
@@ -15225,7 +15246,16 @@ public partial class MainWindow : Window
 
             card.MouseLeftButtonDown += (_, _) =>
             {
-                if (!expanded && !string.IsNullOrWhiteSpace(notificationNotes))
+                if (expanded)
+                {
+                    if (notesExpand != null)
+                    {
+                        stack.Children.Remove(notesExpand);
+                        notesExpand = null;
+                    }
+                    expanded = false;
+                }
+                else if (!string.IsNullOrWhiteSpace(notificationNotes))
                 {
                     var fullNotes = StripMarkdown(notificationNotes);
                     notesExpand = new TextBlock

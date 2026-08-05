@@ -118,15 +118,28 @@ public static class NotificationService
 
             if (new Version(latestVersion) > new Version(currentVersion) && store.LastCheckedVersion != latestVersion)
             {
+                var cleanNotes = releaseNotes;
+                var lines = releaseNotes.Split('\n');
+                if (lines.Length > 0)
+                {
+                    var first = lines[0].TrimStart('#', ' ');
+                    if (first.StartsWith("ZapretHub") || first.StartsWith("v"))
+                        cleanNotes = string.Join("\n", lines.Skip(1)).TrimStart('\n', '\r');
+                }
+
                 var notification = new AppNotification
                 {
                     Version = latestVersion,
                     TagName = latestTag,
-                    ReleaseNotes = releaseNotes,
+                    ReleaseNotes = cleanNotes,
                     DownloadUrl = downloadUrl,
                     Timestamp = DateTime.Now,
                     IsRead = false
                 };
+
+                store.Notifications = store.Notifications
+                    .Where(n => n.Version != latestVersion)
+                    .ToList();
 
                 store.Notifications.Insert(0, notification);
                 store.LastCheckedVersion = latestVersion;

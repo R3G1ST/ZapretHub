@@ -12,6 +12,9 @@ public class UpdateService
     private const string GitHubRepo = "R3G1ST/ZapretHub";
     private const string ApiUrl = $"https://api.github.com/repos/{GitHubRepo}/releases/latest";
 
+    private static bool _isDownloading;
+    private static string? _downloadingUrl;
+
     public static async Task<(bool hasUpdate, string newVersion, string downloadUrl, string error)> CheckAsync()
     {
         try
@@ -56,40 +59,53 @@ using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
 
     public static async Task DownloadAndInstallAsync(string downloadUrl, Action<int>? onProgress = null)
     {
-        string tempPath = Path.Combine(Path.GetTempPath(), "ZapretHub_Setup.exe");
+        if (_isDownloading)
+            throw new InvalidOperationException("Загрузка уже выполняется");
 
-        using var handler = new HttpClientHandler
+        _isDownloading = true;
+        _downloadingUrl = downloadUrl;
+        try
         {
-            ServerCertificateCustomValidationCallback = (_, _, _, _) => true
-        };
-        using var http = new HttpClient(handler);
-        http.DefaultRequestHeaders.UserAgent.ParseAdd("ZapretHub/1.0");
+            string tempPath = Path.Combine(Path.GetTempPath(), "ZapretHub_Setup.exe");
 
-        using var response = await http.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
-        var totalBytes = response.Content.Headers.ContentLength ?? 0;
-        using var stream = await response.Content.ReadAsStreamAsync();
-        using var fileStream = File.Create(tempPath);
+            using var handler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (_, _, _, _) => true
+            };
+            using var http = new HttpClient(handler);
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("ZapretHub/1.0");
 
-        var buffer = new byte[8192];
-        long downloaded = 0;
-        int read;
+            using var response = await http.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
+            var totalBytes = response.Content.Headers.ContentLength ?? 0;
+            using var stream = await response.Content.ReadAsStreamAsync();
+            using var fileStream = File.Create(tempPath);
 
-        while ((read = await stream.ReadAsync(buffer)) > 0)
-        {
-            await fileStream.WriteAsync(buffer.AsMemory(0, read));
-            downloaded += read;
-            if (totalBytes > 0)
-                onProgress?.Invoke((int)(downloaded * 100 / totalBytes));
+            var buffer = new byte[8192];
+            long downloaded = 0;
+            int read;
+
+            while ((read = await stream.ReadAsync(buffer)) > 0)
+            {
+                await fileStream.WriteAsync(buffer.AsMemory(0, read));
+                downloaded += read;
+                if (totalBytes > 0)
+                    onProgress?.Invoke((int)(downloaded * 100 / totalBytes));
+            }
+
+            fileStream.Close();
+
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = tempPath,
+                UseShellExecute = true
+            });
+
+            System.Windows.Application.Current.Shutdown();
         }
-
-        fileStream.Close();
-
-        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        finally
         {
-            FileName = tempPath,
-            UseShellExecute = true
-        });
-
-        System.Windows.Application.Current.Shutdown();
+            _isDownloading = false;
+            _downloadingUrl = null;
+        }
     }
 }
