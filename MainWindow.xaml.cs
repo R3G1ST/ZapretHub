@@ -696,10 +696,7 @@ public partial class MainWindow : Window
 
             if (st.ZapretRunning)
             {
-                foreach (var p in Process.GetProcessesByName("winws"))
-                    try { p.Kill(); } catch { }
-                foreach (var p in Process.GetProcessesByName("winws.exe"))
-                    try { p.Kill(); } catch { }
+                await StopZapretServiceAsync();
                 _zapretToggleFails = 0;
             }
             else
@@ -766,6 +763,31 @@ public partial class MainWindow : Window
         {
             ZapretToggleProgress.Visibility = Visibility.Collapsed;
         }
+    }
+
+    private static async Task StopZapretServiceAsync()
+    {
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "net",
+                Arguments = "stop zapret",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using var proc = Process.Start(psi);
+            if (proc != null) await proc.WaitForExitAsync();
+            await Task.Delay(500);
+        }
+        catch { }
+
+        foreach (var p in Process.GetProcessesByName("winws"))
+            try { p.Kill(); p.Dispose(); } catch { }
+        foreach (var p in Process.GetProcessesByName("winws.exe"))
+            try { p.Kill(); p.Dispose(); } catch { }
     }
 
     private async void TgWsToggle_Click(object s, RoutedEventArgs e)
