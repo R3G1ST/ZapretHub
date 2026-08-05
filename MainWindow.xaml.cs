@@ -6527,10 +6527,19 @@ public partial class MainWindow : Window
         {
             _popupCloseTimer?.Stop();
             IndicatorsPopupText.Text = GetIndicatorStatusText();
-            var transform = IndicatorsPanel.TransformToAncestor(this);
-            var pos = transform.Transform(new Point(0, 0));
-            IndicatorsPopup.HorizontalOffset = 62;
-            IndicatorsPopup.VerticalOffset = pos.Y - 40;
+            var sidebar = (System.Windows.FrameworkElement)IndicatorsPanel.Parent;
+            while (sidebar != null && sidebar.Parent is System.Windows.FrameworkElement fe)
+                sidebar = fe;
+            if (sidebar is System.Windows.Window w)
+            {
+                var panelPos = IndicatorsPanel.TransformToAncestor(w).Transform(new Point(0, 0));
+                var popupHeight = 100;
+                var y = panelPos.Y - popupHeight - 5;
+                if (y < 0) y = panelPos.Y + IndicatorsPanel.ActualHeight + 5;
+                IndicatorsPopup.Placement = System.Windows.Controls.Primitives.PlacementMode.Absolute;
+                IndicatorsPopup.HorizontalOffset = 64;
+                IndicatorsPopup.VerticalOffset = y;
+            }
             IndicatorsPopup.IsOpen = true;
         };
         IndicatorsPanel.MouseLeave += (_, _) =>
@@ -15221,8 +15230,9 @@ public partial class MainWindow : Window
                 BorderThickness = new Thickness(0),
                 Cursor = System.Windows.Input.Cursors.Hand
             };
+            var dlUrl = n.DownloadUrl;
 
-            if (UpdateService.IsDownloading)
+            if (UpdateService.IsDownloading && UpdateService.DownloadingUrl == dlUrl)
             {
                 updateBtn.Content = $"Загрузка {UpdateService.DownloadProgress}%";
                 updateBtn.IsEnabled = false;
@@ -15231,6 +15241,7 @@ public partial class MainWindow : Window
             Action<int> progressHandler = null;
             progressHandler = (pct) =>
             {
+                if (UpdateService.DownloadingUrl != dlUrl) return;
                 Dispatcher.Invoke(() =>
                 {
                     updateBtn.Content = $"Загрузка {pct}%";
@@ -15239,7 +15250,6 @@ public partial class MainWindow : Window
             };
             UpdateService.OnProgress += progressHandler;
 
-            var dlUrl = n.DownloadUrl;
             updateBtn.Click += async (_, _) =>
             {
                 updateBtn.Content = "Загрузка...";

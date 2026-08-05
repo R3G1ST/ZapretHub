@@ -16,6 +16,7 @@ public class UpdateService
     private static string? _downloadingUrl;
     public static bool IsDownloading => _isDownloading;
     public static int DownloadProgress { get; private set; }
+    public static string? DownloadingUrl => _downloadingUrl;
     public static event Action<int>? OnProgress;
     public static event Action? OnDownloadStarted;
     public static event Action? OnDownloadFinished;
