@@ -6506,17 +6506,43 @@ public partial class MainWindow : Window
         t.Start();
     }
 
+    private System.Windows.Threading.DispatcherTimer? _popupCloseTimer;
+
     private void SetupIndicatorTooltips()
     {
         IndicatorsPopupText.Text = "Сеть: проверка...\nVPN: проверка...\nZapret: проверка...\nTgWsProxy: проверка...";
+        IndicatorsPopup.MouseEnter += (_, _) => _popupCloseTimer?.Stop();
+        IndicatorsPopup.MouseLeave += (_, _) =>
+        {
+            _popupCloseTimer?.Stop();
+            _popupCloseTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
+            _popupCloseTimer.Tick += (_, _) =>
+            {
+                _popupCloseTimer.Stop();
+                IndicatorsPopup.IsOpen = false;
+            };
+            _popupCloseTimer.Start();
+        };
         IndicatorsPanel.MouseEnter += (_, _) =>
         {
+            _popupCloseTimer?.Stop();
             IndicatorsPopupText.Text = GetIndicatorStatusText();
+            var transform = IndicatorsPanel.TransformToAncestor(this);
+            var pos = transform.Transform(new Point(0, 0));
+            IndicatorsPopup.HorizontalOffset = 62;
+            IndicatorsPopup.VerticalOffset = pos.Y - 40;
             IndicatorsPopup.IsOpen = true;
         };
         IndicatorsPanel.MouseLeave += (_, _) =>
         {
-            IndicatorsPopup.IsOpen = false;
+            _popupCloseTimer?.Stop();
+            _popupCloseTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
+            _popupCloseTimer.Tick += (_, _) =>
+            {
+                _popupCloseTimer.Stop();
+                IndicatorsPopup.IsOpen = false;
+            };
+            _popupCloseTimer.Start();
         };
     }
 
