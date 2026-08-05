@@ -113,6 +113,18 @@ public partial class ZapretConfigWindow : Window
                     catch { }
                 }
 
+                if (_zapretVersion == ZapretVersion.V2)
+                {
+                    foreach (var proc in Process.GetProcessesByName("winws2"))
+                    {
+                        try { ForceKillProcessTree(proc.Id); proc.Dispose(); } catch { }
+                    }
+                    foreach (var proc in Process.GetProcessesByName("nfqws2"))
+                    {
+                        try { ForceKillProcessTree(proc.Id); proc.Dispose(); } catch { }
+                    }
+                }
+
                 var powerShellProcs = Process.GetProcessesByName("powershell");
                 foreach (var proc in powerShellProcs)
                 {
@@ -323,6 +335,17 @@ public partial class ZapretConfigWindow : Window
             foreach (var p in Process.GetProcessesByName("winws"))
                 try { p.Kill(); } catch { }
             foreach (var p in Process.GetProcessesByName("winws.exe"))
+                try { p.Kill(); } catch { }
+
+            await Task.Delay(1000);
+        }
+
+        if (_zapretVersion == ZapretVersion.V2 && (st.Zapret2Running))
+        {
+            StatusText.Text = "Остановка Zapret2...";
+            foreach (var p in Process.GetProcessesByName("winws2"))
+                try { p.Kill(); } catch { }
+            foreach (var p in Process.GetProcessesByName("nfqws2"))
                 try { p.Kill(); } catch { }
 
             await Task.Delay(1000);
@@ -677,6 +700,18 @@ public partial class ZapretConfigWindow : Window
                         proc.Dispose();
                     }
                     catch { }
+                }
+
+                if (_zapretVersion == ZapretVersion.V2)
+                {
+                    foreach (var proc in Process.GetProcessesByName("winws2"))
+                    {
+                        try { ForceKillProcessTree(proc.Id); proc.Dispose(); } catch { }
+                    }
+                    foreach (var proc in Process.GetProcessesByName("nfqws2"))
+                    {
+                        try { ForceKillProcessTree(proc.Id); proc.Dispose(); } catch { }
+                    }
                 }
 
                 var powerShellProcs = Process.GetProcessesByName("powershell");

@@ -73,9 +73,13 @@ public class ZapretConfigService
 
         if (version == ZapretVersion.V2)
         {
-            var searchDir = Directory.Exists(Path.Combine(zapretDir, "zapret2"))
-                ? Path.Combine(zapretDir, "zapret2")
-                : zapretDir;
+            string searchDir;
+            if (Path.GetFileName(zapretDir).Equals("zapret2", StringComparison.OrdinalIgnoreCase))
+                searchDir = zapretDir;
+            else if (Directory.Exists(Path.Combine(zapretDir, "zapret2")))
+                searchDir = Path.Combine(zapretDir, "zapret2");
+            else
+                searchDir = zapretDir;
 
             var batFiles = Directory.GetFiles(searchDir, "*.bat", SearchOption.TopDirectoryOnly)
                 .Where(f =>
