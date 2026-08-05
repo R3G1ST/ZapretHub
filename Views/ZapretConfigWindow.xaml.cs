@@ -621,7 +621,9 @@ public partial class ZapretConfigWindow : Window
                 var originalContent = SecondaryBtn.Content;
                 SecondaryBtn.Content = "Применение...";
 
-                bool success = await ZapretConfigService.ApplyConfigAsync(_zapretPath, _cache.CurrentConfig, _zapretVersion);
+                var currentConfigObj = _cache.GetSelectableConfigs().FirstOrDefault(c => c.Name == _cache.CurrentConfig);
+                var v2Args = currentConfigObj?.Args;
+                bool success = await ZapretConfigService.ApplyConfigAsync(_zapretPath, _cache.CurrentConfig, _zapretVersion, v2Args);
 
                 SecondaryBtn.IsEnabled = true;
                 PrimaryBtn.IsEnabled = true;

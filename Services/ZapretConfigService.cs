@@ -73,44 +73,81 @@ public class ZapretConfigService
 
         if (version == ZapretVersion.V2)
         {
-            string searchDir;
-            if (Path.GetFileName(zapretDir).Equals("zapret2", StringComparison.OrdinalIgnoreCase))
-                searchDir = zapretDir;
-            else if (Directory.Exists(Path.Combine(zapretDir, "zapret2")))
-                searchDir = Path.Combine(zapretDir, "zapret2");
-            else
-                searchDir = zapretDir;
-
-            var batFiles = Directory.GetFiles(searchDir, "*.bat", SearchOption.TopDirectoryOnly)
-                .Where(f =>
-                {
-                    var name = Path.GetFileName(f);
-                    return !name.StartsWith("service", StringComparison.OrdinalIgnoreCase)
-                        && !name.StartsWith("uninstall", StringComparison.OrdinalIgnoreCase);
-                })
-                .OrderBy(f => Path.GetFileName(f), new NaturalStringComparer())
-                .ToList();
-
-            if (batFiles.Count == 0)
+            var zapret2Root = FindZapret2Root(zapretDir);
+            if (zapret2Root == null)
             {
-                onProgress?.Invoke("❌ Конфиги (.bat) не найдены в " + searchDir);
+                onProgress?.Invoke("❌ Директория zapret2 не найдена в " + zapretDir);
                 return (configs, null);
             }
 
-            onProgress?.Invoke($"📋 Найдено {batFiles.Count} конфигов Zapret2");
+            onProgress?.Invoke($"📂 Zapret2 найден: {zapret2Root}");
+
+            var foundConfigs = new List<(string name, string args)>();
+
+            var configDefault = Path.Combine(zapret2Root, "config.default");
+            if (File.Exists(configDefault))
+            {
+                onProgress?.Invoke("📋 Читаю config.default...");
+                var nfqwsOpt = ParseNfqws2Opt(configDefault);
+                if (nfqwsOpt.Count > 0)
+                {
+                    foreach (var (name, args) in nfqwsOpt)
+                    {
+                        foundConfigs.Add((name, args));
+                        onProgress?.Invoke($"   ✓ {name}");
+                    }
+                }
+            }
+
+            var shScripts = Directory.GetFiles(zapret2Root, "*.sh", SearchOption.AllDirectories)
+                .Where(f =>
+                {
+                    var name = Path.GetFileName(f);
+                    return !name.StartsWith("install", StringComparison.OrdinalIgnoreCase)
+                        && !name.StartsWith("uninstall", StringComparison.OrdinalIgnoreCase)
+                        && !name.StartsWith("clear", StringComparison.OrdinalIgnoreCase);
+                })
+                .ToList();
+
+            if (shScripts.Count > 0)
+            {
+                onProgress?.Invoke($"🔍 Сканирую {shScripts.Count} .sh скриптов...");
+                foreach (var sh in shScripts)
+                {
+                    var scriptArgs = ParseWinws2FromShScript(sh);
+                    if (scriptArgs.Count > 0)
+                    {
+                        var scriptName = Path.GetFileNameWithoutExtension(sh);
+                        foreach (var (name, args) in scriptArgs)
+                        {
+                            var fullName = $"[{scriptName}] {name}";
+                            foundConfigs.Add((fullName, args));
+                            onProgress?.Invoke($"   ✓ {fullName}");
+                        }
+                    }
+                }
+            }
+
+            if (foundConfigs.Count == 0)
+            {
+                foundConfigs.Add(("default (NFQWS2)", "--filter-tcp=80 --filter-l7=http --payload=http_req --new --filter-tcp=443 --filter-l7=tls --payload=tls_client_hello --new --filter-udp=443 --filter-l7=quic --payload=quic_initial"));
+                onProgress?.Invoke("ℹ️ Конфиги не найдены, добавлен профиль по умолчанию");
+            }
+
+            onProgress?.Invoke($"📋 Итого: {foundConfigs.Count} конфигов Zapret2");
 
             int idx = 0;
-            foreach (var batFile in batFiles)
+            foreach (var (name, args) in foundConfigs)
             {
                 idx++;
-                var name = Path.GetFileName(batFile);
-                onProgress?.Invoke($"[{idx}/{batFiles.Count}] {name}");
+                onProgress?.Invoke($"[{idx}/{foundConfigs.Count}] {name}");
                 onProgress?.Invoke($"[HEADER]⚠️ {name} - ТРЕБУЕТ ТЕСТИРОВАНИЯ[/HEADER]");
 
                 configs.Add(new ZapretConfig
                 {
                     Name = name,
-                    FilePath = batFile,
+                    FilePath = "",
+                    Args = args,
                     IsValid = false,
                     SuccessCount = 1,
                     ErrorCount = 0,
@@ -118,7 +155,7 @@ public class ZapretConfigService
                     AveragePing = 0
                 });
 
-                onConfigTested?.Invoke(idx, batFiles.Count);
+                onConfigTested?.Invoke(idx, foundConfigs.Count);
             }
 
             return (configs, null);
@@ -576,7 +613,7 @@ public class ZapretConfigService
         return $"{httpEmoji} {http} | {tls12Emoji} {tls12} | {tls13Emoji} {tls13}";
     }
 
-    public static async Task<bool> ApplyConfigAsync(string zapretPath, string configName, ZapretVersion version = ZapretVersion.V1)
+    public static async Task<bool> ApplyConfigAsync(string zapretPath, string configName, ZapretVersion version = ZapretVersion.V1, string? v2Args = null)
     {
         try
         {
@@ -586,15 +623,13 @@ public class ZapretConfigService
                 return false;
             }
 
-            var configPath = Path.Combine(zapretDir, configName);
-            if (!File.Exists(configPath))
-            {
-                return false;
-            }
-
             if (version == ZapretVersion.V2)
             {
-                var args = await ParseConfigArgsV2Async(configPath, zapretDir);
+                var args = v2Args;
+                if (string.IsNullOrEmpty(args))
+                {
+                    args = await ParseConfigArgsV2Async(Path.Combine(zapretDir, "config.default"), zapretDir);
+                }
                 if (string.IsNullOrEmpty(args))
                 {
                     return false;
@@ -611,6 +646,12 @@ public class ZapretConfigService
                 };
                 Process.Start(psi);
                 return true;
+            }
+
+            var configPath = Path.Combine(zapretDir, configName);
+            if (!File.Exists(configPath))
+            {
+                return false;
             }
 
             var binPath = Path.Combine(zapretDir, "bin");
@@ -1508,6 +1549,187 @@ public class ZapretConfigService
         onProgress?.Invoke("\n🎉 Тестирование gaming-конфигов завершено!");
 
         return allResults.OrderByDescending(r => r.successCount).ThenBy(r => r.avgPing).ToList();
+    }
+
+    private static string? FindZapret2Root(string zapretDir)
+    {
+        if (Directory.Exists(Path.Combine(zapretDir, "config.default")))
+            return zapretDir;
+
+        foreach (var sub in Directory.GetDirectories(zapretDir))
+        {
+            if (File.Exists(Path.Combine(sub, "config.default")))
+                return sub;
+            foreach (var sub2 in Directory.GetDirectories(sub))
+            {
+                if (File.Exists(Path.Combine(sub2, "config.default")))
+                    return sub2;
+            }
+        }
+
+        var luaDir = Path.Combine(zapretDir, "lua");
+        if (Directory.Exists(luaDir))
+            return zapretDir;
+
+        foreach (var sub in Directory.GetDirectories(zapretDir))
+        {
+            if (Directory.Exists(Path.Combine(sub, "lua")))
+                return sub;
+        }
+
+        return null;
+    }
+
+    private static List<(string name, string args)> ParseNfqws2Opt(string configDefaultPath)
+    {
+        var results = new List<(string name, string args)>();
+        try
+        {
+            var lines = File.ReadAllLines(configDefaultPath);
+            bool inNfqwsOpt = false;
+            var currentArgs = new List<string>();
+
+            foreach (var line in lines)
+            {
+                var trimmed = line.Trim();
+
+                if (trimmed.StartsWith("NFQWS2_OPT=") || trimmed.StartsWith("NFQWS2_OPT ="))
+                {
+                    inNfqwsOpt = true;
+                    var eqIdx = trimmed.IndexOf('=');
+                    if (eqIdx >= 0)
+                    {
+                        var afterEq = trimmed.Substring(eqIdx + 1).Trim();
+                        if (afterEq == "\"\"")
+                        {
+                            inNfqwsOpt = false;
+                            continue;
+                        }
+                        if (afterEq.StartsWith("\""))
+                        {
+                            afterEq = afterEq.Substring(1);
+                            if (afterEq.EndsWith("\""))
+                            {
+                                afterEq = afterEq.Substring(0, afterEq.Length - 1);
+                                inNfqwsOpt = false;
+                            }
+                            if (!string.IsNullOrWhiteSpace(afterEq))
+                                currentArgs.Add(afterEq);
+                        }
+                    }
+                    continue;
+                }
+
+                if (inNfqwsOpt)
+                {
+                    if (trimmed.EndsWith("\""))
+                    {
+                        trimmed = trimmed.Substring(0, trimmed.Length - 1);
+                        inNfqwsOpt = false;
+                    }
+                    if (!string.IsNullOrWhiteSpace(trimmed))
+                        currentArgs.Add(trimmed);
+                }
+            }
+
+            if (currentArgs.Count > 0)
+            {
+                var fullArgs = string.Join(" ", currentArgs)
+                    .Replace("<HOSTLIST>", "")
+                    .Replace("<HOSTLIST_NOAUTO>", "")
+                    .Replace("\n", " ")
+                    .Replace("\r", "");
+
+                var rules = fullArgs.Split(new[] { " --new " }, StringSplitOptions.RemoveEmptyEntries);
+                for (int i = 0; i < rules.Length; i++)
+                {
+                    var rule = rules[i].Trim();
+                    if (string.IsNullOrWhiteSpace(rule)) continue;
+
+                    var name = ExtractProfileName(rule);
+                    results.Add((name, rule));
+                }
+
+                if (results.Count == 0 && !string.IsNullOrWhiteSpace(fullArgs))
+                {
+                    results.Add(("NFQWS2 default", fullArgs));
+                }
+            }
+        }
+        catch { }
+        return results;
+    }
+
+    private static string ExtractProfileName(string args)
+    {
+        if (args.Contains("--filter-l7=http") && args.Contains("--filter-l7=tls"))
+            return "HTTP + TLS (основной)";
+        if (args.Contains("--filter-l7=quic"))
+            return "QUIC";
+        if (args.Contains("--filter-l7=http"))
+            return "HTTP only";
+        if (args.Contains("--filter-l7=tls"))
+            return "TLS only";
+        if (args.Contains("--filter-tcp=80"))
+            return "TCP:80";
+        if (args.Contains("--filter-tcp=443"))
+            return "TCP:443";
+        if (args.Contains("--filter-udp=443"))
+            return "UDP:443";
+        return "профиль";
+    }
+
+    private static List<(string name, string args)> ParseWinws2FromShScript(string shPath)
+    {
+        var results = new List<(string name, string args)>();
+        try
+        {
+            var content = File.ReadAllText(shPath);
+            var winwsPatterns = new[] { "winws2", "nfqws2" };
+
+            foreach (var pattern in winwsPatterns)
+            {
+                int idx = 0;
+                while (true)
+                {
+                    idx = content.IndexOf(pattern, idx, StringComparison.OrdinalIgnoreCase);
+                    if (idx < 0) break;
+
+                    var start = Math.Max(0, idx - 200);
+                    var searchArea = content.Substring(start, Math.Min(content.Length - start, 2000));
+
+                    var argsStart = searchArea.IndexOf(pattern, StringComparison.OrdinalIgnoreCase);
+                    if (argsStart >= 0)
+                    {
+                        var afterPattern = searchArea.Substring(argsStart + pattern.Length);
+                        var argsEnd = afterPattern.IndexOfAny(new[] { '\n', '\r', ';', '#' });
+                        if (argsEnd < 0) argsEnd = afterPattern.Length;
+                        var argsLine = afterPattern.Substring(0, argsEnd).Trim().TrimEnd('\\').Trim();
+
+                        if (!string.IsNullOrWhiteSpace(argsLine) && argsLine.Contains("--"))
+                        {
+                            var cleanArgs = argsLine
+                                .Replace("$LISTS_DIR", "")
+                                .Replace("$BIN_DIR", "")
+                                .Replace("$(dirname $0)", "")
+                                .Replace("${DIR}", "")
+                                .Replace("\"", "")
+                                .Trim();
+
+                            if (!string.IsNullOrWhiteSpace(cleanArgs))
+                            {
+                                var name = $"[{Path.GetFileNameWithoutExtension(shPath)}] {ExtractProfileName(cleanArgs)}";
+                                results.Add((name, cleanArgs));
+                            }
+                        }
+                    }
+
+                    idx += pattern.Length;
+                }
+            }
+        }
+        catch { }
+        return results;
     }
 }
 
