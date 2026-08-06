@@ -456,7 +456,8 @@ public partial class MainWindow : Window
                                     var psi = new ProcessStartInfo(_settings.Zapret2Path)
                                     {
                                         Arguments = v2Config.Args,
-                                        UseShellExecute = true,
+                                        UseShellExecute = false,
+                                        CreateNoWindow = true,
                                         WorkingDirectory = exeDir
                                     };
                                     Process.Start(psi);
@@ -775,7 +776,8 @@ public partial class MainWindow : Window
                         var psi = new ProcessStartInfo(_settings.Zapret2Path)
                         {
                             Arguments = v2Args,
-                            UseShellExecute = true,
+                            UseShellExecute = false,
+                            CreateNoWindow = true,
                             WorkingDirectory = exeDir
                         };
                         Process.Start(psi);
@@ -6090,7 +6092,8 @@ public partial class MainWindow : Window
                     var psi = new ProcessStartInfo(_settings.Zapret2Path)
                     {
                         Arguments = v2Config?.Args ?? "",
-                        UseShellExecute = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
                         WorkingDirectory = exeDir
                     };
                     Process.Start(psi);
