@@ -4411,32 +4411,6 @@ public partial class MainWindow : Window
                 total++; if (ok) passed++;
             }
 
-            AddTestSection("СКОРОСТЬ");
-            try
-            {
-                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(12) };
-                var sw = System.Diagnostics.Stopwatch.StartNew();
-                var data = await http.GetByteArrayAsync("https://proof.ovh.net/files/10Mb.dat");
-                sw.Stop();
-                double mbps = data.Length * 8.0 / sw.Elapsed.TotalSeconds / 1000000;
-                AddTestResult("Загрузка 10 MB", mbps > 0.5, $"{mbps:F1} Mbps");
-                total++; if (mbps > 0.5) passed++;
-            }
-            catch
-            {
-                try
-                {
-                    using var http2 = new HttpClient { Timeout = TimeSpan.FromSeconds(12) };
-                    var sw2 = System.Diagnostics.Stopwatch.StartNew();
-                    var data2 = await http2.GetByteArrayAsync("https://speed.cloudflare.com/__down?bytes=10000000");
-                    sw2.Stop();
-                    double mbps2 = data2.Length * 8.0 / sw2.Elapsed.TotalSeconds / 1000000;
-                    AddTestResult("Загрузка 10 MB", mbps2 > 0.5, $"{mbps2:F1} Mbps");
-                    total++; if (mbps2 > 0.5) passed++;
-                }
-                catch { AddTestResult("Загрузка 10 MB", false, "Timeout / ошибка"); total++; }
-            }
-
             AddTestSection("DNS");
             bool dnsOk = false;
             try
