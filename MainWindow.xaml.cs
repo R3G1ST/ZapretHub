@@ -4463,12 +4463,12 @@ public partial class MainWindow : Window
             }
             catch { AddTestResult("DPI", false, "Timeout"); total++; }
 
-            AddTestSection("СЕРВИСЫ");
+            AddTestSection("ОБХОД БЛОКИРОВОК");
 
-            bool zapretOk = _settings.ZapretVersion == ZapretVersion.V2 ? st.Zapret2Running : st.ZapretRunning;
-            AddTestResult("Zapret", st.ZapretRunning || st.Zapret2Running,
-                zapretOk ? (_settings.ZapretVersion == ZapretVersion.V2 ? "Запущен (V2)" : "Запущен (V1)") : "Не запущен");
-            total++; if (zapretOk) passed++;
+            bool zapretRunning = st.ZapretRunning || st.Zapret2Running;
+            string zapretLabel = _settings.ZapretVersion == ZapretVersion.V2 ? "V2" : "V1";
+            AddTestResult("Zapret", zapretRunning, zapretRunning ? $"Запущен ({zapretLabel})" : "Не запущен");
+            total++; if (zapretRunning) passed++;
 
             AddTestResult("tg-ws-proxy", st.TgWsProxyRunning, st.TgWsProxyRunning ? "Запущен" : "Не запущен");
             total++; if (st.TgWsProxyRunning) passed++;
@@ -4479,26 +4479,63 @@ public partial class MainWindow : Window
                 var dcResults = await WithTimeout(DiagnosticsEngine.CheckTelegramDcsAsync(), 10000);
                 int reachableDcs = dcResults.GroupBy(r => r.Ip).Count(g => g.Any(r => r.Ok));
                 telegramOk = reachableDcs >= 3;
-                AddTestResult("Telegram DC", telegramOk, $"{reachableDcs}/5 DC reachable");
+                AddTestResult("Telegram", telegramOk, $"{reachableDcs}/5 DC reachable");
             }
-            catch { AddTestResult("Telegram DC", false, "Timeout"); }
+            catch { AddTestResult("Telegram", false, "Timeout"); }
             total++; if (telegramOk) passed++;
 
-            bool discordOk = false;
+            bool discordBypass = false;
             try
             {
-                var dcResults = await WithTimeout(DiagnosticsEngine.CheckDiscordPingAsync(), 8000);
-                int reachable = dcResults.Count(r => r.Ok);
-                discordOk = reachable >= 2;
-                AddTestResult("Discord", discordOk, $"{reachable}/3 endpoints reachable");
+                var (ok, ms, _) = await WithTimeout(DiagnosticsEngine.TcpConnectAsync("162.159.130.234", 443, 3.0), 5000);
+                discordBypass = ok;
+                AddTestResult("Discord обход", discordBypass, discordBypass ? $"{ms:F0} ms" : "Заблокирован");
             }
-            catch { AddTestResult("Discord", false, "Timeout"); }
-            total++; if (discordOk) passed++;
+            catch { AddTestResult("Discord обход", false, "Timeout"); }
+            total++; if (discordBypass) passed++;
+
+            bool youtubeBypass = false;
+            try
+            {
+                var (ok, ms, _) = await WithTimeout(DiagnosticsEngine.TcpConnectAsync("142.250.74.110", 443, 3.0), 5000);
+                youtubeBypass = ok;
+                AddTestResult("YouTube обход", youtubeBypass, youtubeBypass ? $"{ms:F0} ms" : "Заблокирован");
+            }
+            catch { AddTestResult("YouTube обход", false, "Timeout"); }
+            total++; if (youtubeBypass) passed++;
+
+            bool zapretWorks = zapretRunning && (discordBypass || youtubeBypass);
+            bool zapretFailed = zapretRunning && !discordBypass && !youtubeBypass;
+            if (zapretRunning)
+            {
+                string status = zapretWorks ? "Обход работает" : "Обход НЕ работает";
+                AddTestResult("Итог Zapret", zapretWorks, status);
+            }
 
             AddTestSection("ИТОГО");
             double pct = total > 0 ? (double)passed / total * 100 : 0;
-            string verdict = pct >= 80 ? "ВСЁ РАБОТАЕТ" : pct >= 50 ? "ЕСТЬ ПРОБЛЕМЫ" : "КРИТИЧЕСКИЕ ПРОБЛЕМЫ";
-            string color = pct >= 80 ? "#00ff88" : pct >= 50 ? "#ffaa00" : "#ff4444";
+            string verdict;
+            string color;
+            if (zapretFailed)
+            {
+                verdict = "ZAPRET НЕ ОБХОДИТ БЛОКИРОВКИ";
+                color = "#ff4444";
+            }
+            else if (pct >= 80)
+            {
+                verdict = "ВСЁ РАБОТАЕТ";
+                color = "#00ff88";
+            }
+            else if (pct >= 50)
+            {
+                verdict = "ЕСТЬ ПРОБЛЕМЫ";
+                color = "#ffaa00";
+            }
+            else
+            {
+                verdict = "КРИТИЧЕСКИЕ ПРОБЛЕМЫ";
+                color = "#ff4444";
+            }
             TestStatusText.Text = $"{verdict}  {passed}/{total} ({pct:F0}%)";
             TestStatusText.Foreground = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString(color));
             AddTestResult($"Пройдено: {passed}/{total}", true, $"{pct:F0}%");
