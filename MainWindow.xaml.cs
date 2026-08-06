@@ -4414,13 +4414,13 @@ public partial class MainWindow : Window
             AddTestSection("СКОРОСТЬ");
             try
             {
-                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(12) };
                 var sw = System.Diagnostics.Stopwatch.StartNew();
-                var data = await http.GetByteArrayAsync("https://speedtest.selectel.ru/10MB");
+                var data = await http.GetByteArrayAsync("http://speedtest.tele2.net/10MB.zip");
                 sw.Stop();
                 double mbps = data.Length * 8.0 / sw.Elapsed.TotalSeconds / 1000000;
-                AddTestResult("Загрузка 10 MB", mbps > 1, $"{mbps:F1} Mbps");
-                total++; if (mbps > 1) passed++;
+                AddTestResult("Загрузка 10 MB", mbps > 0.5, $"{mbps:F1} Mbps");
+                total++; if (mbps > 0.5) passed++;
             }
             catch { AddTestResult("Загрузка 10 MB", false, "Timeout / ошибка"); total++; }
 
@@ -4428,9 +4428,13 @@ public partial class MainWindow : Window
             bool dnsOk = false;
             try
             {
-                var dns = await DiagnosticsEngine.CheckDnsAsync("telegram.org");
-                dnsOk = dns.SystemIps.Count > 0;
-                AddTestResult("DNS резолв", dnsOk, dnsOk ? $"OK ({dns.SystemIps.Count} IP)" : (dns.Error ?? "Ошибка"));
+                var entry = await WithTimeout(Task.Run(async () =>
+                {
+                    var e = await Dns.GetHostEntryAsync("telegram.org");
+                    return e.AddressList.Select(a => a.ToString()).Distinct().ToList();
+                }), 5000);
+                dnsOk = entry.Count > 0;
+                AddTestResult("DNS резолв", dnsOk, dnsOk ? $"OK ({entry.Count} IP)" : "Ошибка");
             }
             catch { AddTestResult("DNS резолв", false, "Timeout"); }
             total++; if (dnsOk) passed++;
