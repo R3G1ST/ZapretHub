@@ -6721,13 +6721,13 @@ public partial class MainWindow : Window
     {
         try
         {
-            // Kill winws processes
             foreach (var proc in Process.GetProcessesByName("winws"))
-            {
                 try { proc.Kill(); proc.Dispose(); } catch { }
-            }
+            foreach (var proc in Process.GetProcessesByName("winws2"))
+                try { proc.Kill(); proc.Dispose(); } catch { }
+            foreach (var proc in Process.GetProcessesByName("nfqws2"))
+                try { proc.Kill(); proc.Dispose(); } catch { }
 
-            // Stop zapret service
             try
             {
                 var psi = new ProcessStartInfo
@@ -6742,11 +6742,10 @@ public partial class MainWindow : Window
             }
             catch { }
 
-            // Kill tgwsproxy
             foreach (var proc in Process.GetProcessesByName("tgwsproxy"))
-            {
                 try { proc.Kill(); proc.Dispose(); } catch { }
-            }
+            foreach (var proc in Process.GetProcessesByName("TgWsProxy"))
+                try { proc.Kill(); proc.Dispose(); } catch { }
         }
         catch { }
     }
