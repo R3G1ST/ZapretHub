@@ -543,25 +543,32 @@ public static class DiagnosticsEngine
         report.AppStatus = await Task.Run(CheckAppStatus);
 
         Step(0.05, "Проверяю DC Telegram…");
-        report.DcResults = await CheckTelegramDcsAsync(p => Step(0.05 + p * 0.20, "DC Telegram…"));
+        try { report.DcResults = await WithTimeout(CheckTelegramDcsAsync(p => Step(0.05 + p * 0.20, "DC Telegram…")), 12000); }
+        catch { report.DcResults = []; }
 
         Step(0.25, "Пингую базовые хосты…");
-        report.PingResults = await CheckPingAsync(p => Step(0.25 + p * 0.12, "Ping…"));
+        try { report.PingResults = await WithTimeout(CheckPingAsync(p => Step(0.25 + p * 0.12, "Ping…")), 8000); }
+        catch { report.PingResults = []; }
 
         Step(0.37, "DNS диагностика…");
-        report.DnsResult = await CheckDnsAsync(progress: p => Step(0.37 + p * 0.13, "DNS…"));
+        try { report.DnsResult = await WithTimeout(CheckDnsAsync(progress: p => Step(0.37 + p * 0.13, "DNS…")), 6000); }
+        catch { report.DnsResult = new DnsResult { Error = "Timeout" }; }
 
         Step(0.50, "Анализирую DPI/SNI…");
-        report.DpiResult = await CheckDpiAsync(p => Step(0.50 + p * 0.17, "DPI/SNI…"));
+        try { report.DpiResult = await WithTimeout(CheckDpiAsync(p => Step(0.50 + p * 0.17, "DPI/SNI…")), 10000); }
+        catch { report.DpiResult = new DpiResult(); }
 
         Step(0.67, "Тест скорости медиа (ТСПУ)…");
-        report.MediaResult = await CheckMediaThrottleAsync(p => Step(0.67 + p * 0.15, "Скорость медиа…"));
+        try { report.MediaResult = await WithTimeout(CheckMediaThrottleAsync(p => Step(0.67 + p * 0.15, "Скорость медиа…")), 15000); }
+        catch { report.MediaResult = new MediaThrottleResult(); }
 
         Step(0.82, "Проверяю UDP Discord…");
-        report.UdpResult = await CheckDiscordUdpAsync(p => Step(0.82 + p * 0.07, "UDP Discord…"));
+        try { report.UdpResult = await WithTimeout(CheckDiscordUdpAsync(p => Step(0.82 + p * 0.07, "UDP Discord…")), 8000); }
+        catch { report.UdpResult = new UdpResult(); }
 
         Step(0.89, "Пингую серверы Discord…");
-        report.DiscordPing = await CheckDiscordPingAsync(p => Step(0.89 + p * 0.03, "Ping Discord…"));
+        try { report.DiscordPing = await WithTimeout(CheckDiscordPingAsync(p => Step(0.89 + p * 0.03, "Ping Discord…")), 8000); }
+        catch { report.DiscordPing = []; }
 
         Step(0.92, "Классифицирую блокировки…");
         report.BlockTypes = ClassifyBlocks(report);
@@ -569,5 +576,14 @@ public static class DiagnosticsEngine
 
         Step(1.0, "Готово ✓");
         return report;
+    }
+
+    private static async Task<T> WithTimeout<T>(Task<T> task, int ms)
+    {
+        using var cts = new CancellationTokenSource();
+        var completed = await Task.WhenAny(task, Task.Delay(ms, cts.Token));
+        if (completed != task) throw new TimeoutException();
+        cts.Cancel();
+        return await task;
     }
 }
