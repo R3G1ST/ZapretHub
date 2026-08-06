@@ -1030,12 +1030,14 @@ public partial class MainWindow : Window
         FaqPage.Visibility = Visibility.Collapsed;
         DiagPage.Visibility = Visibility.Collapsed;
         SolutionPage.Visibility = Visibility.Collapsed;
+        TestPage.Visibility = Visibility.Collapsed;
         ModsPage.Visibility = Visibility.Visible;
 
         ModsNavBtn.Foreground = Brushes.White;
         ServicesBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
         GameNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
         FaqNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+        TestNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
         DiagNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
 
         ShowModsSubScreen(ModsHomeScreen, "Модификации");
@@ -4342,11 +4344,227 @@ public partial class MainWindow : Window
         FaqPage.Visibility = Visibility.Collapsed;
         SolutionPage.Visibility = Visibility.Collapsed;
         ModsPage.Visibility = Visibility.Collapsed;
+        TestPage.Visibility = Visibility.Collapsed;
         DiagPage.Visibility = Visibility.Visible;
         DiagNavBtn.Foreground = Brushes.White;
         GameNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
         FaqNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
         ModsNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+        TestNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+    }
+
+    private void TestNavBtn_Click(object s, RoutedEventArgs e)
+    {
+        StopGame();
+        StopEditorRecording();
+        ShowTestPage();
+    }
+
+    private void ShowTestPage()
+    {
+        MainPage.Visibility = Visibility.Collapsed;
+        GamePage.Visibility = Visibility.Collapsed;
+        FaqPage.Visibility = Visibility.Collapsed;
+        DiagPage.Visibility = Visibility.Collapsed;
+        SolutionPage.Visibility = Visibility.Collapsed;
+        ModsPage.Visibility = Visibility.Collapsed;
+        TestPage.Visibility = Visibility.Visible;
+
+        TestNavBtn.Foreground = Brushes.White;
+        ServicesBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+        GameNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+        FaqNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+        DiagNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+        ModsNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+    }
+
+    private bool _testRunning = false;
+
+    private async void TestRunBtn_Click(object s, RoutedEventArgs e)
+    {
+        if (_testRunning) return;
+        _testRunning = true;
+        TestRunBtn.IsEnabled = false;
+        TestRunBtn.Content = "⏳ ТЕСТ...";
+        TestResultsPanel.Children.Clear();
+        TestStatusText.Text = "Запуск тестирования...";
+        TestStatusText.Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88));
+
+        var st = DiagnosticsEngine.CheckAppStatus();
+        int total = 0, passed = 0;
+
+        try
+        {
+            AddTestSection("ИНТЕРНЕТ");
+            bool netOk = false;
+            try { netOk = await DiagnosticsEngine.CheckInternetAsync(); } catch { }
+            AddTestResult("Подключение к интернету", netOk, netOk ? "OK" : "Нет подключения");
+            total++; if (netOk) passed++;
+
+            AddTestSection("PING");
+            var pingResults = new List<(string host, bool ok, double ms)>();
+            string[] pingHosts = { "1.1.1.1", "8.8.8.8", "77.88.8.8" };
+            foreach (var host in pingHosts)
+            {
+                bool ok = false; double ms = 0;
+                try { (ok, ms, _) = await DiagnosticsEngine.TcpConnectAsync(host, 443, 3.0); } catch { }
+                pingResults.Add((host, ok, ms));
+                AddTestResult($"Ping {host}", ok, ok ? $"{ms:F0} ms" : "Timeout");
+                total++; if (ok) passed++;
+            }
+
+            AddTestSection("СКОРОСТЬ");
+            try
+            {
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                var data = await http.GetByteArrayAsync("https://speedtest.selectel.ru/10MB");
+                sw.Stop();
+                double mbps = data.Length * 8.0 / sw.Elapsed.TotalSeconds / 1000000;
+                AddTestResult("Загрузка 10 MB", mbps > 1, $"{mbps:F1} Mbps");
+                total++; if (mbps > 1) passed++;
+            }
+            catch (Exception ex) { AddTestResult("Загрузка 10 MB", false, ex.Message); total++; }
+
+            AddTestSection("DNS");
+            bool dnsOk = false;
+            try
+            {
+                var dns = await DiagnosticsEngine.CheckDnsAsync("telegram.org");
+                dnsOk = !dns.Spoofed && dns.SystemIps.Count > 0;
+                AddTestResult("DNS резолв", dnsOk, dnsOk ? $"OK ({dns.SystemIps.Count} IP)" : (dns.Error ?? "Спуфинг"));
+            }
+            catch { AddTestResult("DNS резолв", false, "Ошибка"); }
+            total++; if (dnsOk) passed++;
+
+            AddTestSection("DPI ПРОВЕРКА");
+            bool dpiOk = false;
+            try
+            {
+                var dpi = await DiagnosticsEngine.CheckDpiAsync();
+                dpiOk = !dpi.DpiDetected;
+                AddTestResult("DPI обнаружен", !dpiOk, dpiOk ? "Не обнаружен" : "ОБНАРУЖЕН блокировщик!");
+                total++; if (dpiOk) passed++;
+            }
+            catch { AddTestResult("DPI", false, "Ошибка проверки"); total++; }
+
+            AddTestSection("СЕРВИСЫ");
+
+            bool zapretOk = _settings.ZapretVersion == ZapretVersion.V2 ? st.Zapret2Running : st.ZapretRunning;
+            AddTestResult("Zapret", st.ZapretRunning || st.Zapret2Running,
+                zapretOk ? (_settings.ZapretVersion == ZapretVersion.V2 ? "Запущен (V2)" : "Запущен (V1)") : "Не запущен");
+            total++; if (zapretOk) passed++;
+
+            AddTestResult("tg-ws-proxy", st.TgWsProxyRunning, st.TgWsProxyRunning ? "Запущен" : "Не запущен");
+            total++; if (st.TgWsProxyRunning) passed++;
+
+            bool telegramOk = false;
+            try
+            {
+                var dcResults = await DiagnosticsEngine.CheckTelegramDcsAsync();
+                int reachableDcs = dcResults.Count(r => r.Ok);
+                telegramOk = reachableDcs >= 3;
+                AddTestResult("Telegram DC", telegramOk, $"{reachableDcs}/5 DC reachable");
+            }
+            catch { AddTestResult("Telegram DC", false, "Ошибка"); }
+            total++; if (telegramOk) passed++;
+
+            bool discordOk = false;
+            try
+            {
+                var dcResults = await DiagnosticsEngine.CheckDiscordPingAsync();
+                int reachable = dcResults.Count(r => r.Ok);
+                discordOk = reachable >= 2;
+                AddTestResult("Discord", discordOk, $"{reachable}/3 endpoints reachable");
+            }
+            catch { AddTestResult("Discord", false, "Ошибка"); }
+            total++; if (discordOk) passed++;
+
+            AddTestSection("ИТОГО");
+            double pct = total > 0 ? (double)passed / total * 100 : 0;
+            string verdict = pct >= 80 ? "ВСЁ РАБОТАЕТ" : pct >= 50 ? "ЕСТЬ ПРОБЛЕМЫ" : "КРИТИЧЕСКИЕ ПРОБЛЕМЫ";
+            string color = pct >= 80 ? "#00ff88" : pct >= 50 ? "#ffaa00" : "#ff4444";
+            TestStatusText.Text = $"{verdict}  {passed}/{total} ({pct:F0}%)";
+            TestStatusText.Foreground = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString(color));
+            AddTestResult($"Пройдено: {passed}/{total}", true, $"{pct:F0}%");
+        }
+        catch (Exception ex)
+        {
+            TestStatusText.Text = $"Ошибка: {ex.Message}";
+            TestStatusText.Foreground = new SolidColorBrush(Color.FromRgb(0xff, 0x44, 0x44));
+        }
+        finally
+        {
+            _testRunning = false;
+            TestRunBtn.IsEnabled = true;
+            TestRunBtn.Content = "▶ ЗАПУСТИТЬ";
+        }
+    }
+
+    private void AddTestSection(string title)
+    {
+        var border = new Border
+        {
+            Background = new SolidColorBrush(Color.FromRgb(0x0a, 0x0a, 0x12)),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(0x18, 0x18, 0x20)),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(6),
+            Padding = new Thickness(12, 8, 12, 8),
+            Margin = new Thickness(0, 0, 0, 8)
+        };
+        var tb = new TextBlock
+        {
+            Text = title,
+            FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
+            FontSize = 11,
+            FontWeight = FontWeights.Bold,
+            Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88))
+        };
+        border.Child = tb;
+        TestResultsPanel.Children.Add(border);
+    }
+
+    private void AddTestResult(string name, bool ok, string detail)
+    {
+        var grid = new Grid { Margin = new Thickness(4, 3, 4, 3) };
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Auto) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Auto) });
+
+        string dotColor = ok ? "#00ff88" : "#ff4444";
+        var dot = new Ellipse
+        {
+            Width = 6, Height = 6,
+            Fill = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString(dotColor)),
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0)
+        };
+        Grid.SetColumn(dot, 0);
+
+        var nameBlock = new TextBlock
+        {
+            Text = name,
+            FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
+            FontSize = 11,
+            Foreground = new SolidColorBrush(Color.FromRgb(0xcc, 0xcc, 0xcc)),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        Grid.SetColumn(nameBlock, 1);
+
+        var detailBlock = new TextBlock
+        {
+            Text = detail,
+            FontFamily = new FontFamily("Cascadia Code, Consolas, monospace"),
+            FontSize = 10,
+            Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a)),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        Grid.SetColumn(detailBlock, 2);
+
+        grid.Children.Add(dot);
+        grid.Children.Add(nameBlock);
+        grid.Children.Add(detailBlock);
+        TestResultsPanel.Children.Add(grid);
     }
 
     private void GameNavBtn_Click(object s, RoutedEventArgs e)
@@ -4384,6 +4602,7 @@ public partial class MainWindow : Window
         DiagPage.Visibility = Visibility.Collapsed;
         SolutionPage.Visibility = Visibility.Collapsed;
         ModsPage.Visibility = Visibility.Collapsed;
+        TestPage.Visibility = Visibility.Collapsed;
         GamePage.Visibility = Visibility.Visible;
 
         GameNavBtn.Foreground = Brushes.White;
@@ -4391,6 +4610,7 @@ public partial class MainWindow : Window
         FaqNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
         DiagNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
         ModsNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+        TestNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
 
         ShowGameView(GameMenuView);
         LoadUserLevels();
@@ -4500,11 +4720,13 @@ public partial class MainWindow : Window
         DiagPage.Visibility = Visibility.Collapsed;
         SolutionPage.Visibility = Visibility.Collapsed;
         ModsPage.Visibility = Visibility.Collapsed;
+        TestPage.Visibility = Visibility.Collapsed;
         FaqPage.Visibility = Visibility.Visible;
         FaqNavBtn.Foreground = Brushes.White;
         GameNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
         DiagNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
         ModsNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+        TestNavBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
         ShowFaqCategories();
     }
 

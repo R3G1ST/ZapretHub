@@ -845,6 +845,10 @@
                                     Visibility="Collapsed">
                                 <Path Data="{StaticResource PlayIcon}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="18" Height="18" Stretch="Uniform"/>
                             </Button>
+                            <Button x:Name="TestNavBtn" Style="{StaticResource SidebarBtn}"
+                                    WindowChrome.IsHitTestVisibleInChrome="True" Click="TestNavBtn_Click" ToolTip="Тест всех сервисов">
+                                <Path Data="{StaticResource CheckmarkIcon}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="18" Height="18" Stretch="Uniform"/>
+                            </Button>
                         </StackPanel>
                         <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0,0,0,8">
                             <Button x:Name="SettingsBtn" Style="{StaticResource SidebarBtn}"
@@ -1196,6 +1200,29 @@
                         </RichTextBox>
                             </Grid>
                         </Grid>
+                    <Grid x:Name="TestPage" Grid.Row="0" Background="#030306" Visibility="Collapsed">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="50"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0" Padding="16,0" Background="#07070c" BorderBrush="#0a0a12" BorderThickness="0,0,0,1">
+                            <Grid>
+                                <TextBlock Text="ТЕСТ СЕРВИСОВ" FontFamily="Cascadia Code, Consolas, monospace" FontSize="12" FontWeight="Bold"
+                                           Foreground="#00ff88" VerticalAlignment="Center"/>
+                                <Button x:Name="TestRunBtn" Content="▶ ЗАПУСТИТЬ" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                        FontFamily="Cascadia Code, Consolas, monospace" FontSize="11" FontWeight="Bold"
+                                        Background="#00ff88" Foreground="#030306" BorderThickness="0" Padding="16,6"
+                                        Cursor="Hand" Click="TestRunBtn_Click"/>
+                            </Grid>
+                        </Border>
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="16,12">
+                            <StackPanel x:Name="TestResultsPanel" Margin="0,0,0,20">
+                                <TextBlock x:Name="TestStatusText" Text="Нажмите «Запустить» для проверки всех сервисов"
+                                           FontFamily="Cascadia Code, Consolas, monospace" FontSize="11" Foreground="#5a6a7a"
+                                           TextWrapping="Wrap" Margin="0,0,0,16"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
                 </Grid>
                 <Border x:Name="IndicatorsTooltip" Grid.Column="1" Background="#0a0a12" BorderBrush="#00ff88" BorderThickness="1"
                         CornerRadius="6" Padding="10,8" Visibility="Collapsed" Panel.ZIndex="200"

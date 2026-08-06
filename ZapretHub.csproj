@@ -12,9 +12,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
     <RollForward>LatestMajor</RollForward>
-    <Version>1.8.14</Version>
-    <AssemblyVersion>1.8.14.0</AssemblyVersion>
-    <FileVersion>1.8.14.0</FileVersion>
+    <Version>1.8.15</Version>
+    <AssemblyVersion>1.8.15.0</AssemblyVersion>
+    <FileVersion>1.8.15.0</FileVersion>
     <Copyright>© 2024-2026 rupleide</Copyright>
     <Product>ZapretHub</Product>
     <Description>ZapretHub - GUI менеджер Zapret и tg-ws-proxy</Description>
