@@ -1661,6 +1661,7 @@ public class ZapretConfigService
 
                 if (string.IsNullOrWhiteSpace(rule)) continue;
 
+                rule = EnsureWinDivertArgs(rule);
                 var name = ExtractProfileName(rule);
                 results.Add((name, rule));
             }
@@ -1671,7 +1672,7 @@ public class ZapretConfigService
                                     .Replace("<HOSTLIST_NOAUTO>", "")
                                     .Replace("\n", " ").Replace("\r", " ").Trim();
                 if (!string.IsNullOrWhiteSpace(clean))
-                    results.Add(("NFQWS2 default", clean));
+                    results.Add(("NFQWS2 default", EnsureWinDivertArgs(clean)));
             }
         }
         catch { }
@@ -1697,6 +1698,39 @@ public class ZapretConfigService
         if (args.Contains("--filter-udp=443"))
             return $"{mode}: UDP:443";
         return $"{mode}: профиль";
+    }
+
+    private static string EnsureWinDivertArgs(string args)
+    {
+        if (args.Contains("--wf-"))
+            return args;
+
+        var wfArgs = new List<string> { "--wf-l3=ipv4" };
+
+        var tcpPorts = new HashSet<string>();
+        var udpPorts = new HashSet<string>();
+
+        foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(args, @"--filter-tcp=(\d+)"))
+            tcpPorts.Add(m.Groups[1].Value);
+        foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(args, @"--filter-udp=(\d+)"))
+            udpPorts.Add(m.Groups[1].Value);
+
+        if (tcpPorts.Count == 0 && udpPorts.Count == 0)
+        {
+            tcpPorts.Add("80");
+            tcpPorts.Add("443");
+            udpPorts.Add("443");
+        }
+
+        foreach (var p in tcpPorts)
+            wfArgs.Add($"--wf-tcp-out={p}");
+        foreach (var p in udpPorts)
+            wfArgs.Add($"--wf-udp-out={p}");
+
+        wfArgs.Add("--wf-dup-check=0");
+        wfArgs.Add("--wf-tcp-empty=1");
+
+        return string.Join(" ", wfArgs) + " " + args;
     }
 
     private static List<(string name, string args)> ParseWinws2FromShScript(string shPath)
@@ -1772,6 +1806,7 @@ public class ZapretConfigService
                             if (!string.IsNullOrWhiteSpace(cleanArgs) && cleanArgs.Contains("--"))
                             {
                                 matchIdx++;
+                                cleanArgs = EnsureWinDivertArgs(cleanArgs);
                                 var profileName = ExtractProfileName(cleanArgs);
                                 var name = $"[{Path.GetFileNameWithoutExtension(shPath)}] {profileName} #{matchIdx}";
                                 results.Add((name, cleanArgs));
