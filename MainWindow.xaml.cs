@@ -907,7 +907,34 @@ public partial class MainWindow : Window
             try { p.Kill(); p.Dispose(); } catch { }
         foreach (var p in Process.GetProcessesByName("nfqws2"))
             try { p.Kill(); p.Dispose(); } catch { }
-        await Task.Delay(3000);
+
+        await Task.Delay(1000);
+
+        foreach (var p in Process.GetProcessesByName("winws2"))
+            try { p.Kill(); p.Dispose(); } catch { }
+        foreach (var p in Process.GetProcessesByName("winws2.exe"))
+            try { p.Kill(); p.Dispose(); } catch { }
+        foreach (var p in Process.GetProcessesByName("nfqws2"))
+            try { p.Kill(); p.Dispose(); } catch { }
+
+        try
+        {
+            var psi = new ProcessStartInfo("taskkill", "/F /IM winws2.exe /T")
+            { UseShellExecute = false, CreateNoWindow = true };
+            using var proc = Process.Start(psi);
+            await proc.WaitForExitAsync();
+        }
+        catch { }
+        try
+        {
+            var psi = new ProcessStartInfo("taskkill", "/F /IM nfqws2.exe /T")
+            { UseShellExecute = false, CreateNoWindow = true };
+            using var proc = Process.Start(psi);
+            await proc.WaitForExitAsync();
+        }
+        catch { }
+
+        await Task.Delay(2000);
     }
 
     private async void TgWsToggle_Click(object s, RoutedEventArgs e)
@@ -6321,10 +6348,20 @@ public partial class MainWindow : Window
         else
             AppendLog("Нет подключения к интернету", "error");
         AppendLog("Проверяю последние версии инструментов…", "info");
-        if (!string.IsNullOrWhiteSpace(_settings.ZapretPath) && File.Exists(_settings.ZapretPath))
-            AppendLog($"Zapret найден: {_settings.ZapretPath}", "ok");
+        if (_settings.ZapretVersion == ZapretVersion.V2)
+        {
+            if (!string.IsNullOrWhiteSpace(_settings.Zapret2Path) && File.Exists(_settings.Zapret2Path))
+                AppendLog($"Zapret V2 найден: {_settings.Zapret2Path}", "ok");
+            else
+                AppendLog("Zapret V2 не найден", "warn");
+        }
         else
-            AppendLog("Zapret не найден", "warn");
+        {
+            if (!string.IsNullOrWhiteSpace(_settings.ZapretPath) && File.Exists(_settings.ZapretPath))
+                AppendLog($"Zapret найден: {_settings.ZapretPath}", "ok");
+            else
+                AppendLog("Zapret не найден", "warn");
+        }
         if (!string.IsNullOrWhiteSpace(_settings.TgWsProxyPath) && File.Exists(_settings.TgWsProxyPath))
             AppendLog($"tg-ws-proxy найден: {_settings.TgWsProxyPath}", "ok");
         else
@@ -6356,14 +6393,14 @@ public partial class MainWindow : Window
 
         if (zapretNeeded)
         {
-            AppendLog("Zapret не запущен — запускаю...", "info");
+            AppendLog($"Zapret не запущен — запускаю... (V{_settings.ZapretVersion})", "info");
 
             if (_settings.ZapretVersion == ZapretVersion.V2)
             {
                 try
                 {
                     var cache = ZapretConfigService.LoadCache();
-                    var v2Config = cache?.GetSelectableConfigs(true).FirstOrDefault(c => c.Name == cache?.CurrentConfigV2);
+                    var v2Config = cache?.GetSelectableConfigs(true).FirstOrDefault(c => c.Name == cache?.GetCurrentConfig(true));
                     var exeDir = Path.GetDirectoryName(_settings.Zapret2Path);
                     bool isAdmin = new System.Security.Principal.WindowsPrincipal(
                         System.Security.Principal.WindowsIdentity.GetCurrent()
