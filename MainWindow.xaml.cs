@@ -907,7 +907,7 @@ public partial class MainWindow : Window
             try { p.Kill(); p.Dispose(); } catch { }
         foreach (var p in Process.GetProcessesByName("nfqws2"))
             try { p.Kill(); p.Dispose(); } catch { }
-        await Task.Delay(500);
+        await Task.Delay(3000);
     }
 
     private async void TgWsToggle_Click(object s, RoutedEventArgs e)
