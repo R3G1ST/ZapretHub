@@ -42,17 +42,33 @@ public class ZapretConfigCache
     public string CurrentConfig { get; set; } = "";
     public List<ZapretConfig> ValidConfigs { get; set; } = new();
     public List<ZapretConfig> PartialConfigs { get; set; } = new();
+
+    public string CurrentConfigV2 { get; set; } = "";
+    public List<ZapretConfig> ValidConfigsV2 { get; set; } = new();
+    public List<ZapretConfig> PartialConfigsV2 { get; set; } = new();
+
     public Dictionary<string, Dictionary<string, ServiceTestResult>>? LastGameTestResults { get; set; }
     public string? LastGameTestedConfig { get; set; }
     public DateTime? LastGameTestTime { get; set; }
 
     public bool HasAnyConfigs => ValidConfigs.Count > 0 || PartialConfigs.Count > 0;
+    public bool HasAnyConfigsV2 => ValidConfigsV2.Count > 0 || PartialConfigsV2.Count > 0;
 
-    public List<ZapretConfig> GetSelectableConfigs()
+    public List<ZapretConfig> GetSelectableConfigs(bool isV2 = false)
     {
+        var valid = isV2 ? ValidConfigsV2 : ValidConfigs;
+        var partial = isV2 ? PartialConfigsV2 : PartialConfigs;
         var list = new List<ZapretConfig>();
-        list.AddRange(ValidConfigs.OrderBy(c => c.AveragePing));
-        list.AddRange(PartialConfigs.OrderByDescending(c => c.SuccessCount).ThenBy(c => c.AveragePing));
+        list.AddRange(valid.OrderBy(c => c.AveragePing));
+        list.AddRange(partial.OrderByDescending(c => c.SuccessCount).ThenBy(c => c.AveragePing));
         return list;
+    }
+
+    public string GetCurrentConfig(bool isV2) => isV2 ? CurrentConfigV2 : CurrentConfig;
+
+    public void SetCurrentConfig(string name, bool isV2)
+    {
+        if (isV2) CurrentConfigV2 = name;
+        else CurrentConfig = name;
     }
 }

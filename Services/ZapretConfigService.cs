@@ -1173,9 +1173,13 @@ public class ZapretConfigService
         var batName = GetModBatName(modFolderName);
         cache.ValidConfigs?.RemoveAll(c => c.Name == batName);
         cache.PartialConfigs?.RemoveAll(c => c.Name == batName);
+        cache.ValidConfigsV2?.RemoveAll(c => c.Name == batName);
+        cache.PartialConfigsV2?.RemoveAll(c => c.Name == batName);
 
         if (cache.CurrentConfig == batName)
             cache.CurrentConfig = null;
+        if (cache.CurrentConfigV2 == batName)
+            cache.CurrentConfigV2 = null;
 
         SaveCache(cache);
     }

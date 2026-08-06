@@ -438,9 +438,9 @@ public partial class MainWindow : Window
             && File.Exists(_settings.Zapret2Path))
         {
             var cache = ZapretConfigService.LoadCache();
-            if (cache != null && !string.IsNullOrEmpty(cache.CurrentConfig))
+            if (cache != null && !string.IsNullOrEmpty(cache.CurrentConfigV2))
             {
-                var v2Config = cache.GetSelectableConfigs().FirstOrDefault(c => c.Name == cache.CurrentConfig);
+                var v2Config = cache.GetSelectableConfigs(true).FirstOrDefault(c => c.Name == cache.CurrentConfigV2);
                 if (v2Config != null && !string.IsNullOrEmpty(v2Config.Args))
                 {
                     var v2Running = Process.GetProcesses()
@@ -756,7 +756,7 @@ public partial class MainWindow : Window
                     }
 
                     var cache = ZapretConfigService.LoadCache();
-                    var v2Config = cache?.GetSelectableConfigs().FirstOrDefault(c => c.Name == cache?.CurrentConfig);
+                    var v2Config = cache?.GetSelectableConfigs(true).FirstOrDefault(c => c.Name == cache?.CurrentConfigV2);
                     var v2Args = v2Config?.Args;
 
                     if (string.IsNullOrEmpty(v2Args))
@@ -3052,11 +3052,13 @@ public partial class MainWindow : Window
     private void UpdateSelectedConfigDisplay()
     {
         var cache = ZapretConfigService.LoadCache();
-        if (cache != null && !string.IsNullOrEmpty(cache.CurrentConfig))
+        bool isV2 = _settings.ZapretVersion == ZapretVersion.V2;
+        var cfgName = cache?.GetCurrentConfig(isV2);
+        if (cache != null && !string.IsNullOrEmpty(cfgName))
         {
             SelectedConfigText.Inlines.Clear();
             SelectedConfigText.Inlines.Add(new Run("Выбранный конфиг: ") { Foreground = new SolidColorBrush(Color.FromRgb(0xf0, 0xf0, 0xf0)) });
-            SelectedConfigText.Inlines.Add(new Run(cache.CurrentConfig) { Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xc5, 0x5e)) });
+            SelectedConfigText.Inlines.Add(new Run(cfgName) { Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xc5, 0x5e)) });
         }
         else
         {
@@ -3068,12 +3070,14 @@ public partial class MainWindow : Window
     private void UpdateActiveConfigDisplay(bool zapretRunning)
     {
         var cache = ZapretConfigService.LoadCache();
+        bool isV2 = _settings.ZapretVersion == ZapretVersion.V2;
+        var cfgName = cache?.GetCurrentConfig(isV2);
 
-        if (zapretRunning && cache != null && !string.IsNullOrEmpty(cache.CurrentConfig))
+        if (zapretRunning && cache != null && !string.IsNullOrEmpty(cfgName))
         {
             ActiveConfigText.Visibility = Visibility.Visible;
 
-            string configName = cache.CurrentConfig;
+            string configName = cfgName;
             if (configName.Length > 25)
             {
                 configName = configName.Substring(0, 22) + "...";
@@ -6343,7 +6347,7 @@ public partial class MainWindow : Window
                 try
                 {
                     var cache = ZapretConfigService.LoadCache();
-                    var v2Config = cache?.GetSelectableConfigs().FirstOrDefault(c => c.Name == cache?.CurrentConfig);
+                    var v2Config = cache?.GetSelectableConfigs(true).FirstOrDefault(c => c.Name == cache?.CurrentConfigV2);
                     var exeDir = Path.GetDirectoryName(_settings.Zapret2Path);
 
                     var psi = new ProcessStartInfo(_settings.Zapret2Path)
@@ -12155,8 +12159,10 @@ public partial class MainWindow : Window
 
         var configPanel = new StackPanel();
 
-        var selectableConfigs = cache.GetSelectableConfigs();
-        var usingPartialConfigs = cache.ValidConfigs.Count == 0 && cache.PartialConfigs.Count > 0;
+        var selectableConfigs = cache.GetSelectableConfigs(_settings.ZapretVersion == ZapretVersion.V2);
+        var usingPartialConfigs = _settings.ZapretVersion == ZapretVersion.V2
+            ? cache.ValidConfigsV2.Count == 0 && cache.PartialConfigsV2.Count > 0
+            : cache.ValidConfigs.Count == 0 && cache.PartialConfigs.Count > 0;
 
         if (usingPartialConfigs)
             AddWizText("Идеальных конфигов не найдено. Ниже показаны частично рабочие варианты без ошибок и недоступных сервисов. Если что-то будет работать нестабильно, переключитесь на другой конфиг.");

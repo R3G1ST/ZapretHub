@@ -485,16 +485,24 @@ public partial class ZapretConfigWindow : Window
 
             var idealConfigs = configs.Where(c => c.IsValid).OrderBy(c => c.AveragePing).ToList();
             var partialConfigs = configs.Where(c => c.IsPartiallyUsable).OrderByDescending(c => c.SuccessCount).ThenBy(c => c.AveragePing).ToList();
+            bool isV2 = _zapretVersion == ZapretVersion.V2;
 
             if (idealConfigs.Count > 0)
             {
-                _cache = new ZapretConfigCache
+                _cache = ZapretConfigService.LoadCache() ?? new ZapretConfigCache();
+                _cache.LastTested = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                if (isV2)
                 {
-                    LastTested = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                    CurrentConfig = idealConfigs[0].Name,
-                    ValidConfigs = idealConfigs,
-                    PartialConfigs = partialConfigs
-                };
+                    _cache.ValidConfigsV2 = idealConfigs;
+                    _cache.PartialConfigsV2 = partialConfigs;
+                    _cache.CurrentConfigV2 = idealConfigs[0].Name;
+                }
+                else
+                {
+                    _cache.ValidConfigs = idealConfigs;
+                    _cache.PartialConfigs = partialConfigs;
+                    _cache.CurrentConfig = idealConfigs[0].Name;
+                }
                 ZapretConfigService.SaveCache(_cache);
 
                 ProgressBarContainer.Visibility = Visibility.Collapsed;
@@ -524,13 +532,20 @@ public partial class ZapretConfigWindow : Window
             }
             else if (partialConfigs.Count > 0)
             {
-                _cache = new ZapretConfigCache
+                _cache = ZapretConfigService.LoadCache() ?? new ZapretConfigCache();
+                _cache.LastTested = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                if (isV2)
                 {
-                    LastTested = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                    CurrentConfig = partialConfigs[0].Name,
-                    ValidConfigs = new List<ZapretConfig>(),
-                    PartialConfigs = partialConfigs
-                };
+                    _cache.ValidConfigsV2 = new List<ZapretConfig>();
+                    _cache.PartialConfigsV2 = partialConfigs;
+                    _cache.CurrentConfigV2 = partialConfigs[0].Name;
+                }
+                else
+                {
+                    _cache.ValidConfigs = new List<ZapretConfig>();
+                    _cache.PartialConfigs = partialConfigs;
+                    _cache.CurrentConfig = partialConfigs[0].Name;
+                }
                 ZapretConfigService.SaveCache(_cache);
 
                 ProgressBarContainer.Visibility = Visibility.Collapsed;
@@ -624,7 +639,7 @@ public partial class ZapretConfigWindow : Window
         }
         else if (SecondaryBtn.Content?.ToString() == "Применить")
         {
-            if (_cache != null && !string.IsNullOrEmpty(_cache.CurrentConfig))
+            if (_cache != null && !string.IsNullOrEmpty(_cache.GetCurrentConfig(_zapretVersion == ZapretVersion.V2)))
             {
                 ApplyConfigProgress.Visibility = Visibility.Visible;
 
@@ -633,9 +648,9 @@ public partial class ZapretConfigWindow : Window
                 var originalContent = SecondaryBtn.Content;
                 SecondaryBtn.Content = "Применение...";
 
-                var currentConfigObj = _cache.GetSelectableConfigs().FirstOrDefault(c => c.Name == _cache.CurrentConfig);
+                var currentConfigObj = _cache.GetSelectableConfigs(_zapretVersion == ZapretVersion.V2).FirstOrDefault(c => c.Name == _cache.GetCurrentConfig(_zapretVersion == ZapretVersion.V2));
                 var v2Args = currentConfigObj?.Args;
-                bool success = await ZapretConfigService.ApplyConfigAsync(_zapretPath, _cache.CurrentConfig, _zapretVersion, v2Args);
+                bool success = await ZapretConfigService.ApplyConfigAsync(_zapretPath, _cache.GetCurrentConfig(_zapretVersion == ZapretVersion.V2), _zapretVersion, v2Args);
 
                 SecondaryBtn.IsEnabled = true;
                 PrimaryBtn.IsEnabled = true;
@@ -652,8 +667,8 @@ public partial class ZapretConfigWindow : Window
                 else
                 {
                     bool isModConfig = _cache is not null && (
-                        _cache.ValidConfigs?.Any(c => c.Name == _cache.CurrentConfig && c.IsFromMod) == true ||
-                        _cache.PartialConfigs?.Any(c => c.Name == _cache.CurrentConfig && c.IsFromMod) == true);
+                        _cache.ValidConfigs?.Any(c => c.Name == _cache.GetCurrentConfig(_zapretVersion == ZapretVersion.V2) && c.IsFromMod) == true ||
+                        _cache.PartialConfigs?.Any(c => c.Name == _cache.GetCurrentConfig(_zapretVersion == ZapretVersion.V2) && c.IsFromMod) == true);
 
                     StatusPanel.Visibility = Visibility.Visible;
                     ConfigListScroll.Visibility = Visibility.Collapsed;
@@ -782,7 +797,7 @@ public partial class ZapretConfigWindow : Window
             return;
         }
 
-        if (ConfigListScroll.Visibility == Visibility.Visible && _cache != null && !string.IsNullOrEmpty(_cache.CurrentConfig))
+        if (ConfigListScroll.Visibility == Visibility.Visible && _cache != null && !string.IsNullOrEmpty(_cache.GetCurrentConfig(_zapretVersion == ZapretVersion.V2)))
         {
             await TestCurrentConfigAsync();
         }
@@ -801,7 +816,8 @@ public partial class ZapretConfigWindow : Window
 
     private async Task TestCurrentConfigAsync()
     {
-        if (_cache == null || string.IsNullOrEmpty(_cache.CurrentConfig)) return;
+        bool isV2 = _zapretVersion == ZapretVersion.V2;
+        if (_cache == null || string.IsNullOrEmpty(_cache.GetCurrentConfig(isV2))) return;
 
         ConfigListScroll.Visibility = Visibility.Collapsed;
         StatusPanel.Visibility = Visibility.Collapsed;
@@ -813,11 +829,11 @@ public partial class ZapretConfigWindow : Window
         SecondaryBtn.Style = (Style)FindResource("OutlineBtn");
 
         LogTextBox.Document.Blocks.Clear();
-        AppendColoredLog($"🔄 Тестирую конфиг: {_cache.CurrentConfig}\n", Color.FromRgb(0x3b, 0x82, 0xf6));
+        AppendColoredLog($"🔄 Тестирую конфиг: {_cache.GetCurrentConfig(isV2)}\n", Color.FromRgb(0x3b, 0x82, 0xf6));
 
         var (isWorking, message) = await ZapretConfigService.TestSingleConfigAsync(
             _zapretPath,
-            _cache.CurrentConfig,
+            _cache.GetCurrentConfig(isV2),
             status => Dispatcher.Invoke(() =>
             {
                 Color logColor;
@@ -909,7 +925,7 @@ public partial class ZapretConfigWindow : Window
 
         try
         {
-            var configNames = _cache.GetSelectableConfigs().Select(c => c.Name).ToList();
+            var configNames = _cache.GetSelectableConfigs(_zapretVersion == ZapretVersion.V2).Select(c => c.Name).ToList();
             _gameTotalConfigs = configNames.Count;
 
             var allResults = await ZapretConfigService.TestAllConfigsWithGamesAsync(
@@ -1261,8 +1277,10 @@ public partial class ZapretConfigWindow : Window
         ConfigListScroll.Visibility = Visibility.Visible;
         GameTopScroll.Visibility = Visibility.Collapsed;
         ConfigListPanel.Children.Clear();
-        var selectableConfigs = _cache.GetSelectableConfigs();
-        var usingPartialConfigs = _cache.ValidConfigs.Count == 0 && _cache.PartialConfigs.Count > 0;
+        var selectableConfigs = _cache.GetSelectableConfigs(_zapretVersion == ZapretVersion.V2);
+        var usingPartialConfigs = _zapretVersion == ZapretVersion.V2
+            ? _cache.ValidConfigsV2.Count == 0 && _cache.PartialConfigsV2.Count > 0
+            : _cache.ValidConfigs.Count == 0 && _cache.PartialConfigs.Count > 0;
 
         if (_cache.LastGameTestResults != null && _cache.LastGameTestResults.Count > 0)
         {
@@ -1300,7 +1318,7 @@ public partial class ZapretConfigWindow : Window
 
         var configNameText = new TextBlock
         {
-            Text = _cache.CurrentConfig,
+            Text = _cache.GetCurrentConfig(_zapretVersion == ZapretVersion.V2),
             FontSize = 15,
             FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
             Foreground = new SolidColorBrush(usingPartialConfigs
@@ -1373,7 +1391,7 @@ public partial class ZapretConfigWindow : Window
 
         foreach (var config in selectableConfigs)
         {
-            var isCurrent = config.Name == _cache.CurrentConfig;
+            var isCurrent = config.Name == _cache.GetCurrentConfig(_zapretVersion == ZapretVersion.V2);
 
             var border = new Border
             {
@@ -1485,7 +1503,7 @@ public partial class ZapretConfigWindow : Window
             {
                 if (e.ClickCount == 1)
                 {
-                    _cache.CurrentConfig = config.Name;
+                    _cache.SetCurrentConfig(config.Name, _zapretVersion == ZapretVersion.V2);
                     ZapretConfigService.SaveCache(_cache);
                     ShowConfigList();
                 }
@@ -1495,7 +1513,7 @@ public partial class ZapretConfigWindow : Window
             {
                 if (e.ClickCount == 2)
                 {
-                    _cache.CurrentConfig = config.Name;
+                    _cache.SetCurrentConfig(config.Name, _zapretVersion == ZapretVersion.V2);
                     ZapretConfigService.SaveCache(_cache);
 
                     SecondaryBtn_Click(s, e);
