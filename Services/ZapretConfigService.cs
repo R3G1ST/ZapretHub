@@ -676,12 +676,16 @@ public class ZapretConfigService
 
                 try
                 {
+                    bool isAdmin = new System.Security.Principal.WindowsPrincipal(
+                        System.Security.Principal.WindowsIdentity.GetCurrent()
+                    ).IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+
                     var psi = new ProcessStartInfo
                     {
                         FileName = zapretPath,
                         Arguments = args,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
+                        UseShellExecute = !isAdmin,
+                        CreateNoWindow = isAdmin,
                         WorkingDirectory = exeDir
                     };
                     Process.Start(psi);

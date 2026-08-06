@@ -453,11 +453,14 @@ public partial class MainWindow : Window
                                 try
                                 {
                                     var exeDir = Path.GetDirectoryName(_settings.Zapret2Path);
+                                    bool isAdmin = new System.Security.Principal.WindowsPrincipal(
+                                        System.Security.Principal.WindowsIdentity.GetCurrent()
+                                    ).IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
                                     var psi = new ProcessStartInfo(_settings.Zapret2Path)
                                     {
                                         Arguments = v2Config.Args,
-                                        UseShellExecute = false,
-                                        CreateNoWindow = true,
+                                        UseShellExecute = !isAdmin,
+                                        CreateNoWindow = isAdmin,
                                         WorkingDirectory = exeDir
                                     };
                                     Process.Start(psi);
@@ -772,12 +775,15 @@ public partial class MainWindow : Window
                     try
                     {
                         var exeDir = Path.GetDirectoryName(_settings.Zapret2Path);
+                        bool isAdmin = new System.Security.Principal.WindowsPrincipal(
+                            System.Security.Principal.WindowsIdentity.GetCurrent()
+                        ).IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
 
                         var psi = new ProcessStartInfo(_settings.Zapret2Path)
                         {
                             Arguments = v2Args,
-                            UseShellExecute = false,
-                            CreateNoWindow = true,
+                            UseShellExecute = !isAdmin,
+                            CreateNoWindow = isAdmin,
                             WorkingDirectory = exeDir
                         };
                         Process.Start(psi);
@@ -6349,12 +6355,15 @@ public partial class MainWindow : Window
                     var cache = ZapretConfigService.LoadCache();
                     var v2Config = cache?.GetSelectableConfigs(true).FirstOrDefault(c => c.Name == cache?.CurrentConfigV2);
                     var exeDir = Path.GetDirectoryName(_settings.Zapret2Path);
+                    bool isAdmin = new System.Security.Principal.WindowsPrincipal(
+                        System.Security.Principal.WindowsIdentity.GetCurrent()
+                    ).IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
 
                     var psi = new ProcessStartInfo(_settings.Zapret2Path)
                     {
                         Arguments = v2Config?.Args ?? "",
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
+                        UseShellExecute = !isAdmin,
+                        CreateNoWindow = isAdmin,
                         WorkingDirectory = exeDir
                     };
                     Process.Start(psi);
