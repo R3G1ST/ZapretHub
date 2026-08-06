@@ -759,12 +759,14 @@ public partial class MainWindow : Window
                     }
 
                     var cache = ZapretConfigService.LoadCache();
-                    var v2Config = cache?.GetSelectableConfigs(true).FirstOrDefault(c => c.Name == cache?.CurrentConfigV2);
+                    var v2Config = cache?.GetSelectableConfigs(true).FirstOrDefault(c => c.Name == cache?.GetCurrentConfig(true));
                     var v2Args = v2Config?.Args;
+
+                    AppendLog($"V2 config: {cache?.GetCurrentConfig(true) ?? "NULL"}, args len: {v2Args?.Length ?? 0}", "info");
 
                     if (string.IsNullOrEmpty(v2Args))
                     {
-                        AppendLog("Нет активного конфига V2. Выберите конфиг в настройках.", "warn");
+                        AppendLog("Нет активного конфига V2. Выберите конфиг или запустите сканирование.", "warn");
                         return;
                     }
 
@@ -786,7 +788,15 @@ public partial class MainWindow : Window
                             CreateNoWindow = isAdmin,
                             WorkingDirectory = exeDir
                         };
-                        Process.Start(psi);
+                        var proc = Process.Start(psi);
+                        if (proc != null)
+                        {
+                            await Task.Delay(2000);
+                            if (!proc.HasExited)
+                                AppendLog("Zapret V2 запущен", "ok");
+                            else
+                                AppendLog($"Zapret V2 завершился с кодом {proc.ExitCode}", "error");
+                        }
                     }
                     catch (Exception ex)
                     {
