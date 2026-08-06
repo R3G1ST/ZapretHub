@@ -750,6 +750,17 @@ public partial class MainWindow : Window
             }
             else
             {
+                if (_settings.ZapretVersion == ZapretVersion.V2 && st.ZapretRunning)
+                {
+                    AppendLog("Останавливаю V1 перед запуском V2...", "info");
+                    StopAllZapret();
+                    await Task.Delay(3000);
+                }
+                else if (_settings.ZapretVersion == ZapretVersion.V1 && st.Zapret2Running)
+                {
+                    AppendLog("Останавливаю V2 перед запуском V1...", "info");
+                    await StopZapretV2Async();
+                }
                 if (_settings.ZapretVersion == ZapretVersion.V2)
                 {
                     if (string.IsNullOrEmpty(_settings.Zapret2Path) || !File.Exists(_settings.Zapret2Path))
@@ -6369,23 +6380,48 @@ public partial class MainWindow : Window
 
         if (!zapretNeeded && !tgwsNeeded)
         {
-            if (_settings.EnableZapret) AppendLog("Zapret уже запущен", "ok");
+            bool switchedVersion = false;
+            if (_settings.EnableZapret)
+            {
+                if (_settings.ZapretVersion == ZapretVersion.V2 && st.ZapretRunning)
+                {
+                    AppendLog("V1 zapret работает — останавливаю перед запуском V2...", "info");
+                    StopAllZapret();
+                    await Task.Delay(3000);
+                    zapretNeeded = true;
+                    switchedVersion = true;
+                }
+                else if (_settings.ZapretVersion == ZapretVersion.V1 && st.Zapret2Running)
+                {
+                    AppendLog("V2 zapret работает — останавливаю перед запуском V1...", "info");
+                    await StopZapretV2Async();
+                    zapretNeeded = true;
+                    switchedVersion = true;
+                }
+                else
+                {
+                    AppendLog("Zapret уже запущен", "ok");
+                }
+            }
             if (_settings.EnableTgWsProxy) AppendLog("tg-ws-proxy уже запущен", "ok");
 
-            AppendLog("spacer");
-            AppendLog("Всё запущено и всё работает НОРМАЛЬНО!", "final");
+            if (!switchedVersion)
+            {
+                AppendLog("spacer");
+                AppendLog("Всё запущено и всё работает НОРМАЛЬНО!", "final");
 
-            StopGlow(true);
-            Dispatcher.Invoke(() => SetFixBtnConnected());
-            _discord.IsScanning = false;
-            _discord.SetAllGood(true, true);
-            AnimateProgressBar(100, Color.FromRgb(34, 197, 94), "Всё уже работает", 0.5);
-            PlaySuccessRing();
-            StopLongCheckTimer();
-            _checkInProgress = false;
-            _autoFixRunning = false;
-            FixBtn.IsEnabled = true;
-            return;
+                StopGlow(true);
+                Dispatcher.Invoke(() => SetFixBtnConnected());
+                _discord.IsScanning = false;
+                _discord.SetAllGood(true, true);
+                AnimateProgressBar(100, Color.FromRgb(34, 197, 94), "Всё уже работает", 0.5);
+                PlaySuccessRing();
+                StopLongCheckTimer();
+                _checkInProgress = false;
+                _autoFixRunning = false;
+                FixBtn.IsEnabled = true;
+                return;
+            }
         }
 
         bool zapretOk = !zapretNeeded;
