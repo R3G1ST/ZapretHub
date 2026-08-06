@@ -680,8 +680,7 @@ public class ZapretConfigService
                     {
                         FileName = zapretPath,
                         Arguments = args,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
+                        UseShellExecute = true,
                         WorkingDirectory = exeDir
                     };
                     Process.Start(psi);

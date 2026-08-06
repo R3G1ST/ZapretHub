@@ -432,6 +432,47 @@ public partial class MainWindow : Window
                 TaskScheduler.Default);
         }
 
+        if (_settings.EnableZapret
+            && _settings.ZapretVersion == ZapretVersion.V2
+            && !string.IsNullOrEmpty(_settings.Zapret2Path)
+            && File.Exists(_settings.Zapret2Path))
+        {
+            var cache = ZapretConfigService.LoadCache();
+            if (cache != null && !string.IsNullOrEmpty(cache.CurrentConfig))
+            {
+                var v2Config = cache.GetSelectableConfigs().FirstOrDefault(c => c.Name == cache.CurrentConfig);
+                if (v2Config != null && !string.IsNullOrEmpty(v2Config.Args))
+                {
+                    var v2Running = Process.GetProcesses()
+                        .Any(p => { try { return p.ProcessName.ToLower().Contains("winws2") || p.ProcessName.ToLower().Contains("nfqws2"); } catch { return false; } });
+                    if (!v2Running)
+                    {
+                        _ = Task.Delay(TimeSpan.FromSeconds(3)).ContinueWith(_ =>
+                            Dispatcher.Invoke(() =>
+                            {
+                                try
+                                {
+                                    var exeDir = Path.GetDirectoryName(_settings.Zapret2Path);
+                                    var psi = new ProcessStartInfo(_settings.Zapret2Path)
+                                    {
+                                        Arguments = v2Config.Args,
+                                        UseShellExecute = true,
+                                        WorkingDirectory = exeDir
+                                    };
+                                    Process.Start(psi);
+                                    AppendLog("[OK] Zapret2 автозапущен", "ok");
+                                }
+                                catch (Exception ex)
+                                {
+                                    AppendLog($"Ошибка автозапуска Zapret2: {ex.Message}", "error");
+                                }
+                            }),
+                            TaskScheduler.Default);
+                    }
+                }
+            }
+        }
+
         LogBox.PreviewMouseLeftButtonDown += LogBox_PreviewMouseLeftButtonDown;
         LogBox.PreviewMouseMove += LogBox_PreviewMouseMove;
 
@@ -729,14 +770,13 @@ public partial class MainWindow : Window
 
                     try
                     {
-                        var v2Root = ZapretConfigService.FindZapret2Root(Path.GetDirectoryName(_settings.Zapret2Path));
-                        var workDir = !string.IsNullOrEmpty(v2Root) ? v2Root : Path.GetDirectoryName(_settings.Zapret2Path);
+                        var exeDir = Path.GetDirectoryName(_settings.Zapret2Path);
 
                         var psi = new ProcessStartInfo(_settings.Zapret2Path)
                         {
                             Arguments = v2Args,
                             UseShellExecute = true,
-                            WorkingDirectory = workDir
+                            WorkingDirectory = exeDir
                         };
                         Process.Start(psi);
                     }
@@ -6043,10 +6083,15 @@ public partial class MainWindow : Window
             {
                 try
                 {
+                    var cache = ZapretConfigService.LoadCache();
+                    var v2Config = cache?.GetSelectableConfigs().FirstOrDefault(c => c.Name == cache?.CurrentConfig);
+                    var exeDir = Path.GetDirectoryName(_settings.Zapret2Path);
+
                     var psi = new ProcessStartInfo(_settings.Zapret2Path)
                     {
+                        Arguments = v2Config?.Args ?? "",
                         UseShellExecute = true,
-                        WorkingDirectory = Path.GetDirectoryName(_settings.Zapret2Path)
+                        WorkingDirectory = exeDir
                     };
                     Process.Start(psi);
                     zapretOk = true;
