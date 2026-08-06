@@ -508,7 +508,9 @@ public partial class ZapretConfigWindow : Window
                 StatusIcon.Fill = new SolidColorBrush(Color.FromRgb(0x22, 0xc5, 0x5e));
 
                 var topConfigs = string.Join("\n", idealConfigs.Take(5).Select((c, i) =>
-                    $"{i + 1}. {c.Name} (пинг: {c.AveragePing} мс, тестов: {c.SuccessCount}/{c.Tests.Count})"));
+                    !string.IsNullOrEmpty(c.Args)
+                        ? $"{i + 1}. {c.Name} (V2)"
+                        : $"{i + 1}. {c.Name} (пинг: {c.AveragePing} мс, тестов: {c.SuccessCount}/{c.Tests.Count})"));
 
                 StatusText.Text = $"🎉 Поздравляю с полным тестированием!\n\n" +
                                  $"Найдено {idealConfigs.Count} идеальных конфигов.\n" +
@@ -542,7 +544,9 @@ public partial class ZapretConfigWindow : Window
                 StatusIcon.Fill = new SolidColorBrush(Color.FromRgb(0xea, 0xb3, 0x08));
 
                 var topConfigs = string.Join("\n", partialConfigs.Take(5).Select((c, i) =>
-                    $"{i + 1}. {c.Name} (пинг: {c.AveragePing} мс, тестов: {c.SuccessCount}/{c.Tests.Count})"));
+                    !string.IsNullOrEmpty(c.Args)
+                        ? $"{i + 1}. {c.Name} (V2)"
+                        : $"{i + 1}. {c.Name} (пинг: {c.AveragePing} мс, тестов: {c.SuccessCount}/{c.Tests.Count})"));
 
                 StatusText.Text = "Идеальных конфигов не обнаружено.\n\n" +
                                  $"Но найдено {partialConfigs.Count} частично рабочих конфигов.\n" +
@@ -1448,7 +1452,9 @@ public partial class ZapretConfigWindow : Window
             {
                 Text = config.IsFromMod
                     ? config.ModName ?? "?"
-                    : $"Пинг: {config.AveragePing} мс  •  Тесты: {config.SuccessCount}/{config.Tests.Count}" + (config.IsPartiallyUsable ? "  •  частично" : ""),
+                    : (!string.IsNullOrEmpty(config.Args)
+                        ? $"V2  •  Аргументы: {config.Args.Length} символов"
+                        : $"Пинг: {config.AveragePing} мс  •  Тесты: {config.SuccessCount}/{config.Tests.Count}") + (config.IsPartiallyUsable ? "  •  частично" : ""),
                 FontSize = 11,
                 FontFamily = new System.Windows.Media.FontFamily("Cascadia Code, Consolas, monospace"),
                 Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a)),
