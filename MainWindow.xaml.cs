@@ -4402,13 +4402,11 @@ public partial class MainWindow : Window
             total++; if (netOk) passed++;
 
             AddTestSection("PING");
-            var pingResults = new List<(string host, bool ok, double ms)>();
             string[] pingHosts = { "1.1.1.1", "8.8.8.8", "77.88.8.8" };
             foreach (var host in pingHosts)
             {
                 bool ok = false; double ms = 0;
-                try { (ok, ms, _) = await DiagnosticsEngine.TcpConnectAsync(host, 443, 3.0); } catch { }
-                pingResults.Add((host, ok, ms));
+                try { (ok, ms, _) = await WithTimeout(DiagnosticsEngine.TcpConnectAsync(host, 443, 3.0), 5000); } catch { }
                 AddTestResult($"Ping {host}", ok, ok ? $"{ms:F0} ms" : "Timeout");
                 total++; if (ok) passed++;
             }
@@ -4416,7 +4414,7 @@ public partial class MainWindow : Window
             AddTestSection("СКОРОСТЬ");
             try
             {
-                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
                 var sw = System.Diagnostics.Stopwatch.StartNew();
                 var data = await http.GetByteArrayAsync("https://speedtest.selectel.ru/10MB");
                 sw.Stop();
@@ -4424,29 +4422,30 @@ public partial class MainWindow : Window
                 AddTestResult("Загрузка 10 MB", mbps > 1, $"{mbps:F1} Mbps");
                 total++; if (mbps > 1) passed++;
             }
-            catch (Exception ex) { AddTestResult("Загрузка 10 MB", false, ex.Message); total++; }
+            catch { AddTestResult("Загрузка 10 MB", false, "Timeout / ошибка"); total++; }
 
             AddTestSection("DNS");
             bool dnsOk = false;
             try
             {
-                var dns = await DiagnosticsEngine.CheckDnsAsync("telegram.org");
+                var dnsTask = DiagnosticsEngine.CheckDnsAsync("telegram.org");
+                var dns = await WithTimeout(dnsTask, 6000);
                 dnsOk = !dns.Spoofed && dns.SystemIps.Count > 0;
                 AddTestResult("DNS резолв", dnsOk, dnsOk ? $"OK ({dns.SystemIps.Count} IP)" : (dns.Error ?? "Спуфинг"));
             }
-            catch { AddTestResult("DNS резолв", false, "Ошибка"); }
+            catch { AddTestResult("DNS резолв", false, "Timeout"); }
             total++; if (dnsOk) passed++;
 
             AddTestSection("DPI ПРОВЕРКА");
             bool dpiOk = false;
             try
             {
-                var dpi = await DiagnosticsEngine.CheckDpiAsync();
+                var dpi = await WithTimeout(DiagnosticsEngine.CheckDpiAsync(), 8000);
                 dpiOk = !dpi.DpiDetected;
                 AddTestResult("DPI обнаружен", !dpiOk, dpiOk ? "Не обнаружен" : "ОБНАРУЖЕН блокировщик!");
                 total++; if (dpiOk) passed++;
             }
-            catch { AddTestResult("DPI", false, "Ошибка проверки"); total++; }
+            catch { AddTestResult("DPI", false, "Timeout"); total++; }
 
             AddTestSection("СЕРВИСЫ");
 
@@ -4461,23 +4460,23 @@ public partial class MainWindow : Window
             bool telegramOk = false;
             try
             {
-                var dcResults = await DiagnosticsEngine.CheckTelegramDcsAsync();
+                var dcResults = await WithTimeout(DiagnosticsEngine.CheckTelegramDcsAsync(), 10000);
                 int reachableDcs = dcResults.Count(r => r.Ok);
                 telegramOk = reachableDcs >= 3;
                 AddTestResult("Telegram DC", telegramOk, $"{reachableDcs}/5 DC reachable");
             }
-            catch { AddTestResult("Telegram DC", false, "Ошибка"); }
+            catch { AddTestResult("Telegram DC", false, "Timeout"); }
             total++; if (telegramOk) passed++;
 
             bool discordOk = false;
             try
             {
-                var dcResults = await DiagnosticsEngine.CheckDiscordPingAsync();
+                var dcResults = await WithTimeout(DiagnosticsEngine.CheckDiscordPingAsync(), 8000);
                 int reachable = dcResults.Count(r => r.Ok);
                 discordOk = reachable >= 2;
                 AddTestResult("Discord", discordOk, $"{reachable}/3 endpoints reachable");
             }
-            catch { AddTestResult("Discord", false, "Ошибка"); }
+            catch { AddTestResult("Discord", false, "Timeout"); }
             total++; if (discordOk) passed++;
 
             AddTestSection("ИТОГО");
@@ -4565,6 +4564,15 @@ public partial class MainWindow : Window
         grid.Children.Add(nameBlock);
         grid.Children.Add(detailBlock);
         TestResultsPanel.Children.Add(grid);
+    }
+
+    private static async Task<T> WithTimeout<T>(Task<T> task, int ms)
+    {
+        using var cts = new CancellationTokenSource();
+        var completed = await Task.WhenAny(task, Task.Delay(ms, cts.Token));
+        if (completed != task) throw new TimeoutException();
+        cts.Cancel();
+        return await task;
     }
 
     private void GameNavBtn_Click(object s, RoutedEventArgs e)
