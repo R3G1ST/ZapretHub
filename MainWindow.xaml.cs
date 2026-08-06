@@ -4414,7 +4414,7 @@ public partial class MainWindow : Window
             AddTestSection("СКОРОСТЬ");
             try
             {
-                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
                 var sw = System.Diagnostics.Stopwatch.StartNew();
                 var data = await http.GetByteArrayAsync("https://speedtest.selectel.ru/10MB");
                 sw.Stop();
@@ -4428,10 +4428,9 @@ public partial class MainWindow : Window
             bool dnsOk = false;
             try
             {
-                var dnsTask = DiagnosticsEngine.CheckDnsAsync("telegram.org");
-                var dns = await WithTimeout(dnsTask, 6000);
-                dnsOk = !dns.Spoofed && dns.SystemIps.Count > 0;
-                AddTestResult("DNS резолв", dnsOk, dnsOk ? $"OK ({dns.SystemIps.Count} IP)" : (dns.Error ?? "Спуфинг"));
+                var dns = await DiagnosticsEngine.CheckDnsAsync("telegram.org");
+                dnsOk = dns.SystemIps.Count > 0;
+                AddTestResult("DNS резолв", dnsOk, dnsOk ? $"OK ({dns.SystemIps.Count} IP)" : (dns.Error ?? "Ошибка"));
             }
             catch { AddTestResult("DNS резолв", false, "Timeout"); }
             total++; if (dnsOk) passed++;
@@ -4442,7 +4441,7 @@ public partial class MainWindow : Window
             {
                 var dpi = await WithTimeout(DiagnosticsEngine.CheckDpiAsync(), 8000);
                 dpiOk = !dpi.DpiDetected;
-                AddTestResult("DPI обнаружен", !dpiOk, dpiOk ? "Не обнаружен" : "ОБНАРУЖЕН блокировщик!");
+                AddTestResult("DPI", dpiOk, dpiOk ? "Не обнаружен" : "ОБНАРУЖЕН блокировщик!");
                 total++; if (dpiOk) passed++;
             }
             catch { AddTestResult("DPI", false, "Timeout"); total++; }
@@ -4461,7 +4460,7 @@ public partial class MainWindow : Window
             try
             {
                 var dcResults = await WithTimeout(DiagnosticsEngine.CheckTelegramDcsAsync(), 10000);
-                int reachableDcs = dcResults.Count(r => r.Ok);
+                int reachableDcs = dcResults.GroupBy(r => r.Ip).Count(g => g.Any(r => r.Ok));
                 telegramOk = reachableDcs >= 3;
                 AddTestResult("Telegram DC", telegramOk, $"{reachableDcs}/5 DC reachable");
             }
