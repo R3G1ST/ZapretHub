@@ -88,7 +88,7 @@ public class ZapretConfigService
             if (File.Exists(configDefault))
             {
                 onProgress?.Invoke("📋 Читаю config.default...");
-                var nfqwsOpt = ParseNfqws2Opt(configDefault);
+                var nfqwsOpt = ParseNfqws2Opt(configDefault, zapret2Root);
                 if (nfqwsOpt.Count > 0)
                 {
                     foreach (var (name, args) in nfqwsOpt)
@@ -1631,7 +1631,7 @@ public class ZapretConfigService
         return null;
     }
 
-    private static List<(string name, string args)> ParseNfqws2Opt(string configDefaultPath)
+    private static List<(string name, string args)> ParseNfqws2Opt(string configDefaultPath, string zapret2Root)
     {
         var results = new List<(string name, string args)>();
         try
@@ -1662,6 +1662,7 @@ public class ZapretConfigService
                 if (string.IsNullOrWhiteSpace(rule)) continue;
 
                 rule = EnsureWinDivertArgs(rule);
+                rule = EnsureLuaInit(rule, zapret2Root);
                 var name = ExtractProfileName(rule);
                 results.Add((name, rule));
             }
@@ -1672,7 +1673,7 @@ public class ZapretConfigService
                                     .Replace("<HOSTLIST_NOAUTO>", "")
                                     .Replace("\n", " ").Replace("\r", " ").Trim();
                 if (!string.IsNullOrWhiteSpace(clean))
-                    results.Add(("NFQWS2 default", EnsureWinDivertArgs(clean)));
+                    results.Add(("NFQWS2 default", EnsureLuaInit(EnsureWinDivertArgs(clean), zapret2Root)));
             }
         }
         catch { }
@@ -1731,6 +1732,33 @@ public class ZapretConfigService
         wfArgs.Add("--wf-tcp-empty=1");
 
         return string.Join(" ", wfArgs) + " " + args;
+    }
+
+    private static string EnsureLuaInit(string args, string zapret2Root)
+    {
+        if (args.Contains("--lua-init"))
+            return args;
+
+        if (!args.Contains("--lua-desync"))
+            return args;
+
+        var luaDir = Path.Combine(zapret2Root, "lua");
+        if (!Directory.Exists(luaDir))
+            return args;
+
+        var libPath = Path.Combine(luaDir, "zapret-lib.lua");
+        var antidpiPath = Path.Combine(luaDir, "zapret-antidpi.lua");
+
+        var luaArgs = new List<string>();
+        if (File.Exists(libPath))
+            luaArgs.Add($"--lua-init=@\"{libPath}\"");
+        if (File.Exists(antidpiPath))
+            luaArgs.Add($"--lua-init=@\"{antidpiPath}\"");
+
+        if (luaArgs.Count == 0)
+            return args;
+
+        return string.Join(" ", luaArgs) + " " + args;
     }
 
     private static List<(string name, string args)> ParseWinws2FromShScript(string shPath)
@@ -1807,6 +1835,7 @@ public class ZapretConfigService
                             {
                                 matchIdx++;
                                 cleanArgs = EnsureWinDivertArgs(cleanArgs);
+                                cleanArgs = EnsureLuaInit(cleanArgs, zapretRoot);
                                 var profileName = ExtractProfileName(cleanArgs);
                                 var name = $"[{Path.GetFileNameWithoutExtension(shPath)}] {profileName} #{matchIdx}";
                                 results.Add((name, cleanArgs));
