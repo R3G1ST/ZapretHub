@@ -1058,7 +1058,7 @@
                                 <Border x:Name="GlowOuter" Visibility="Collapsed"/>
                                 <Border x:Name="GlowMid"   Visibility="Collapsed"/>
                                 <Border x:Name="GlowInner" Visibility="Collapsed"/>
-                                <Grid Panel.ZIndex="999" Width="200">
+                                <Grid Panel.ZIndex="999">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
