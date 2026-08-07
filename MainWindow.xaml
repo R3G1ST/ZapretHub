@@ -1058,13 +1058,9 @@
                                 <Border x:Name="GlowOuter" Visibility="Collapsed"/>
                                 <Border x:Name="GlowMid"   Visibility="Collapsed"/>
                                 <Border x:Name="GlowInner" Visibility="Collapsed"/>
-                                <Grid Panel.ZIndex="999">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid Grid.Column="0">
+                                <StackPanel Orientation="Horizontal" Panel.ZIndex="999"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Grid>
                                         <Ellipse Width="150" Height="150"
                                                  Stroke="#00ff88" StrokeThickness="1.5" Fill="Transparent"
                                                  HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.3"/>
@@ -1092,7 +1088,8 @@
                                             </StackPanel>
                                         </Border>
                                     </Grid>
-                                    <Grid Grid.Column="2">
+                                    <Grid Width="16"/>
+                                    <Grid>
                                         <Ellipse Width="150" Height="150"
                                                  Stroke="#ef4444" StrokeThickness="1.5" Fill="Transparent"
                                                  HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.2"/>
@@ -1123,7 +1120,7 @@
                                             </StackPanel>
                                         </Border>
                                     </Grid>
-                                </Grid>
+                                </StackPanel>
                                 <Button x:Name="FixBtn" Visibility="Collapsed"
                                         Click="FixBtn_Click"/>
                             </Grid>
