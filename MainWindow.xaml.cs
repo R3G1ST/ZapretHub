@@ -6762,10 +6762,7 @@ public partial class MainWindow : Window
 
     private void PlaySuccessRing()
     {
-        StopSuccessRing();
-
         HideAllRings();
-        AnimateSuccessArc(0.6);
         AnimateIconColor(Color.FromRgb(0x22, 0xc5, 0x5e), 0.5);
     }
 
@@ -6777,32 +6774,7 @@ public partial class MainWindow : Window
 
         HideAllRings();
 
-        FadeElementIn(SpinArc, 0.3);
-        FadeElementIn(SpinArc2, 0.3);
-
-        var spin1 = new DoubleAnimation(0, 360, new Duration(TimeSpan.FromSeconds(1.4)))
-            { RepeatBehavior = RepeatBehavior.Forever };
-        SpinOffset.BeginAnimation(RotateTransform.AngleProperty, spin1);
-
-        var spin2 = new DoubleAnimation(0, 360, new Duration(TimeSpan.FromSeconds(1.9)))
-            { RepeatBehavior = RepeatBehavior.Forever };
-        SpinRotation2.BeginAnimation(RotateTransform.AngleProperty, spin2);
-
-        if (GetFixButtonIcon() is System.Windows.Shapes.Path iconEl)
-        {
-            var animBrush = new SolidColorBrush(Color.FromRgb(0x7c, 0x6a, 0xf7));
-            iconEl.Stroke = animBrush;
-
-            var colorAnim = new ColorAnimation(
-                Color.FromRgb(0x7c, 0x6a, 0xf7),
-                Color.FromRgb(0x5b, 0x8d, 0xf5),
-                new Duration(TimeSpan.FromSeconds(1.8)))
-            {
-                AutoReverse = true,
-                RepeatBehavior = RepeatBehavior.Forever
-            };
-            animBrush.BeginAnimation(SolidColorBrush.ColorProperty, colorAnim);
-        }
+        SetBypassBtnState(true);
     }
 
     private void StopGlow(bool success)
@@ -6811,21 +6783,14 @@ public partial class MainWindow : Window
         _splitTarget = 0;
         _colorTarget = 1;
 
-        SpinOffset.BeginAnimation(RotateTransform.AngleProperty, null);
-        SpinRotation2.BeginAnimation(RotateTransform.AngleProperty, null);
-
-        FadeElementOut(SpinArc, 0.3);
-        FadeElementOut(SpinArc2, 0.3);
+        HideAllRings();
 
         StopSuccessRing();
 
-        if (GetFixButtonIcon() is System.Windows.Shapes.Path iconEl)
-        {
-            iconEl.BeginAnimation(System.Windows.Shapes.Path.StrokeProperty, null);
-            iconEl.Stroke = new SolidColorBrush(success
-                ? Color.FromRgb(0x22, 0xc5, 0x5e)
-                : Color.FromRgb(0xef, 0x44, 0x44));
-        }
+        BypassBtnIcon.BeginAnimation(System.Windows.Shapes.Path.StrokeProperty, null);
+        BypassBtnIcon.Stroke = new SolidColorBrush(success
+            ? Color.FromRgb(0x22, 0xc5, 0x5e)
+            : Color.FromRgb(0xef, 0x44, 0x44));
     }
 
     private void StopAllBypassServices()
@@ -6857,7 +6822,6 @@ public partial class MainWindow : Window
         StopSuccessRing();
 
         HideAllRings();
-        FadeElementIn(ErrorRing, 0.3);
 
         AnimateIconColor(Color.FromRgb(0xef, 0x44, 0x44), 0.4);
 
@@ -7005,31 +6969,18 @@ public partial class MainWindow : Window
         _finalSuccess = true;
 
         HideAllRings();
-        FadeElementIn(SpinArc, 0.3);
-        FadeElementIn(SpinArc2, 0.3);
 
-        var spin1 = new DoubleAnimation(0, 360, new Duration(TimeSpan.FromSeconds(1.4)))
-            { RepeatBehavior = RepeatBehavior.Forever };
-        SpinOffset.BeginAnimation(RotateTransform.AngleProperty, spin1);
-
-        var spin2 = new DoubleAnimation(0, 360, new Duration(TimeSpan.FromSeconds(1.9)))
-            { RepeatBehavior = RepeatBehavior.Forever };
-        SpinRotation2.BeginAnimation(RotateTransform.AngleProperty, spin2);
-
-        if (GetFixButtonIcon() is System.Windows.Shapes.Path iconEl)
+        BypassBtnIcon.Stroke = new SolidColorBrush(Color.FromRgb(0x7c, 0x6a, 0xf7));
+        var iconBrush = new SolidColorBrush(Color.FromRgb(0x7c, 0x6a, 0xf7));
+        var colorAnim = new ColorAnimation(
+            Color.FromRgb(0x7c, 0x6a, 0xf7),
+            Color.FromRgb(0x5b, 0x8d, 0xf5),
+            new Duration(TimeSpan.FromSeconds(1.8)))
         {
-            var iconBrush = new SolidColorBrush(Color.FromRgb(0x7c, 0x6a, 0xf7));
-            iconEl.Stroke = iconBrush;
-            var colorAnim = new ColorAnimation(
-                Color.FromRgb(0x7c, 0x6a, 0xf7),
-                Color.FromRgb(0x5b, 0x8d, 0xf5),
-                new Duration(TimeSpan.FromSeconds(1.8)))
-            {
-                AutoReverse = true,
-                RepeatBehavior = RepeatBehavior.Forever
-            };
-            iconBrush.BeginAnimation(SolidColorBrush.ColorProperty, colorAnim);
-        }
+            AutoReverse = true,
+            RepeatBehavior = RepeatBehavior.Forever
+        };
+        iconBrush.BeginAnimation(SolidColorBrush.ColorProperty, colorAnim);
     }
 
     private void AnimateButtonLabel(string text1, string text2)
@@ -7124,14 +7075,13 @@ public partial class MainWindow : Window
             if (!allRunning) return;
 
             HideAllRings();
-            AnimateSuccessArc(0.6);
             AnimateIconColor(Color.FromRgb(0x22, 0xc5, 0x5e), 0.5);
 
             _splitTarget = 0;
             _colorTarget = 1;
             _finalSuccess = true;
 
-            AnimateProgressBar(100, Color.FromRgb(0x22, 0xc5, 0x5e), "Всё уже работает", 0.6);
+            AnimateProgressBar(100, Color.FromRgb(34, 197, 94), "Всё уже работает", 0.6);
             SetFixBtnConnected();
         };
         t.Start();
@@ -7179,7 +7129,6 @@ public partial class MainWindow : Window
         AnimateProgressBar(100, Color.FromRgb(34, 197, 94), "Всё уже работает", 0.6);
 
         HideAllRings();
-        AnimateSuccessArc(0.6);
 
         AnimateIconColor(Color.FromRgb(0x22, 0xc5, 0x5e), 0.5);
 
