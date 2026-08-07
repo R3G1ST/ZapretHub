@@ -1095,10 +1095,13 @@
                                                 <Viewbox Width="30" Height="30" HorizontalAlignment="Center"
                                                          Margin="0,0,0,4">
                                                     <Canvas Width="24" Height="24">
-                                                        <Path x:Name="KillBtnIcon" Data="M18 6L6 18M6 6l12 12"
+                                                        <Path x:Name="KillBtnIcon" Data="M6 6L18 18M18 6L6 18"
                                                               Stroke="#5a6a7a" StrokeThickness="2.4"
                                                               StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                                              Stretch="Uniform"/>
+                                                              Stretch="Uniform"
+                                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                              Width="20" Height="20"
+                                                              Margin="2,2,2,2"/>
                                                     </Canvas>
                                                 </Viewbox>
                                                 <TextBlock Text="Стоп"
