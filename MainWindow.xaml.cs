@@ -6913,8 +6913,7 @@ public partial class MainWindow : Window
         SetupProgLbl.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
 
         HideAllRings();
-        FadeElementIn(IdleRingOuter, 0.4);
-        FadeElementIn(IdleRingInner, 0.5);
+    
 
         AnimateIconColor(Color.FromRgb(0x7c, 0x6a, 0xf7), 0.4);
 
@@ -6958,8 +6957,6 @@ public partial class MainWindow : Window
 
     private void HideAllRings()
     {
-        IdleRingOuter.Visibility = Visibility.Collapsed;
-        IdleRingInner.Visibility = Visibility.Collapsed;
         SpinArc.Visibility = Visibility.Collapsed;
         SpinArc2.Visibility = Visibility.Collapsed;
         SuccessArc.Visibility = Visibility.Collapsed;

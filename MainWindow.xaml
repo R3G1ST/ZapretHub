@@ -980,13 +980,6 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Grid Grid.Column="1" Height="200">
-                                <Ellipse x:Name="IdleRingOuter" Width="188" Height="188"
-                                         Stroke="#00ff88" StrokeThickness="2.5" Fill="Transparent"
-                                         IsHitTestVisible="False" Opacity="0.5"/>
-                                <Ellipse x:Name="IdleRingInner" Width="174" Height="174"
-                                         Stroke="#00ff88" StrokeThickness="0.8"
-                                         Fill="Transparent"
-                                         IsHitTestVisible="False" Opacity="0.2"/>
                                 <Ellipse x:Name="PulseRing1" Width="180" Height="180"
                                          Stroke="#5b8df5" StrokeThickness="6" Fill="Transparent"
                                          IsHitTestVisible="False" Visibility="Collapsed" Opacity="0.15"
@@ -1061,16 +1054,17 @@
                                 <StackPanel Orientation="Horizontal" Panel.ZIndex="999"
                                             HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <Grid>
-                                        <Ellipse Width="150" Height="150"
-                                                 Stroke="#00ff88" StrokeThickness="1.5" Fill="Transparent"
-                                                 HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.3"/>
                                         <Border x:Name="BypassToggleBtn" Cursor="Hand"
                                                 Width="140" Height="140" CornerRadius="70"
-                                                Background="#08080e" BorderBrush="#181820" BorderThickness="1"
+                                                Background="#08080e" BorderBrush="#181820" BorderThickness="1.5"
                                                 MouseLeftButtonDown="BypassToggleBtn_Click"
-                                                HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                RenderTransformOrigin="0.5,0.5">
+                                            <Border.RenderTransform>
+                                                <ScaleTransform x:Name="BypassBtnScale" ScaleX="1" ScaleY="1"/>
+                                            </Border.RenderTransform>
                                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Viewbox Width="32" Height="32" HorizontalAlignment="Center"
+                                                <Viewbox Width="34" Height="34" HorizontalAlignment="Center"
                                                          Margin="0,0,0,4">
                                                     <Path x:Name="BypassBtnIcon" Data="{StaticResource PowerIcon}"
                                                           Stroke="#00ff88" StrokeThickness="2.4"
@@ -1079,28 +1073,29 @@
                                                 </Viewbox>
                                                 <TextBlock x:Name="BypassBtnLine1" Text="Bypass"
                                                            FontSize="13" Foreground="#e0e0e0"
-                                                           FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                           FontWeight="Bold" HorizontalAlignment="Center"
                                                            FontFamily="Cascadia Code, Consolas, monospace"/>
                                                 <TextBlock x:Name="BypassBtnLine2" Text="ВКЛ"
                                                            FontSize="13" Foreground="#00ff88"
-                                                           FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                           FontWeight="Bold" HorizontalAlignment="Center"
                                                            FontFamily="Cascadia Code, Consolas, monospace"/>
                                             </StackPanel>
                                         </Border>
                                     </Grid>
-                                    <Grid Width="16"/>
+                                    <Grid Width="20"/>
                                     <Grid>
-                                        <Ellipse Width="150" Height="150"
-                                                 Stroke="#ef4444" StrokeThickness="1.5" Fill="Transparent"
-                                                 HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.2"/>
                                         <Border x:Name="KillAllBtn"
                                                 Width="140" Height="140" CornerRadius="70"
                                                 Background="#08080e" Cursor="Hand"
                                                 MouseLeftButtonDown="KillAllBtn_Click"
-                                                BorderBrush="#181820" BorderThickness="1"
-                                                HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                BorderBrush="#181820" BorderThickness="1.5"
+                                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                RenderTransformOrigin="0.5,0.5">
+                                            <Border.RenderTransform>
+                                                <ScaleTransform x:Name="KillBtnScale" ScaleX="1" ScaleY="1"/>
+                                            </Border.RenderTransform>
                                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Viewbox Width="32" Height="32" HorizontalAlignment="Center"
+                                                <Viewbox Width="34" Height="34" HorizontalAlignment="Center"
                                                          Margin="0,0,0,4">
                                                     <Canvas Width="24" Height="24">
                                                         <Path Data="M18 6L6 18M6 6l12 12"
@@ -1111,11 +1106,11 @@
                                                 </Viewbox>
                                                 <TextBlock Text="Стоп"
                                                            FontSize="13" Foreground="#e0e0e0"
-                                                           FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                           FontWeight="Bold" HorizontalAlignment="Center"
                                                            FontFamily="Cascadia Code, Consolas, monospace"/>
                                                 <TextBlock Text="все службы"
                                                            FontSize="13" Foreground="#ef4444"
-                                                           FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                           FontWeight="Bold" HorizontalAlignment="Center"
                                                            FontFamily="Cascadia Code, Consolas, monospace"/>
                                             </StackPanel>
                                         </Border>
