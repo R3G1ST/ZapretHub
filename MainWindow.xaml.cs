@@ -6138,11 +6138,18 @@ public partial class MainWindow : Window
         if (anythingRunning)
         {
             AppendLog("Останавливаю все службы...", "info");
-            await StopZapretV2Async();
-            StopAllZapret();
+
+            if (_settings.ZapretVersion == ZapretVersion.V2)
+                await StopZapretV2Async();
+            else
+                StopAllZapret();
+
             try { foreach (var p in Process.GetProcessesByName("tgwsproxy")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
+
+            await Task.Delay(500);
             _isConnected = false;
             SetBypassBtnState(false);
+            UpdateSidebarStatus();
             AppendLog("Все службы остановлены.", "ok");
         }
         else
@@ -6173,9 +6180,18 @@ public partial class MainWindow : Window
                                     CreateNoWindow = isAdmin,
                                     WorkingDirectory = exeDir
                                 };
-                                Process.Start(psi);
-                                started = true;
-                                AppendLog("Zapret V2 запущен", "ok");
+                                var proc = Process.Start(psi);
+                                if (proc != null)
+                                {
+                                    await Task.Delay(1500);
+                                    if (!proc.HasExited)
+                                    {
+                                        started = true;
+                                        AppendLog("Zapret V2 запущен", "ok");
+                                    }
+                                    else
+                                        AppendLog($"Zapret V2 завершился (код {proc.ExitCode})", "error");
+                                }
                             }
                             catch (Exception ex) { AppendLog($"Ошибка Zapret V2: {ex.Message}", "error"); }
                         }
@@ -6188,9 +6204,14 @@ public partial class MainWindow : Window
                     if (!string.IsNullOrEmpty(_settings.ZapretPath) && File.Exists(_settings.ZapretPath))
                     {
                         var cache = ZapretConfigService.LoadCache();
-                        bool success = await ZapretConfigService.ApplyConfigAsync(_settings.ZapretPath, cache?.GetCurrentConfig(false) ?? "", ZapretVersion.V1);
-                        if (success) { started = true; AppendLog("Zapret V1 запущен", "ok"); }
-                        else AppendLog("Ошибка запуска Zapret V1", "error");
+                        var configName = cache?.GetCurrentConfig(false);
+                        if (!string.IsNullOrEmpty(configName))
+                        {
+                            bool success = await ZapretConfigService.ApplyConfigAsync(_settings.ZapretPath, configName, ZapretVersion.V1);
+                            if (success) { started = true; AppendLog("Zapret V1 запущен", "ok"); }
+                            else AppendLog("Ошибка запуска Zapret V1", "error");
+                        }
+                        else AppendLog("Нет активного конфига V1", "warn");
                     }
                     else AppendLog("Путь к service.bat не найден", "warn");
                 }
@@ -6210,8 +6231,10 @@ public partial class MainWindow : Window
 
             if (started)
             {
+                await Task.Delay(500);
                 _isConnected = true;
                 SetBypassBtnState(true);
+                UpdateSidebarStatus();
             }
         }
     }
@@ -6219,17 +6242,41 @@ public partial class MainWindow : Window
     private void KillAllBtn_Click(object s, MouseButtonEventArgs e)
     {
         AppendLog("Рубильник: полная остановка всех служб...", "warn");
-        StopAllZapret();
-        StopAllBypassServices();
-        try { foreach (var p in Process.GetProcessesByName("tgwsproxy")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
-        try { foreach (var p in Process.GetProcessesByName("winws")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
-        try { foreach (var p in Process.GetProcessesByName("winws.exe")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
-        try { foreach (var p in Process.GetProcessesByName("winws2")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
-        try { foreach (var p in Process.GetProcessesByName("winws2.exe")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
-        try { foreach (var p in Process.GetProcessesByName("nfqws2")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
+
+        foreach (var p in Process.GetProcessesByName("winws")) try { p.Kill(); p.Dispose(); } catch { }
+        foreach (var p in Process.GetProcessesByName("winws.exe")) try { p.Kill(); p.Dispose(); } catch { }
+        foreach (var p in Process.GetProcessesByName("winws2")) try { p.Kill(); p.Dispose(); } catch { }
+        foreach (var p in Process.GetProcessesByName("winws2.exe")) try { p.Kill(); p.Dispose(); } catch { }
+        foreach (var p in Process.GetProcessesByName("nfqws2")) try { p.Kill(); p.Dispose(); } catch { }
+        foreach (var p in Process.GetProcessesByName("tgwsproxy")) try { p.Kill(); p.Dispose(); } catch { }
+        foreach (var p in Process.GetProcessesByName("TgWsProxy")) try { p.Kill(); p.Dispose(); } catch { }
+
+        try
+        {
+            var psi = new ProcessStartInfo("net", "stop zapret") { UseShellExecute = false, CreateNoWindow = true };
+            using var proc = Process.Start(psi);
+            proc?.WaitForExit(3000);
+        }
+        catch { }
+
         _isConnected = false;
         SetBypassBtnState(false);
+        UpdateSidebarStatus();
         AppendLog("Все службы и процессы остановлены.", "ok");
+    }
+
+    private void UpdateSidebarStatus()
+    {
+        var st = DiagnosticsEngine.CheckAppStatus();
+        bool zapretOk = _settings.ZapretVersion == ZapretVersion.V2 ? st.Zapret2Running : st.ZapretRunning;
+
+        ZapretDot2.Fill = new SolidColorBrush(zapretOk ? Color.FromRgb(0x00, 0xff, 0x88) : Color.FromRgb(0x5a, 0x6a, 0x7a));
+        ZapretStatusLbl.Text = zapretOk ? "Запущен" : "Не запущен";
+        ZapretStatusLbl.Foreground = new SolidColorBrush(zapretOk ? Color.FromRgb(0x00, 0xff, 0x88) : Color.FromRgb(0x5a, 0x6a, 0x7a));
+
+        TgWsDot2.Fill = new SolidColorBrush(st.TgWsProxyRunning ? Color.FromRgb(0x00, 0xff, 0x88) : Color.FromRgb(0x5a, 0x6a, 0x7a));
+        TgWsStatusLbl.Text = st.TgWsProxyRunning ? "Запущен" : "Не запущен";
+        TgWsStatusLbl.Foreground = new SolidColorBrush(st.TgWsProxyRunning ? Color.FromRgb(0x00, 0xff, 0x88) : Color.FromRgb(0x5a, 0x6a, 0x7a));
     }
 
     private void SetBypassBtnState(bool active)
