@@ -1053,64 +1053,61 @@
                                 <Border x:Name="GlowInner" Visibility="Collapsed"/>
                                 <StackPanel Orientation="Horizontal" Panel.ZIndex="999"
                                             HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <Grid>
+                                    <Grid Margin="0,0,8,0">
                                         <Border x:Name="BypassToggleBtn" Cursor="Hand"
-                                                Width="140" Height="140" CornerRadius="70"
-                                                Background="#08080e" BorderBrush="#181820" BorderThickness="1.5"
+                                                Width="130" Height="130" CornerRadius="65"
+                                                BorderBrush="#181820" BorderThickness="1"
                                                 MouseLeftButtonDown="BypassToggleBtn_Click"
-                                                HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                RenderTransformOrigin="0.5,0.5">
-                                            <Border.RenderTransform>
-                                                <ScaleTransform x:Name="BypassBtnScale" ScaleX="1" ScaleY="1"/>
-                                            </Border.RenderTransform>
+                                                HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Border.Background>
+                                                <SolidColorBrush x:Name="BypassBtnBg" Color="#08080e"/>
+                                            </Border.Background>
                                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Viewbox Width="34" Height="34" HorizontalAlignment="Center"
+                                                <Viewbox Width="30" Height="30" HorizontalAlignment="Center"
                                                          Margin="0,0,0,4">
                                                     <Path x:Name="BypassBtnIcon" Data="{StaticResource PowerIcon}"
-                                                          Stroke="#00ff88" StrokeThickness="2.4"
+                                                          Stroke="#5a6a7a" StrokeThickness="2.4"
                                                           StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                                           Stretch="Uniform"/>
                                                 </Viewbox>
                                                 <TextBlock x:Name="BypassBtnLine1" Text="Bypass"
-                                                           FontSize="13" Foreground="#e0e0e0"
-                                                           FontWeight="Bold" HorizontalAlignment="Center"
+                                                           FontSize="12" Foreground="#5a6a7a"
+                                                           FontWeight="SemiBold" HorizontalAlignment="Center"
                                                            FontFamily="Cascadia Code, Consolas, monospace"/>
-                                                <TextBlock x:Name="BypassBtnLine2" Text="ВКЛ"
-                                                           FontSize="13" Foreground="#00ff88"
-                                                           FontWeight="Bold" HorizontalAlignment="Center"
+                                                <TextBlock x:Name="BypassBtnLine2" Text="ВЫКЛ"
+                                                           FontSize="12" Foreground="#5a6a7a"
+                                                           FontWeight="SemiBold" HorizontalAlignment="Center"
                                                            FontFamily="Cascadia Code, Consolas, monospace"/>
                                             </StackPanel>
                                         </Border>
                                     </Grid>
-                                    <Grid Width="20"/>
-                                    <Grid>
+                                    <Grid Margin="8,0,0,0">
                                         <Border x:Name="KillAllBtn"
-                                                Width="140" Height="140" CornerRadius="70"
-                                                Background="#08080e" Cursor="Hand"
+                                                Width="130" Height="130" CornerRadius="65"
+                                                Cursor="Hand"
                                                 MouseLeftButtonDown="KillAllBtn_Click"
-                                                BorderBrush="#181820" BorderThickness="1.5"
-                                                HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                RenderTransformOrigin="0.5,0.5">
-                                            <Border.RenderTransform>
-                                                <ScaleTransform x:Name="KillBtnScale" ScaleX="1" ScaleY="1"/>
-                                            </Border.RenderTransform>
+                                                BorderBrush="#181820" BorderThickness="1"
+                                                HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Border.Background>
+                                                <SolidColorBrush x:Name="KillBtnBg" Color="#08080e"/>
+                                            </Border.Background>
                                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Viewbox Width="34" Height="34" HorizontalAlignment="Center"
+                                                <Viewbox Width="30" Height="30" HorizontalAlignment="Center"
                                                          Margin="0,0,0,4">
                                                     <Canvas Width="24" Height="24">
-                                                        <Path Data="M18 6L6 18M6 6l12 12"
-                                                              Stroke="#ef4444" StrokeThickness="2.4"
+                                                        <Path x:Name="KillBtnIcon" Data="M18 6L6 18M6 6l12 12"
+                                                              Stroke="#5a6a7a" StrokeThickness="2.4"
                                                               StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                                               Stretch="Uniform"/>
                                                     </Canvas>
                                                 </Viewbox>
                                                 <TextBlock Text="Стоп"
-                                                           FontSize="13" Foreground="#e0e0e0"
-                                                           FontWeight="Bold" HorizontalAlignment="Center"
+                                                           FontSize="12" Foreground="#5a6a7a"
+                                                           FontWeight="SemiBold" HorizontalAlignment="Center"
                                                            FontFamily="Cascadia Code, Consolas, monospace"/>
                                                 <TextBlock Text="все службы"
-                                                           FontSize="13" Foreground="#ef4444"
-                                                           FontWeight="Bold" HorizontalAlignment="Center"
+                                                           FontSize="12" Foreground="#5a6a7a"
+                                                           FontWeight="SemiBold" HorizontalAlignment="Center"
                                                            FontFamily="Cascadia Code, Consolas, monospace"/>
                                             </StackPanel>
                                         </Border>

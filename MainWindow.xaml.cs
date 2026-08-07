@@ -6236,13 +6236,19 @@ public partial class MainWindow : Window
     {
         if (active)
         {
+            BypassBtnBg.Color = Color.FromRgb(0x00, 0x22, 0x11);
+            BypassToggleBtn.BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0x00, 0xff, 0x88));
             BypassBtnIcon.Stroke = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88));
+            BypassBtnLine1.Foreground = new SolidColorBrush(Color.FromRgb(0xe0, 0xe0, 0xe0));
             BypassBtnLine2.Text = "ВКЛ";
             BypassBtnLine2.Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88));
         }
         else
         {
+            BypassBtnBg.Color = Color.FromRgb(0x08, 0x08, 0x0e);
+            BypassToggleBtn.BorderBrush = new SolidColorBrush(Color.FromRgb(0x18, 0x18, 0x20));
             BypassBtnIcon.Stroke = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a));
+            BypassBtnLine1.Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a));
             BypassBtnLine2.Text = "ВЫКЛ";
             BypassBtnLine2.Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a));
         }
