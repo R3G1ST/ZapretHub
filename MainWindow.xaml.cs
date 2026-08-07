@@ -6128,7 +6128,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void BypassToggleBtn_Click(object s, RoutedEventArgs e)
+    private async void BypassToggleBtn_Click(object sender, MouseButtonEventArgs e)
     {
         var st = DiagnosticsEngine.CheckAppStatus();
         bool zapretRunning = _settings.ZapretVersion == ZapretVersion.V2 ? st.Zapret2Running : st.ZapretRunning;
