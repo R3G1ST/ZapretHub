@@ -6128,6 +6128,126 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void BypassToggleBtn_Click(object s, RoutedEventArgs e)
+    {
+        var st = DiagnosticsEngine.CheckAppStatus();
+        bool zapretRunning = _settings.ZapretVersion == ZapretVersion.V2 ? st.Zapret2Running : st.ZapretRunning;
+        bool tgwsRunning = st.TgWsProxyRunning;
+        bool anythingRunning = zapretRunning || tgwsRunning;
+
+        if (anythingRunning)
+        {
+            AppendLog("Останавливаю все службы...", "info");
+            await StopZapretV2Async();
+            StopAllZapret();
+            try { foreach (var p in Process.GetProcessesByName("tgwsproxy")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
+            _isConnected = false;
+            SetBypassBtnState(false);
+            AppendLog("Все службы остановлены.", "ok");
+        }
+        else
+        {
+            AppendLog("Запускаю службы...", "info");
+            bool started = false;
+
+            if (_settings.EnableZapret)
+            {
+                if (_settings.ZapretVersion == ZapretVersion.V2)
+                {
+                    if (!string.IsNullOrEmpty(_settings.Zapret2Path) && File.Exists(_settings.Zapret2Path))
+                    {
+                        var cache = ZapretConfigService.LoadCache();
+                        var v2Config = cache?.GetSelectableConfigs(true).FirstOrDefault(c => c.Name == cache?.GetCurrentConfig(true));
+                        if (!string.IsNullOrEmpty(v2Config?.Args))
+                        {
+                            try
+                            {
+                                var exeDir = Path.GetDirectoryName(_settings.Zapret2Path);
+                                bool isAdmin = new System.Security.Principal.WindowsPrincipal(
+                                    System.Security.Principal.WindowsIdentity.GetCurrent()
+                                ).IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+                                var psi = new ProcessStartInfo(_settings.Zapret2Path)
+                                {
+                                    Arguments = v2Config.Args,
+                                    UseShellExecute = !isAdmin,
+                                    CreateNoWindow = isAdmin,
+                                    WorkingDirectory = exeDir
+                                };
+                                Process.Start(psi);
+                                started = true;
+                                AppendLog("Zapret V2 запущен", "ok");
+                            }
+                            catch (Exception ex) { AppendLog($"Ошибка Zapret V2: {ex.Message}", "error"); }
+                        }
+                        else AppendLog("Нет активного конфига V2", "warn");
+                    }
+                    else AppendLog("Путь к winws2.exe не найден", "warn");
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(_settings.ZapretPath) && File.Exists(_settings.ZapretPath))
+                    {
+                        var cache = ZapretConfigService.LoadCache();
+                        bool success = await ZapretConfigService.ApplyConfigAsync(_settings.ZapretPath, cache?.GetCurrentConfig(false) ?? "", ZapretVersion.V1);
+                        if (success) { started = true; AppendLog("Zapret V1 запущен", "ok"); }
+                        else AppendLog("Ошибка запуска Zapret V1", "error");
+                    }
+                    else AppendLog("Путь к service.bat не найден", "warn");
+                }
+            }
+
+            if (_settings.EnableTgWsProxy && !string.IsNullOrEmpty(_settings.TgWsProxyPath) && File.Exists(_settings.TgWsProxyPath))
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo(_settings.TgWsProxyPath) { UseShellExecute = true };
+                    Process.Start(psi);
+                    started = true;
+                    AppendLog("tg-ws-proxy запущен", "ok");
+                }
+                catch (Exception ex) { AppendLog($"Ошибка tg-ws-proxy: {ex.Message}", "error"); }
+            }
+
+            if (started)
+            {
+                _isConnected = true;
+                SetBypassBtnState(true);
+            }
+        }
+    }
+
+    private void KillAllBtn_Click(object s, MouseButtonEventArgs e)
+    {
+        AppendLog("Рубильник: полная остановка всех служб...", "warn");
+        StopAllZapret();
+        StopAllBypassServices();
+        try { foreach (var p in Process.GetProcessesByName("tgwsproxy")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
+        try { foreach (var p in Process.GetProcessesByName("winws")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
+        try { foreach (var p in Process.GetProcessesByName("winws.exe")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
+        try { foreach (var p in Process.GetProcessesByName("winws2")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
+        try { foreach (var p in Process.GetProcessesByName("winws2.exe")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
+        try { foreach (var p in Process.GetProcessesByName("nfqws2")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
+        _isConnected = false;
+        SetBypassBtnState(false);
+        AppendLog("Все службы и процессы остановлены.", "ok");
+    }
+
+    private void SetBypassBtnState(bool active)
+    {
+        if (active)
+        {
+            BypassBtnIcon.Stroke = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88));
+            BypassBtnLine2.Text = "ВКЛ";
+            BypassBtnLine2.Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88));
+        }
+        else
+        {
+            BypassBtnIcon.Stroke = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a));
+            BypassBtnLine2.Text = "ВЫКЛ";
+            BypassBtnLine2.Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a));
+        }
+    }
+
     private async void FixBtn_Click(object s, RoutedEventArgs e)
     {
         // Toggle: if already connected — stop everything
@@ -6149,7 +6269,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        FixBtn.IsEnabled = false;
+        BypassToggleBtn.IsEnabled = false;
         _checkInProgress = true;
         StartLongCheckTimer();
         var (needsUpdate, reason) = await ComponentVersionService.CheckIfUpdateNeededAsync(_settings);
@@ -6268,7 +6388,7 @@ public partial class MainWindow : Window
                 }
                 else _discord.SetProblems("Ошибка автонастройки");
 
-                FixBtn.IsEnabled = true;
+                BypassToggleBtn.IsEnabled = true;
 
                 StopLongCheckTimer();
                 _checkInProgress = false;
@@ -6419,7 +6539,7 @@ public partial class MainWindow : Window
                 StopLongCheckTimer();
                 _checkInProgress = false;
                 _autoFixRunning = false;
-                FixBtn.IsEnabled = true;
+                BypassToggleBtn.IsEnabled = true;
                 return;
             }
         }
@@ -6546,7 +6666,7 @@ public partial class MainWindow : Window
         StopLongCheckTimer();
         _checkInProgress = false;
         _autoFixRunning = false;
-        FixBtn.IsEnabled = true;
+        BypassToggleBtn.IsEnabled = true;
     }
 
     private async Task RunAutoInstallAsync(bool preserveLists = false)
@@ -6592,7 +6712,7 @@ public partial class MainWindow : Window
         Dispatcher.Invoke(() => {
             _isInstalling = false;
             StopGlow(success);
-            FixBtn.IsEnabled = true;
+            BypassToggleBtn.IsEnabled = true;
 
             if (success)
             {
@@ -6625,10 +6745,8 @@ public partial class MainWindow : Window
                 _isConnected = false;
                 _connectedTimer?.Stop();
                 _connectedTimer = null;
-                var line1 = FixBtn.Template.FindName("BtnLine1", FixBtn) as TextBlock;
-                var line2 = FixBtn.Template.FindName("BtnLine2", FixBtn) as TextBlock;
-                if (line1 is not null) line1.Text = "Починить";
-                if (line2 is not null) line2.Text = "интернет";
+                BypassBtnLine1.Text = "Bypass";
+                BypassBtnLine2.Text = "ВЫКЛ";
 
                 AnimateProgressBar(100, Color.FromRgb(239, 68, 68), "Ошибка установки", 0.5);
                 AppendLog("spacer");
@@ -6744,7 +6862,7 @@ public partial class MainWindow : Window
         AnimateIconColor(Color.FromRgb(0xef, 0x44, 0x44), 0.4);
 
         var shakeTransform = new TranslateTransform();
-        FixBtn.RenderTransform = shakeTransform;
+        BypassToggleBtn.RenderTransform = shakeTransform;
 
         var shakeAnimation = new DoubleAnimationUsingKeyFrames();
         shakeAnimation.KeyFrames.Add(new SplineDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
@@ -6759,17 +6877,13 @@ public partial class MainWindow : Window
 
     private System.Windows.Shapes.Path? GetFixButtonIcon()
     {
-        FixBtn.ApplyTemplate();
-        return FixBtn.Template.FindName("BtnIcon", FixBtn) as System.Windows.Shapes.Path;
+        return BypassBtnIcon;
     }
 
     private void SetFixButtonIconColor(Color color)
     {
-        if (GetFixButtonIcon() is not System.Windows.Shapes.Path icon)
-            return;
-
-        icon.BeginAnimation(System.Windows.Shapes.Path.StrokeProperty, null);
-        icon.Stroke = new SolidColorBrush(color);
+        BypassBtnIcon.BeginAnimation(System.Windows.Shapes.Path.StrokeProperty, null);
+        BypassBtnIcon.Stroke = new SolidColorBrush(color);
     }
 
     private void SetFixBtnConnected()
@@ -6777,7 +6891,7 @@ public partial class MainWindow : Window
         _isConnected = true;
         _connectedSince = DateTime.Now;
 
-        AnimateButtonLabel("Подключено", "00:00");
+        SetBypassBtnState(true);
 
         _connectedTimer?.Stop();
         _connectedTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
@@ -6793,7 +6907,7 @@ public partial class MainWindow : Window
 
         StopSuccessRing();
 
-        AnimateButtonLabel("Починить", "интернет");
+        SetBypassBtnState(false);
 
         AnimateProgressBar(0, Color.FromRgb(0x2e, 0x2e, 0x2e), "", 0.5);
         SetupProgLbl.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
@@ -6872,7 +6986,7 @@ public partial class MainWindow : Window
 
         AnimateButtonLabel("Починить", "интернет");
 
-        FixBtn.IsEnabled = false;
+        BypassToggleBtn.IsEnabled = false;
 
         SetupProg.BeginAnimation(System.Windows.Controls.ProgressBar.ValueProperty, null);
         SetupProg.BeginAnimation(System.Windows.Controls.ProgressBar.ForegroundProperty, null);
@@ -6923,23 +7037,6 @@ public partial class MainWindow : Window
 
     private void AnimateButtonLabel(string text1, string text2)
     {
-        var line1 = FixBtn.Template.FindName("BtnLine1", FixBtn) as TextBlock;
-        var line2 = FixBtn.Template.FindName("BtnLine2", FixBtn) as TextBlock;
-        if (line1 is null || line2 is null) return;
-
-        var dur = new Duration(TimeSpan.FromSeconds(0.2));
-        var ease = new CubicEase { EasingMode = EasingMode.EaseInOut };
-
-        var fadeOut = new DoubleAnimation(1, 0, dur) { EasingFunction = ease };
-        fadeOut.Completed += (_, _) =>
-        {
-            line1.Text = text1;
-            line2.Text = text2;
-            line1.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, dur) { EasingFunction = ease });
-            line2.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, dur) { EasingFunction = ease });
-        };
-        line1.BeginAnimation(UIElement.OpacityProperty, fadeOut);
-        line2.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(1, 0, dur) { EasingFunction = ease });
     }
 
     private void AnimateProgressBar(double targetValue, Color targetColor, string label, double durationSec = 0.6)
@@ -7100,11 +7197,9 @@ public partial class MainWindow : Window
     {
         if (!_isConnected) return;
         var elapsed = DateTime.Now - _connectedSince;
-        var line2 = FixBtn.Template.FindName("BtnLine2", FixBtn) as TextBlock;
-        if (line2 is not null)
-            line2.Text = elapsed.TotalHours >= 1
-                ? elapsed.ToString(@"h\:mm\:ss")
-                : elapsed.ToString(@"mm\:ss");
+        BypassBtnLine2.Text = elapsed.TotalHours >= 1
+            ? elapsed.ToString(@"h\:mm\:ss")
+            : elapsed.ToString(@"mm\:ss");
     }
 
     private void DiagRunBtn_Click(object s, RoutedEventArgs e)
