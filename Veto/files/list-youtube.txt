@@ -1,0 +1,17 @@
+﻿# YouTube & Google Video
+youtube.com
+youtu.be
+ytimg.com
+googlevideo.com
+yt1d.com
+youtube-nocookie.com
+googleapis.com
+gstatic.com
+ggpht.com
+youtube-ui.l.google.com
+redirector.googlevideo.com
+youtubeembedded-pa.googleapis.com
+wide-youtube.l.google.com
+youtube.googleapis.com
+jnn-pa.googleapis.com
+youtube-ui.l.google.com

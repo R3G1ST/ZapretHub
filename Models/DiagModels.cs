@@ -144,6 +144,15 @@ public class AppSettings
     public List<string> SelectedGameServices { get; set; } = new();
     public List<string> SelectedGames { get; set; } = new();
     public string GitHubToken { get; set; } = "";
+    public bool VetoEnabled { get; set; } = false;
+    public bool VetoAutostart { get; set; } = false;
+    public string VetoLuaScript { get; set; } = "";
+    public string VetoAttackMode { get; set; } = "fake";
+    public string VetoHostlistPath { get; set; } = "";
+    public bool VetoUdp { get; set; } = false;
+    public bool BypassZapret { get; set; } = true;
+    public bool BypassTgWs { get; set; } = true;
+    public bool BypassVeto { get; set; } = true;
 }
 
 public record GameTrackStats

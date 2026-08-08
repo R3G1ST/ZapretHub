@@ -407,6 +407,58 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="ServiceToggle" TargetType="CheckBox">
+            <Setter Property="Foreground"   Value="#e0e0e0"/>
+            <Setter Property="FontFamily"   Value="Cascadia Code, Consolas, monospace"/>
+            <Setter Property="FontSize"     Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="track" Width="34" Height="20" CornerRadius="10"
+                                    Background="#0a0a12" VerticalAlignment="Center" Margin="0,0,8,0"
+                                    Cursor="Hand">
+                                <Ellipse x:Name="thumb" Width="14" Height="14" Fill="#e0e0e0"
+                                         HorizontalAlignment="Left" VerticalAlignment="Center" Margin="3,0,0,0">
+                                    <Ellipse.RenderTransform>
+                                        <TranslateTransform x:Name="thumbTrans"/>
+                                    </Ellipse.RenderTransform>
+                                </Ellipse>
+                            </Border>
+                            <ContentPresenter VerticalAlignment="Center" IsHitTestVisible="False"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="track" Property="Background" Value="#00ff88"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="thumbTrans"
+                                                             Storyboard.TargetProperty="X"
+                                                             To="14" Duration="0:0:0.12"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="thumbTrans"
+                                                             Storyboard.TargetProperty="X"
+                                                             To="0" Duration="0:0:0.12"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="track" Property="Background" Value="#0a0a12"/>
+                                <Setter TargetName="thumb" Property="Fill" Value="#555555"/>
+                                <Setter Property="Foreground" Value="#555555"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style TargetType="ProgressBar">
             <Setter Property="Height"           Value="4"/>
             <Setter Property="Background"       Value="#0a0a12"/>
@@ -874,6 +926,10 @@
                                 <Ellipse x:Name="TgWsDot" Width="6" Height="6" Fill="#333344"
                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
+                            <Border Width="20" Height="20" Margin="0,-4,0,0">
+                                <Ellipse x:Name="VetoDot" Width="6" Height="6" Fill="#333344"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
                             <TextBlock x:Name="NetLbl" Text="NET" FontFamily="Cascadia Code, Consolas, monospace" FontSize="7"
                                        Foreground="#333344" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                         </StackPanel>
@@ -1051,70 +1107,66 @@
                                 <Border x:Name="GlowOuter" Visibility="Collapsed"/>
                                 <Border x:Name="GlowMid"   Visibility="Collapsed"/>
                                 <Border x:Name="GlowInner" Visibility="Collapsed"/>
-                                <StackPanel Orientation="Horizontal" Panel.ZIndex="999"
+                                <StackPanel Orientation="Vertical" Panel.ZIndex="999"
                                             HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <Grid Margin="0,0,8,0">
-                                        <Border x:Name="BypassToggleBtn" Cursor="Hand"
-                                                Width="130" Height="130" CornerRadius="65"
-                                                BorderBrush="#181820" BorderThickness="1"
-                                                MouseLeftButtonDown="BypassToggleBtn_Click"
-                                                HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <Border.Background>
-                                                <SolidColorBrush x:Name="BypassBtnBg" Color="#08080e"/>
-                                            </Border.Background>
-                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Viewbox Width="30" Height="30" HorizontalAlignment="Center"
-                                                         Margin="0,0,0,4">
-                                                    <Path x:Name="BypassBtnIcon" Data="{StaticResource PowerIcon}"
-                                                          Stroke="#5a6a7a" StrokeThickness="2.4"
-                                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                                          Stretch="Uniform"/>
-                                                </Viewbox>
-                                                <TextBlock x:Name="BypassBtnLine1" Text="Bypass"
-                                                           FontSize="12" Foreground="#5a6a7a"
-                                                           FontWeight="SemiBold" HorizontalAlignment="Center"
-                                                           FontFamily="Cascadia Code, Consolas, monospace"/>
-                                                <TextBlock x:Name="BypassBtnLine2" Text="ВЫКЛ"
-                                                           FontSize="12" Foreground="#5a6a7a"
-                                                           FontWeight="SemiBold" HorizontalAlignment="Center"
-                                                           FontFamily="Cascadia Code, Consolas, monospace"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </Grid>
-                                    <Grid Margin="8,0,0,0">
-                                        <Border x:Name="KillAllBtn"
-                                                Width="130" Height="130" CornerRadius="65"
-                                                Cursor="Hand"
-                                                MouseLeftButtonDown="KillAllBtn_Click"
-                                                BorderBrush="#181820" BorderThickness="1"
-                                                HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <Border.Background>
-                                                <SolidColorBrush x:Name="KillBtnBg" Color="#08080e"/>
-                                            </Border.Background>
-                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Viewbox Width="30" Height="30" HorizontalAlignment="Center"
-                                                         Margin="0,0,0,4">
-                                                    <Canvas Width="24" Height="24">
-                                                        <Path x:Name="KillBtnIcon" Data="M6 6L18 18M18 6L6 18"
-                                                              Stroke="#5a6a7a" StrokeThickness="2.4"
-                                                              StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                                              Stretch="Uniform"
-                                                              HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                              Width="20" Height="20"
-                                                              Margin="2,2,2,2"/>
-                                                    </Canvas>
-                                                </Viewbox>
-                                                <TextBlock Text="Стоп"
-                                                           FontSize="12" Foreground="#5a6a7a"
-                                                           FontWeight="SemiBold" HorizontalAlignment="Center"
-                                                           FontFamily="Cascadia Code, Consolas, monospace"/>
-                                                <TextBlock Text="все службы"
-                                                           FontSize="12" Foreground="#5a6a7a"
-                                                           FontWeight="SemiBold" HorizontalAlignment="Center"
-                                                           FontFamily="Cascadia Code, Consolas, monospace"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </Grid>
+                                    <Border x:Name="BypassToggleBtn" Cursor="Hand"
+                                            Width="130" Height="130" CornerRadius="65"
+                                            BorderBrush="#181820" BorderThickness="1"
+                                            MouseLeftButtonDown="BypassToggleBtn_Click"
+                                            MouseEnter="BypassToggleBtn_MouseEnter"
+                                            MouseLeave="BypassToggleBtn_MouseLeave"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            RenderTransformOrigin="0.5,0.5">
+                                        <Border.Background>
+                                            <SolidColorBrush x:Name="BypassBtnBg" Color="#08080e"/>
+                                        </Border.Background>
+                                        <Border.RenderTransform>
+                                            <ScaleTransform x:Name="BypassBtnScale" ScaleX="1" ScaleY="1"/>
+                                        </Border.RenderTransform>
+                                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Viewbox Width="30" Height="30" HorizontalAlignment="Center"
+                                                     Margin="0,0,0,4">
+                                                <Path x:Name="BypassBtnIcon" Data="{StaticResource PowerIcon}"
+                                                      Stroke="#5a6a7a" StrokeThickness="2.4"
+                                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                      Stretch="Uniform"/>
+                                            </Viewbox>
+                                            <TextBlock x:Name="BypassBtnLine1" Text="Bypass"
+                                                       FontSize="12" Foreground="#5a6a7a"
+                                                       FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                       FontFamily="Cascadia Code, Consolas, monospace"/>
+                                            <TextBlock x:Name="BypassBtnLine2" Text="ВЫКЛ"
+                                                       FontSize="12" Foreground="#5a6a7a"
+                                                       FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                       FontFamily="Cascadia Code, Consolas, monospace"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border x:Name="KillAllBtn" Cursor="Hand"
+                                            Width="120" Height="36" CornerRadius="6"
+                                            MouseLeftButtonDown="KillAllBtn_Click"
+                                            MouseEnter="KillAllBtn_MouseEnter"
+                                            MouseLeave="KillAllBtn_MouseLeave"
+                                            BorderBrush="#181820" BorderThickness="1"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            Margin="0,10,0,0"
+                                            RenderTransformOrigin="0.5,0.5">
+                                        <Border.Background>
+                                            <SolidColorBrush x:Name="KillBtnBg" Color="#08080e"/>
+                                        </Border.Background>
+                                        <Border.RenderTransform>
+                                            <ScaleTransform x:Name="KillBtnScale" ScaleX="1" ScaleY="1"/>
+                                        </Border.RenderTransform>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Path x:Name="KillBtnIcon" Data="M6 6L18 18M18 6L6 18"
+                                                  Stroke="#5a6a7a" StrokeThickness="2"
+                                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                  Width="12" Height="12" Margin="0,0,6,0"/>
+                                            <TextBlock x:Name="KillBtnLine1" Text="Рубильник"
+                                                       FontSize="11" Foreground="#5a6a7a"
+                                                       FontWeight="SemiBold" VerticalAlignment="Center"
+                                                       FontFamily="Cascadia Code, Consolas, monospace"/>
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
                                 <Button x:Name="FixBtn" Visibility="Collapsed"
                                         Click="FixBtn_Click"/>
@@ -5293,6 +5345,80 @@
                                             Click="SaveGameServices_Click"/>
                                 </StackPanel>
 
+                                <Border x:Name="SectionVetoHeader" Background="#08080e" CornerRadius="8"
+                                        BorderBrush="#181820" BorderThickness="1" Padding="12,10" Margin="0,12,0,4"
+                                        Cursor="Hand" MouseLeftButtonDown="SettingsSection_Click" Tag="Veto">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock x:Name="SectionVetoArrow" Text=">" FontFamily="Cascadia Code, Consolas, monospace"
+                                                   FontSize="11" Foreground="#00ff88" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="VETO ENGINE" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
+                                                   Foreground="#5a6a7a" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                                <StackPanel x:Name="SectionVetoContent" Visibility="Collapsed" Margin="0,0,0,12">
+                                    <CheckBox x:Name="VetoEnabledCB" Style="{StaticResource Toggle}"
+                                              Content="Включить Veto Engine" Margin="0,0,0,10"
+                                              Checked="VetoSettingCB_Checked"
+                                              Unchecked="VetoSettingCB_Unchecked"/>
+                                    <CheckBox x:Name="VetoAutostartCB" Style="{StaticResource Toggle}"
+                                              Content="Автозапуск при старте ZapretHub" Margin="0,0,0,10"
+                                              Checked="VetoSettingCB_Checked"
+                                              Unchecked="VetoSettingCB_Unchecked"/>
+                                    
+                                    <CheckBox x:Name="VetoUdpCB" Style="{StaticResource Toggle}"
+                                              Content="Захват UDP (QUIC, DNS)" Margin="0,0,0,10"
+                                              Checked="VetoSettingCB_Checked"
+                                              Unchecked="VetoSettingCB_Unchecked"/>
+                                    
+                                    <TextBlock Text="Режим атаки:" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
+                                               Foreground="#f0f0f0" Margin="0,0,0,4"/>
+                                    <ComboBox x:Name="VetoAttackModeCombo" Margin="0,0,0,10"
+                                              SelectionChanged="VetoAttackMode_SelectionChanged">
+                                        <ComboBoxItem Content="Fake TTL" Tag="fake"/>
+                                        <ComboBoxItem Content="Split" Tag="split"/>
+                                        <ComboBoxItem Content="Disorder" Tag="disorder"/>
+                                        <ComboBoxItem Content="Fake+Split" Tag="fakedsplit"/>
+                                        <ComboBoxItem Content="IP Fragmentation" Tag="ipfrag"/>
+                                        <ComboBoxItem Content="UDP Fragmentation" Tag="udpfrag"/>
+                                        <ComboBoxItem Content="DNS Hijack" Tag="dns"/>
+                                        <ComboBoxItem Content="Tamper" Tag="tamper"/>
+                                        <ComboBoxItem Content="RST Injection" Tag="rst"/>
+                                        <ComboBoxItem Content="Window Size" Tag="wsize"/>
+                                    </ComboBox>
+                                    
+                                    <TextBlock Text="Lua скрипт:" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
+                                               Foreground="#f0f0f0" Margin="0,0,0,4"/>
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="38"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="VetoLuaScriptBox" Style="{StaticResource InputBox}" Height="32"
+                                                 HorizontalScrollBarVisibility="Hidden" TextAlignment="Left" Padding="8,0,8,0"
+                                                 TextChanged="VetoLuaScriptBox_TextChanged"/>
+                                        <Button Grid.Column="1" Content="…" Style="{StaticResource OutlineBtn}"
+                                                Height="32" Padding="0" Margin="4,0,0,0" FontSize="14"
+                                                WindowChrome.IsHitTestVisibleInChrome="True"
+                                                Click="BrowseVetoLua_Click"/>
+                                    </Grid>
+                                    
+                                    <Button x:Name="VetoAutotuneBtn" Content="Автоподбор стратегии" 
+                                            Style="{StaticResource OutlineBtn}" HorizontalAlignment="Stretch"
+                                            Padding="12,8" Margin="0,0,0,6"
+                                            WindowChrome.IsHitTestVisibleInChrome="True"
+                                            Click="VetoAutotune_Click"/>
+                                    
+                                    <TextBlock x:Name="VetoAutotuneResult" FontFamily="Cascadia Code, Consolas, monospace" 
+                                               FontSize="10" Foreground="#5a6a7a" TextWrapping="Wrap" Margin="0,0,0,4"
+                                               Visibility="Collapsed"/>
+                                    
+                                    <Button x:Name="VetoHostlistBtn" Content="Управление hostlist-файлами" 
+                                            Style="{StaticResource OutlineBtn}" HorizontalAlignment="Stretch"
+                                            Padding="12,8" Margin="0,0,0,6"
+                                            WindowChrome.IsHitTestVisibleInChrome="True"
+                                            Click="VetoHostlistBtn_Click"/>
+                                </StackPanel>
+
                             </StackPanel>
                         </ScrollViewer>
                     </DockPanel>
@@ -5393,50 +5519,51 @@
                                              Padding="15,12" Margin="0,0,0,8">
                                              <StackPanel>
                                              <Grid>
-                                                 <Grid.ColumnDefinitions>
-                                                     <ColumnDefinition Width="Auto"/>
-                                                     <ColumnDefinition Width="*"/>
-                                                     <ColumnDefinition Width="Auto"/>
-                                                     <ColumnDefinition Width="Auto"/>
-                                                 </Grid.ColumnDefinitions>
-                                                 <Border Width="32" Height="32" CornerRadius="9"
-                                                         Background="#1a2a3a" Margin="0,0,10,0"
-                                                         VerticalAlignment="Center">
-                                                     <TextBlock Text="Z" FontFamily="Cascadia Code, Consolas, monospace"
-                                                                FontSize="15" FontWeight="Bold"
-                                                               Foreground="#00ff88"
-                                                               HorizontalAlignment="Center"
-                                                               VerticalAlignment="Center"/>
-                                                </Border>
-                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                    <TextBlock Text="Zapret"
-                                                               FontFamily="Cascadia Code, Consolas, monospace" FontSize="13"
-                                                               FontWeight="SemiBold" Foreground="White"/>
-                                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                                        <Ellipse x:Name="ZapretDot2" Width="6" Height="6"
-                                                                 Fill="#5a6a7a" VerticalAlignment="Center"
-                                                                 Margin="0,0,5,0"/>
-                                                        <TextBlock x:Name="ZapretStatusLbl"
-                                                                   Text="Не запущен"
-                                                                   FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
-                                                                   Foreground="#5a6a7a"/>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                                <Border x:Name="ZapretVersionBadge" Grid.Column="2"
-                                                        Background="#0a1a12" CornerRadius="6"
-                                                        BorderBrush="#00ff8830" BorderThickness="1"
-                                                        Padding="8,3" Margin="0,0,8,0"
-                                                        VerticalAlignment="Center" Cursor="Hand"
-                                                        MouseLeftButtonDown="ZapretVersionBadge_Click">
-                                                    <TextBlock x:Name="ZapretVersionLbl" Text="v1"
-                                                               FontFamily="Cascadia Code, Consolas, monospace" FontSize="10"
-                                                               Foreground="#00ff88" VerticalAlignment="Center"/>
-                                                </Border>
-                                                <Button x:Name="ZapretToggleBtn" Grid.Column="3"
-                                                         Style="{StaticResource AccentBtn}"
-                                                         Padding="10,6" FontSize="12"
-                                                        WindowChrome.IsHitTestVisibleInChrome="True"
-                                                        Click="ZapretToggle_Click">
+                                                  <Grid.ColumnDefinitions>
+                                                      <ColumnDefinition Width="Auto"/>
+                                                      <ColumnDefinition Width="*"/>
+                                                      <ColumnDefinition Width="Auto"/>
+                                                      <ColumnDefinition Width="Auto"/>
+                                                      <ColumnDefinition Width="Auto"/>
+                                                  </Grid.ColumnDefinitions>
+                                                  <Border Width="32" Height="32" CornerRadius="9"
+                                                          Background="#1a2a3a" Margin="0,0,10,0"
+                                                          VerticalAlignment="Center">
+                                                      <TextBlock Text="Z" FontFamily="Cascadia Code, Consolas, monospace"
+                                                                 FontSize="15" FontWeight="Bold"
+                                                                Foreground="#00ff88"
+                                                                HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center"/>
+                                                 </Border>
+                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                     <TextBlock Text="Zapret"
+                                                                FontFamily="Cascadia Code, Consolas, monospace" FontSize="13"
+                                                                FontWeight="SemiBold" Foreground="White"/>
+                                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                         <Ellipse x:Name="ZapretDot2" Width="6" Height="6"
+                                                                  Fill="#5a6a7a" VerticalAlignment="Center"
+                                                                  Margin="0,0,5,0"/>
+                                                         <TextBlock x:Name="ZapretStatusLbl"
+                                                                    Text="Не запущен"
+                                                                    FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
+                                                                    Foreground="#5a6a7a"/>
+                                                     </StackPanel>
+                                                 </StackPanel>
+                                                 <Border x:Name="ZapretVersionBadge" Grid.Column="3"
+                                                         Background="#0a1a12" CornerRadius="6"
+                                                         BorderBrush="#00ff8830" BorderThickness="1"
+                                                         Padding="8,3" Margin="0,0,8,0"
+                                                         VerticalAlignment="Center" Cursor="Hand"
+                                                         MouseLeftButtonDown="ZapretVersionBadge_Click">
+                                                     <TextBlock x:Name="ZapretVersionLbl" Text="v1"
+                                                                FontFamily="Cascadia Code, Consolas, monospace" FontSize="10"
+                                                                Foreground="#00ff88" VerticalAlignment="Center"/>
+                                                 </Border>
+                                                 <Button x:Name="ZapretToggleBtn" Grid.Column="4"
+                                                          Style="{StaticResource AccentBtn}"
+                                                          Padding="10,6" FontSize="12"
+                                                         WindowChrome.IsHitTestVisibleInChrome="True"
+                                                         Click="ZapretToggle_Click">
                                                     <StackPanel Orientation="Horizontal">
                                                         <Path Data="{StaticResource PlayIcon}" 
                                                               Fill="#e0e0e0"
@@ -5480,9 +5607,9 @@
                                                     Padding="10,8" Cursor="Hand" Margin="0,0,0,2"
                                                     MouseLeftButtonDown="ZapretV1Option_Click">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <Ellipse Width="6" Height="6" Fill="#00ff88" Margin="0,0,8,0"
+                                                    <Ellipse x:Name="ZapretV1Dot" Width="6" Height="6" Fill="#00ff88" Margin="0,0,8,0"
                                                              VerticalAlignment="Center"/>
-                                                    <TextBlock Text="Zapret v1 (nfqws/winws)"
+                                                    <TextBlock x:Name="ZapretV1Lbl" Text="Zapret v1 (nfqws/winws)"
                                                                FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                                                Foreground="#e0e0e0" VerticalAlignment="Center"/>
                                                 </StackPanel>
@@ -5491,9 +5618,9 @@
                                                     Padding="10,8" Cursor="Hand"
                                                     MouseLeftButtonDown="ZapretV2Option_Click">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <Ellipse Width="6" Height="6" Fill="#5a6a7a" Margin="0,0,8,0"
+                                                    <Ellipse x:Name="ZapretV2Dot" Width="6" Height="6" Fill="#5a6a7a" Margin="0,0,8,0"
                                                              VerticalAlignment="Center"/>
-                                                    <TextBlock Text="Zapret v2 (nfqws2/winws2)"
+                                                    <TextBlock x:Name="ZapretV2Lbl" Text="Zapret v2 (nfqws2/winws2)"
                                                                FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
                                                                Foreground="#5a6a7a" VerticalAlignment="Center"/>
                                                 </StackPanel>
@@ -5504,40 +5631,41 @@
                                             BorderBrush="#0a0a12" BorderThickness="1"
                                             Padding="12,10" Margin="0,0,0,6">
                                         <StackPanel>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <Border Width="32" Height="32" CornerRadius="9"
-                                                        Background="#1a2a3a" Margin="0,0,10,0"
-                                                        VerticalAlignment="Center">
-                                                    <TextBlock Text="T" FontFamily="Cascadia Code, Consolas, monospace"
-                                                               FontSize="15" FontWeight="Bold"
-                                                               Foreground="#00ff88"
-                                                               HorizontalAlignment="Center"
-                                                               VerticalAlignment="Center"/>
-                                                </Border>
-                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                    <TextBlock Text="tg-ws-proxy"
-                                                               FontFamily="Cascadia Code, Consolas, monospace" FontSize="13"
-                                                               FontWeight="SemiBold" Foreground="White"/>
-                                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                                        <Ellipse x:Name="TgWsDot2" Width="6" Height="6"
-                                                                 Fill="#5a6a7a" VerticalAlignment="Center"
-                                                                 Margin="0,0,5,0"/>
-                                                        <TextBlock x:Name="TgWsStatusLbl"
-                                                                   Text="Не запущен"
-                                                                   FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
-                                                                   Foreground="#5a6a7a"/>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                                <Button x:Name="TgWsToggleBtn" Grid.Column="2"
-                                                         Style="{StaticResource AccentBtn}"
-                                                         Padding="10,6" FontSize="12"
-                                                        WindowChrome.IsHitTestVisibleInChrome="True"
-                                                        Click="TgWsToggle_Click">
+                                             <Grid>
+                                                 <Grid.ColumnDefinitions>
+                                                     <ColumnDefinition Width="Auto"/>
+                                                     <ColumnDefinition Width="*"/>
+                                                     <ColumnDefinition Width="Auto"/>
+                                                     <ColumnDefinition Width="Auto"/>
+                                                 </Grid.ColumnDefinitions>
+                                                 <Border Width="32" Height="32" CornerRadius="9"
+                                                         Background="#1a2a3a" Margin="0,0,10,0"
+                                                         VerticalAlignment="Center">
+                                                     <TextBlock Text="T" FontFamily="Cascadia Code, Consolas, monospace"
+                                                                FontSize="15" FontWeight="Bold"
+                                                                Foreground="#00ff88"
+                                                                HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center"/>
+                                                 </Border>
+                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                     <TextBlock Text="tg-ws-proxy"
+                                                                FontFamily="Cascadia Code, Consolas, monospace" FontSize="13"
+                                                                FontWeight="SemiBold" Foreground="White"/>
+                                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                         <Ellipse x:Name="TgWsDot2" Width="6" Height="6"
+                                                                  Fill="#5a6a7a" VerticalAlignment="Center"
+                                                                  Margin="0,0,5,0"/>
+                                                         <TextBlock x:Name="TgWsStatusLbl"
+                                                                    Text="Не запущен"
+                                                                    FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
+                                                                    Foreground="#5a6a7a"/>
+                                                     </StackPanel>
+                                                 </StackPanel>
+                                                 <Button x:Name="TgWsToggleBtn" Grid.Column="3"
+                                                          Style="{StaticResource AccentBtn}"
+                                                          Padding="10,6" FontSize="12"
+                                                         WindowChrome.IsHitTestVisibleInChrome="True"
+                                                         Click="TgWsToggle_Click">
                                                     <StackPanel Orientation="Horizontal">
                                                         <Path Data="{StaticResource PlayIcon}" 
                                                               Fill="#e0e0e0"
@@ -5557,6 +5685,59 @@
                                                          Foreground="#00ff88"
                                                          Background="#07070c"
                                                          BorderThickness="0"/>
+                                         </StackPanel>
+                                    </Border>
+                                    
+                                    <Border Background="#0a0a12" CornerRadius="6"
+                                            BorderBrush="#0a0a12" BorderThickness="1"
+                                            Padding="15,12" Margin="0,0,0,8">
+                                        <StackPanel>
+                                             <Grid>
+                                                 <Grid.ColumnDefinitions>
+                                                     <ColumnDefinition Width="Auto"/>
+                                                     <ColumnDefinition Width="*"/>
+                                                     <ColumnDefinition Width="Auto"/>
+                                                     <ColumnDefinition Width="Auto"/>
+                                                 </Grid.ColumnDefinitions>
+                                                 <Border Width="32" Height="32" CornerRadius="9"
+                                                         Background="#1a1a2a" Margin="0,0,10,0"
+                                                         VerticalAlignment="Center">
+                                                     <TextBlock Text="V" FontFamily="Cascadia Code, Consolas, monospace"
+                                                                FontSize="15" FontWeight="Bold"
+                                                               Foreground="#ff6600"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"/>
+                                                 </Border>
+                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                     <TextBlock Text="Veto Engine"
+                                                                FontFamily="Cascadia Code, Consolas, monospace" FontSize="13"
+                                                                FontWeight="SemiBold" Foreground="White"/>
+                                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                         <Ellipse x:Name="VetoDot2" Width="6" Height="6"
+                                                                  Fill="#5a6a7a" VerticalAlignment="Center"
+                                                                  Margin="0,0,5,0"/>
+                                                         <TextBlock x:Name="VetoStatusLbl"
+                                                                    Text="Не запущен"
+                                                                    FontFamily="Cascadia Code, Consolas, monospace" FontSize="11"
+                                                                    Foreground="#5a6a7a"/>
+                                                     </StackPanel>
+                                                 </StackPanel>
+                                                 <Button x:Name="VetoToggleBtn" Grid.Column="3"
+                                                          Style="{StaticResource AccentBtn}"
+                                                          Padding="10,6" FontSize="12"
+                                                         WindowChrome.IsHitTestVisibleInChrome="True"
+                                                         Click="VetoToggle_Click">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Path Data="{StaticResource PlayIcon}" 
+                                                              Fill="#e0e0e0"
+                                                              Width="11" Height="11"
+                                                              Stretch="Uniform"
+                                                              Margin="0,0,5,0"
+                                                              VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Запустить" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
+                                            </Grid>
                                         </StackPanel>
                                     </Border>
                                     

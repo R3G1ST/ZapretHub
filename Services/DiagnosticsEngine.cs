@@ -37,7 +37,7 @@ public static class DiagnosticsEngine
     {
         ["telegram"]   = ["telegram", "tgram", "gram", "aygram"],
         ["discord"]    = ["discord", "cord"],
-        ["zapret"]     = ["zapret", "nfqws", "windivert", "winws"],
+        ["zapret"]     = ["nfqws", "winws"],
         ["goodbyedpi"] = ["goodbyedpi", "goodbye"],
         ["warp"]       = ["warp-svc", "warp-cli", "cloudflare"],
         ["tgwsproxy"]  = ["tg-ws-proxy", "tgwsproxy", "tg_ws_proxy", "flowseal"],

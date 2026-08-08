@@ -1,0 +1,60 @@
+﻿# General blocked services in Russia
+# Instagram / Meta
+instagram.com
+cdninstagram.com
+fbcdn.net
+scontent.xx.fbcdn.net
+# Twitch
+twitch.tv
+jtvnw.net
+ttvnw.net
+static.twitchcdn.net
+usher.ttvnw.net
+clips.twitch.tv
+vod-metro.twitch.tv
+# ChatGPT / OpenAI
+chatgpt.com
+openai.com
+chat.openai.com
+api.openai.com
+auth0.openai.com
+cdn.oaistatic.com
+oaiusercontent.com
+# Spotify
+spotify.com
+scdn.co
+spoti.fi
+open.spotify.com
+play.spotify.com
+ap-gew4.spotify.com
+# Reddit
+reddit.com
+redd.it
+redditstatic.com
+redditmedia.com
+i.redd.it
+v.redd.it
+# Pinterest
+pinterest.com
+pinimg.com
+i.pinimg.com
+# LinkedIn
+linkedin.com
+licdn.com
+s3.licdn.com
+# Medium
+medium.com
+cdn-static-1.medium.com
+miro.medium.com
+# Telegram Web
+web.telegram.org
+telegram.org
+t.me
+core.telegram.org
+desktop.telegram.org
+# Twitch (additional)
+twitchcdn.net
+ext-twitch.tv
+# Patreon
+patreon.com
+

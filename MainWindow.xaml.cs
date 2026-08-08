@@ -120,6 +120,8 @@ public partial class MainWindow : Window
     private Views.ZapretConfigWindow? _configWindow = null;
 
     private bool _isConnected;
+    private bool _bypassOperationInProgress;
+    private bool _forceStartNext;
     private DateTime _connectedSince;
     private DispatcherTimer? _connectedTimer;
     private bool _isInstalling = false;
@@ -415,6 +417,10 @@ public partial class MainWindow : Window
             NotificationService.StartPolling();
             UpdateNotifyBadge();
 
+            VetoService.OnOutputReceived += msg => Dispatcher.Invoke(() => AppendLog($"[Veto] {msg}", "info"));
+            VetoService.OnErrorReceived += msg => Dispatcher.Invoke(() => AppendLog($"[Veto] {msg}", "error"));
+            VetoService.OnStateChanged += running => Dispatcher.Invoke(() => UpdateVetoStatus());
+
             SetupIndicatorTooltips();
         }
         LoadFaqItems();
@@ -429,6 +435,26 @@ public partial class MainWindow : Window
         {
             _ = Task.Delay(TimeSpan.FromSeconds(2)).ContinueWith(_ =>
                 Dispatcher.Invoke(() => StartTgWsProxyWithActivation()),
+                TaskScheduler.Default);
+        }
+
+        if (_settings.VetoAutostart && _settings.VetoEnabled)
+        {
+            _ = Task.Delay(TimeSpan.FromSeconds(4)).ContinueWith(_ =>
+                Dispatcher.Invoke(() =>
+                {
+                    try
+                    {
+                        string args = BuildVetoArgs();
+                        VetoService.Start(args);
+                        UpdateVetoStatus();
+                        AppendLog("[OK] Veto Engine автозапущен", "ok");
+                    }
+                    catch (Exception ex)
+                    {
+                        AppendLog($"Ошибка автозапуска Veto: {ex.Message}", "error");
+                    }
+                }),
                 TaskScheduler.Default);
         }
 
@@ -980,6 +1006,54 @@ public partial class MainWindow : Window
         finally
         {
             TgWsToggleProgress.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private async void VetoToggle_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (VetoService.IsRunning)
+            {
+                VetoService.Stop();
+            }
+            else
+            {
+                string args = BuildVetoArgs();
+                VetoService.Start(args);
+            }
+
+            await Task.Delay(1000);
+            UpdateVetoStatus();
+        }
+        catch (Exception ex)
+        {
+            AppendLog($"[Veto] Error: {ex.Message}", "error");
+        }
+    }
+
+    private void UpdateVetoStatus()
+    {
+        var greenBrush = new SolidColorBrush(Color.FromRgb(0x22, 0xc5, 0x5e));
+        var grayBrush = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+        
+        bool running = VetoService.IsRunning;
+        VetoDot2.Fill = running ? greenBrush : grayBrush;
+        VetoDot.Fill = running ? greenBrush : grayBrush;
+        VetoStatusLbl.Text = running ? "Работает" : "Не запущен";
+        VetoStatusLbl.Foreground = running ? greenBrush : grayBrush;
+
+        var btn = VetoToggleBtn;
+        if (btn.Content is StackPanel sp)
+        {
+            foreach (var child in sp.Children)
+            {
+                if (child is TextBlock tb)
+                {
+                    tb.Text = running ? "Остановить" : "Запустить";
+                    break;
+                }
+            }
         }
     }
 
@@ -5646,6 +5720,23 @@ public partial class MainWindow : Window
                     TgWsToggleBtn.Content = CreateButtonContentWithIcon("PlayIcon", "Запустить", Brushes.White);
                 }
 
+                VetoService.CheckVetoProcess();
+                bool vetoOk = VetoService.IsRunning;
+                VetoDot2.Fill = vetoOk ? greenBrush : grayBrush;
+                VetoDot.Fill = vetoOk ? greenBrush : grayBrush;
+                VetoStatusLbl.Text = vetoOk ? "Запущен" : "Не запущен";
+                VetoStatusLbl.Foreground = vetoOk ? greenBrush : grayBrush;
+                if (vetoOk)
+                {
+                    VetoToggleBtn.Style = (Style)FindResource("RedAccentBtn");
+                    VetoToggleBtn.Content = "■  Закрыть";
+                }
+                else
+                {
+                    VetoToggleBtn.Style = (Style)FindResource("AccentBtn");
+                    VetoToggleBtn.Content = CreateButtonContentWithIcon("PlayIcon", "Запустить", Brushes.White);
+                }
+
                 if (netOk)
                 {
                     NetDot.Fill = greenBrush;
@@ -6130,37 +6221,108 @@ public partial class MainWindow : Window
 
     private async void BypassToggleBtn_Click(object sender, MouseButtonEventArgs e)
     {
+        AppendLog($"BypassToggle: _bypassOp={_bypassOperationInProgress}, EnableZapret={_settings.EnableZapret}, version={_settings.ZapretVersion}", "info");
+
+        if (_bypassOperationInProgress) return;
+
         var st = DiagnosticsEngine.CheckAppStatus();
         bool zapretRunning = _settings.ZapretVersion == ZapretVersion.V2 ? st.Zapret2Running : st.ZapretRunning;
         bool tgwsRunning = st.TgWsProxyRunning;
-        bool anythingRunning = zapretRunning || tgwsRunning;
+        bool vetoRunning = VetoService.IsRunning;
+        bool anythingRunning = (zapretRunning && _settings.BypassZapret)
+                            || (tgwsRunning && _settings.BypassTgWs)
+                            || (vetoRunning && _settings.BypassVeto);
+
+        AppendLog($"BypassToggle: zapret={zapretRunning}, tgws={tgwsRunning}, veto={vetoRunning}, anything={anythingRunning}, forceStart={_forceStartNext}", "info");
+
+        if (_forceStartNext)
+        {
+            _forceStartNext = false;
+            AppendLog("Принудительный старт после рубильника.", "info");
+            anythingRunning = false;
+        }
 
         if (anythingRunning)
         {
-            AppendLog("Останавливаю все службы...", "info");
+            _bypassOperationInProgress = true;
+            BypassToggleBtn.IsEnabled = false;
+            KillAllBtn.IsEnabled = false;
+            BypassBtnLine1.Text = "Стоп";
+            BypassBtnLine2.Text = "zapret";
 
-            if (_settings.ZapretVersion == ZapretVersion.V2)
-                await StopZapretV2Async();
-            else
-                StopAllZapret();
+            AnimateProgressBar(20, Color.FromRgb(251, 191, 36), "Остановка zapret...", 0.3);
+            AppendLog("Останавливаю выбранные службы...", "info");
 
-            try { foreach (var p in Process.GetProcessesByName("tgwsproxy")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
+            if (_settings.BypassZapret)
+            {
+                if (_settings.ZapretVersion == ZapretVersion.V2)
+                    await StopZapretV2Async();
+                else
+                    StopAllZapret();
+                await Task.Delay(200);
+            }
 
-            await Task.Delay(500);
+            if (_settings.BypassTgWs)
+            {
+                BypassBtnLine2.Text = "tg-ws";
+                AnimateProgressBar(50, Color.FromRgb(251, 191, 36), "Остановка tg-ws-proxy...", 0.3);
+                try { foreach (var p in Process.GetProcessesByName("tgwsproxy")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
+                await Task.Delay(200);
+            }
+
+            if (_settings.BypassVeto && VetoService.IsRunning)
+            {
+                BypassBtnLine2.Text = "veto";
+                AnimateProgressBar(65, Color.FromRgb(251, 191, 36), "Остановка Veto...", 0.3);
+                VetoService.Stop();
+                await Task.Delay(200);
+            }
+
+            BypassBtnLine2.Text = "очистка";
+            AnimateProgressBar(80, Color.FromRgb(251, 191, 36), "Синхронизация...", 0.3);
+            await Task.Delay(200);
+
             _isConnected = false;
+            _bypassOperationInProgress = false;
+            BypassToggleBtn.IsEnabled = true;
+            KillAllBtn.IsEnabled = true;
             SetBypassBtnState(false);
             UpdateSidebarStatus();
+
+            AnimateProgressBar(100, Color.FromRgb(239, 68, 68), "Остановлено", 0.4);
+            await Task.Delay(800);
+            ResetProgressBar();
             AppendLog("Все службы остановлены.", "ok");
         }
         else
         {
+            bool zapretSelected = _settings.BypassZapret;
+            bool tgwsSelected = _settings.BypassTgWs;
+            bool vetoSelected = _settings.BypassVeto;
+
+            if ((zapretSelected && string.IsNullOrEmpty(_settings.ZapretPath) && string.IsNullOrEmpty(_settings.Zapret2Path))
+                || (tgwsSelected && string.IsNullOrEmpty(_settings.TgWsProxyPath))
+                || (vetoSelected && string.IsNullOrEmpty(Services.VetoService.GetVetoPath())))
+            {
+                AppendLog("Не настроены пути к выбранным компонентам. Откройте Настройки.", "warn");
+                return;
+            }
+
+            _bypassOperationInProgress = true;
+            BypassToggleBtn.IsEnabled = false;
+            KillAllBtn.IsEnabled = false;
+            BypassBtnLine1.Text = "Старт";
+            BypassBtnLine2.Text = "...";
+            AnimateProgressBar(10, Color.FromRgb(0, 255, 136), "Запуск служб...", 0.3);
             AppendLog("Запускаю службы...", "info");
             bool started = false;
 
-            if (_settings.EnableZapret)
+            if (_settings.BypassZapret)
             {
                 if (_settings.ZapretVersion == ZapretVersion.V2)
                 {
+                    BypassBtnLine2.Text = "zapret v2";
+                    AnimateProgressBar(30, Color.FromRgb(0, 255, 136), "Запуск zapret v2...", 0.3);
                     if (!string.IsNullOrEmpty(_settings.Zapret2Path) && File.Exists(_settings.Zapret2Path))
                     {
                         var cache = ZapretConfigService.LoadCache();
@@ -6201,24 +6363,31 @@ public partial class MainWindow : Window
                 }
                 else
                 {
+                    BypassBtnLine2.Text = "zapret v1";
+                    AnimateProgressBar(30, Color.FromRgb(0, 255, 136), "Запуск zapret v1...", 0.3);
                     if (!string.IsNullOrEmpty(_settings.ZapretPath) && File.Exists(_settings.ZapretPath))
                     {
                         var cache = ZapretConfigService.LoadCache();
                         var configName = cache?.GetCurrentConfig(false);
+                        AppendLog($"V1: ZapretPath={_settings.ZapretPath}, config={configName ?? "null"}", "info");
                         if (!string.IsNullOrEmpty(configName))
                         {
+                            AnimateProgressBar(50, Color.FromRgb(0, 255, 136), "Применение конфига...", 0.3);
                             bool success = await ZapretConfigService.ApplyConfigAsync(_settings.ZapretPath, configName, ZapretVersion.V1);
                             if (success) { started = true; AppendLog("Zapret V1 запущен", "ok"); }
                             else AppendLog("Ошибка запуска Zapret V1", "error");
                         }
                         else AppendLog("Нет активного конфига V1", "warn");
                     }
-                    else AppendLog("Путь к service.bat не найден", "warn");
+                    else AppendLog($"Путь к service.bat не найден: {_settings.ZapretPath}", "warn");
                 }
             }
+            else AppendLog("BypassZapret=false, пропуск Zapret", "warn");
 
-            if (_settings.EnableTgWsProxy && !string.IsNullOrEmpty(_settings.TgWsProxyPath) && File.Exists(_settings.TgWsProxyPath))
+            if (_settings.BypassTgWs && !string.IsNullOrEmpty(_settings.TgWsProxyPath) && File.Exists(_settings.TgWsProxyPath))
             {
+                BypassBtnLine2.Text = "tg-ws";
+                AnimateProgressBar(75, Color.FromRgb(0, 255, 136), "Запуск tg-ws-proxy...", 0.3);
                 try
                 {
                     var psi = new ProcessStartInfo(_settings.TgWsProxyPath) { UseShellExecute = true };
@@ -6229,28 +6398,58 @@ public partial class MainWindow : Window
                 catch (Exception ex) { AppendLog($"Ошибка tg-ws-proxy: {ex.Message}", "error"); }
             }
 
+            if (_settings.BypassVeto && _settings.VetoEnabled)
+            {
+                BypassBtnLine2.Text = "veto";
+                AnimateProgressBar(80, Color.FromRgb(0, 255, 136), "Запуск Veto...", 0.3);
+                bool vetoStarted = Services.VetoService.Start(BuildVetoArgs());
+                if (vetoStarted) { started = true; AppendLog("Veto Engine запущен", "ok"); }
+                else AppendLog("Ошибка запуска Veto", "error");
+            }
+
             if (started)
             {
+                AnimateProgressBar(90, Color.FromRgb(0, 255, 136), "Проверка...", 0.3);
                 await Task.Delay(500);
                 _isConnected = true;
+                AnimateProgressBar(100, Color.FromRgb(34, 197, 94), "Всё работает", 0.4);
                 SetBypassBtnState(true);
                 UpdateSidebarStatus();
             }
+            else
+            {
+                AnimateProgressBar(100, Color.FromRgb(239, 68, 68), "Ошибка", 0.4);
+                BypassBtnLine1.Text = "Bypass";
+                BypassBtnLine2.Text = "ВЫКЛ";
+                await Task.Delay(800);
+                ResetProgressBar();
+                AppendLog("Ни один компонент не был запущен.", "warn");
+            }
+
+            _bypassOperationInProgress = false;
+            BypassToggleBtn.IsEnabled = true;
+            KillAllBtn.IsEnabled = true;
         }
     }
 
-    private void KillAllBtn_Click(object s, MouseButtonEventArgs e)
+    private async void KillAllBtn_Click(object s, MouseButtonEventArgs e)
     {
-        AppendLog("Рубильник: полная остановка всех служб...", "warn");
+        KillAllBtn.IsEnabled = false;
+        BypassToggleBtn.IsEnabled = false;
+
+        KillBtnLine1.Text = "Рубильник...";
+
+        AnimateProgressBar(15, Color.FromRgb(251, 191, 36), "Остановка zapret...", 0.3);
+        AppendLog("Рубильник: полная остановка...", "warn");
 
         foreach (var p in Process.GetProcessesByName("winws")) try { p.Kill(); p.Dispose(); } catch { }
         foreach (var p in Process.GetProcessesByName("winws.exe")) try { p.Kill(); p.Dispose(); } catch { }
         foreach (var p in Process.GetProcessesByName("winws2")) try { p.Kill(); p.Dispose(); } catch { }
         foreach (var p in Process.GetProcessesByName("winws2.exe")) try { p.Kill(); p.Dispose(); } catch { }
         foreach (var p in Process.GetProcessesByName("nfqws2")) try { p.Kill(); p.Dispose(); } catch { }
-        foreach (var p in Process.GetProcessesByName("tgwsproxy")) try { p.Kill(); p.Dispose(); } catch { }
-        foreach (var p in Process.GetProcessesByName("TgWsProxy")) try { p.Kill(); p.Dispose(); } catch { }
+        await Task.Delay(200);
 
+        AnimateProgressBar(40, Color.FromRgb(251, 191, 36), "Остановка сервиса...", 0.3);
         try
         {
             var psi = new ProcessStartInfo("net", "stop zapret") { UseShellExecute = false, CreateNoWindow = true };
@@ -6258,11 +6457,36 @@ public partial class MainWindow : Window
             proc?.WaitForExit(3000);
         }
         catch { }
+        await Task.Delay(200);
+
+        AnimateProgressBar(65, Color.FromRgb(251, 191, 36), "Остановка tg-ws-proxy...", 0.3);
+        try { foreach (var p in Process.GetProcessesByName("tgwsproxy")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
+        try { foreach (var p in Process.GetProcessesByName("TgWsProxy")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
+        await Task.Delay(200);
+
+        AnimateProgressBar(75, Color.FromRgb(251, 191, 36), "Остановка Veto...", 0.3);
+        Services.VetoService.Stop();
+        try { foreach (var p in Process.GetProcessesByName("veto")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
+        await Task.Delay(200);
+
+        AnimateProgressBar(85, Color.FromRgb(251, 191, 36), "Синхронизация...", 0.3);
 
         _isConnected = false;
+        _bypassOperationInProgress = false;
+        _forceStartNext = true;
+
         SetBypassBtnState(false);
         UpdateSidebarStatus();
-        AppendLog("Все службы и процессы остановлены.", "ok");
+
+        AnimateProgressBar(100, Color.FromRgb(239, 68, 68), "Остановлено", 0.4);
+        await Task.Delay(800);
+        ResetProgressBar();
+
+        KillBtnLine1.Text = "Рубильник";
+        KillAllBtn.IsEnabled = true;
+        BypassToggleBtn.IsEnabled = true;
+
+        AppendLog("Все службы и процессы остановлены. Следующий старт — принудительный.", "ok");
     }
 
     private void UpdateSidebarStatus()
@@ -6286,6 +6510,7 @@ public partial class MainWindow : Window
             BypassBtnBg.Color = Color.FromRgb(0x00, 0x22, 0x11);
             BypassToggleBtn.BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, 0x00, 0xff, 0x88));
             BypassBtnIcon.Stroke = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88));
+            BypassBtnLine1.Text = "Bypass";
             BypassBtnLine1.Foreground = new SolidColorBrush(Color.FromRgb(0xe0, 0xe0, 0xe0));
             BypassBtnLine2.Text = "ВКЛ";
             BypassBtnLine2.Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88));
@@ -6295,15 +6520,68 @@ public partial class MainWindow : Window
             BypassBtnBg.Color = Color.FromRgb(0x08, 0x08, 0x0e);
             BypassToggleBtn.BorderBrush = new SolidColorBrush(Color.FromRgb(0x18, 0x18, 0x20));
             BypassBtnIcon.Stroke = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a));
+            BypassBtnLine1.Text = "Bypass";
             BypassBtnLine1.Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a));
             BypassBtnLine2.Text = "ВЫКЛ";
             BypassBtnLine2.Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a));
         }
     }
 
+    private void ResetProgressBar()
+    {
+        SetupProg.BeginAnimation(System.Windows.Controls.ProgressBar.ValueProperty, null);
+        SetupProg.BeginAnimation(System.Windows.Controls.ProgressBar.ForegroundProperty, null);
+        SetupProg.Value = 0;
+        SetupProg.Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a));
+        SetupProgLbl.Text = "";
+    }
+
+    private void BypassToggleBtn_MouseEnter(object s, MouseEventArgs e)
+    {
+        if (!BypassToggleBtn.IsEnabled) return;
+        var anim = new System.Windows.Media.Animation.DoubleAnimation(1.05, TimeSpan.FromMilliseconds(150))
+        { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut } };
+        BypassBtnScale.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
+        BypassBtnScale.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
+        if (BypassBtnBg.Color == Color.FromRgb(0x08, 0x08, 0x0e))
+            BypassToggleBtn.BorderBrush = new SolidColorBrush(Color.FromRgb(0x28, 0x28, 0x30));
+    }
+
+    private void BypassToggleBtn_MouseLeave(object s, MouseEventArgs e)
+    {
+        var anim = new System.Windows.Media.Animation.DoubleAnimation(1.0, TimeSpan.FromMilliseconds(150))
+        { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut } };
+        BypassBtnScale.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
+        BypassBtnScale.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
+        if (BypassBtnBg.Color == Color.FromRgb(0x08, 0x08, 0x0e))
+            BypassToggleBtn.BorderBrush = new SolidColorBrush(Color.FromRgb(0x18, 0x18, 0x20));
+    }
+
+    private void KillAllBtn_MouseEnter(object s, MouseEventArgs e)
+    {
+        if (!KillAllBtn.IsEnabled) return;
+        var anim = new System.Windows.Media.Animation.DoubleAnimation(1.05, TimeSpan.FromMilliseconds(150))
+        { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut } };
+        KillBtnScale.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
+        KillBtnScale.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
+        KillAllBtn.BorderBrush = new SolidColorBrush(Color.FromRgb(0xff, 0x44, 0x44));
+        KillBtnIcon.Stroke = new SolidColorBrush(Color.FromRgb(0xff, 0x44, 0x44));
+        KillBtnLine1.Foreground = new SolidColorBrush(Color.FromRgb(0xff, 0x44, 0x44));
+    }
+
+    private void KillAllBtn_MouseLeave(object s, MouseEventArgs e)
+    {
+        var anim = new System.Windows.Media.Animation.DoubleAnimation(1.0, TimeSpan.FromMilliseconds(150))
+        { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut } };
+        KillBtnScale.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
+        KillBtnScale.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
+        KillAllBtn.BorderBrush = new SolidColorBrush(Color.FromRgb(0x18, 0x18, 0x20));
+        KillBtnIcon.Stroke = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a));
+        KillBtnLine1.Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a));
+    }
+
     private async void FixBtn_Click(object s, RoutedEventArgs e)
     {
-        // Toggle: if already connected — stop everything
         if (_isConnected)
         {
             StopAllZapret();
@@ -7484,6 +7762,7 @@ public partial class MainWindow : Window
                 case "Backup":    content = SectionBackupContent;    arrow = SectionBackupArrow;    break;
                 case "Reset":     content = SectionResetContent;     arrow = SectionResetArrow;     break;
                 case "Games":     content = SectionGamesContent;     arrow = SectionGamesArrow;     break;
+                case "Veto":      content = SectionVetoContent;      arrow = SectionVetoArrow;      break;
             }
 
             if (content != null && arrow != null)
@@ -7553,6 +7832,20 @@ public partial class MainWindow : Window
             VolumePercent.Text = $"{(int)(_settings.GameVolume * 100)}%";
         RememberSizeCB.IsChecked = _settings.RememberWindowSize;
         ForceNetOkCB.IsChecked = _settings.ForceNetworkOk;
+        
+        VetoEnabledCB.IsChecked = _settings.VetoEnabled;
+        VetoAutostartCB.IsChecked = _settings.VetoAutostart;
+        VetoLuaScriptBox.Text = _settings.VetoLuaScript;        
+        for (int i = 0; i < VetoAttackModeCombo.Items.Count; i++)
+        {
+            if (VetoAttackModeCombo.Items[i] is ComboBoxItem item && 
+                item.Tag?.ToString() == _settings.VetoAttackMode)
+            {
+                VetoAttackModeCombo.SelectedIndex = i;
+                break;
+            }
+        }
+
         LoadKeyLabels();
         InitGameServicesCheckboxes();
         UpdateVersionBadge();
@@ -7745,6 +8038,186 @@ public partial class MainWindow : Window
     private void SettingCB_Checked(object sender, RoutedEventArgs e) { if (_settingsLoaded) AutoSaveSettings(); }
     private void SettingCB_Unchecked(object sender, RoutedEventArgs e) { if (_settingsLoaded) AutoSaveSettings(); }
 
+    private void VetoSettingCB_Checked(object sender, RoutedEventArgs e) { if (_settingsLoaded) AutoSaveVetoSettings(); }
+    private void VetoSettingCB_Unchecked(object sender, RoutedEventArgs e) { if (_settingsLoaded) AutoSaveVetoSettings(); }
+
+    private void VetoAttackMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_settingsLoaded) AutoSaveVetoSettings();
+    }
+
+    private void VetoLuaScriptBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_settingsLoaded) AutoSaveVetoSettings();
+    }
+
+    private void AutoSaveVetoSettings()
+    {
+        _settings.VetoEnabled = VetoEnabledCB.IsChecked == true;
+        _settings.VetoAutostart = VetoAutostartCB.IsChecked == true;
+        _settings.VetoLuaScript = VetoLuaScriptBox.Text;
+        _settings.VetoUdp = VetoUdpCB.IsChecked == true;
+        
+        if (VetoAttackModeCombo.SelectedItem is ComboBoxItem selectedMode)
+        {
+            _settings.VetoAttackMode = selectedMode.Tag?.ToString() ?? "fake";
+        }
+        
+        SettingsService.Save(_settings);
+    }
+
+    private void BrowseVetoLua_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = "Lua scripts (*.lua)|*.lua|All files (*.*)|*.*",
+            Title = "Выберите Lua скрипт для Veto"
+        };
+        if (dlg.ShowDialog() == true)
+        {
+            VetoLuaScriptBox.Text = dlg.FileName;
+        }
+    }
+
+    private string BuildVetoArgs()
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrEmpty(_settings.VetoLuaScript))
+            parts.Add($"--lua \"{_settings.VetoLuaScript}\"");
+        if (!string.IsNullOrEmpty(_settings.VetoAttackMode))
+            parts.Add($"--attack {_settings.VetoAttackMode}");
+        if (!string.IsNullOrEmpty(_settings.VetoHostlistPath) && File.Exists(_settings.VetoHostlistPath))
+            parts.Add($"--hostlist \"{_settings.VetoHostlistPath}\"");
+        if (_settings.VetoUdp)
+            parts.Add("--udp");
+        return string.Join(" ", parts);
+    }
+
+    private async void VetoAutotune_Click(object sender, RoutedEventArgs e)
+    {
+        string vetoPath = Services.VetoService.GetVetoPath();
+        if (string.IsNullOrEmpty(vetoPath) || !File.Exists(vetoPath))
+        {
+            VetoAutotuneResult.Text = "veto.exe не найден";
+            VetoAutotuneResult.Visibility = Visibility.Visible;
+            return;
+        }
+
+        VetoAutotuneResult.Text = "Автоподбор стратегии...";
+        VetoAutotuneResult.Visibility = Visibility.Visible;
+        VetoAutotuneBtn.IsEnabled = false;
+
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = vetoPath,
+                Arguments = "--autotune",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                WorkingDirectory = Path.GetDirectoryName(vetoPath)
+            };
+
+            using var proc = Process.Start(psi);
+            string stdout = await proc.StandardOutput.ReadToEndAsync();
+            string stderr = await proc.StandardError.ReadToEndAsync();
+            await proc.WaitForExitAsync();
+
+            string output = stdout + stderr;
+
+            var strategyMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["fake_ttl4"]  = "fake",
+                ["split_6"]    = "split",
+                ["disorder_1_6"] = "disorder",
+                ["fake_ttl2"]  = "fake",
+                ["split_12"]   = "split",
+                ["ipfrag_64"]  = "ipfrag",
+                ["rst"]        = "rst"
+            };
+
+            string recommended = null;
+            foreach (var line in output.Split('\n'))
+            {
+                if (line.Contains("Recommended:", StringComparison.OrdinalIgnoreCase))
+                {
+                    var parts = line.Split(':');
+                    if (parts.Length >= 2)
+                        recommended = parts[1].Trim();
+                    break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(recommended))
+            {
+                VetoAutotuneResult.Text = "Не удалось определить стратегию";
+                VetoAutotuneResult.Foreground = new SolidColorBrush(Color.FromRgb(0xff, 0x66, 0x66));
+                return;
+            }
+
+            string attackType = strategyMap.TryGetValue(recommended, out var mapped) ? mapped : "fake";
+            _settings.VetoAttackMode = attackType;
+            SettingsService.Save(_settings);
+
+            // Update combo box
+            foreach (ComboBoxItem item in VetoAttackModeCombo.Items)
+            {
+                if (item.Tag?.ToString() == attackType)
+                {
+                    VetoAttackModeCombo.SelectedItem = item;
+                    break;
+                }
+            }
+
+            // Restart Veto with new strategy if running
+            if (Services.VetoService.IsRunning)
+            {
+                Services.VetoService.Stop();
+                await Task.Delay(500);
+                Services.VetoService.Start(BuildVetoArgs());
+                await Task.Delay(1000);
+                UpdateVetoStatus();
+            }
+
+            VetoAutotuneResult.Text = $"Рекомендовано: {recommended} → {attackType}";
+            VetoAutotuneResult.Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xc5, 0x5e));
+            AppendLog($"[Veto] Autotune: {recommended} → attack={attackType}", "ok");
+        }
+        catch (Exception ex)
+        {
+            VetoAutotuneResult.Text = $"Ошибка: {ex.Message}";
+            VetoAutotuneResult.Foreground = new SolidColorBrush(Color.FromRgb(0xff, 0x66, 0x66));
+            AppendLog($"[Veto] Autotune error: {ex.Message}", "error");
+        }
+        finally
+        {
+            VetoAutotuneBtn.IsEnabled = true;
+        }
+    }
+
+    private void VetoHostlistBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var window = new ZapretHub.Views.VetoHostlistWindow(_settings.VetoHostlistPath)
+        {
+            Owner = this
+        };
+        if (window.ShowDialog() == true)
+        {
+            _settings.VetoHostlistPath = window.SelectedHostlistPath ?? "";
+            SettingsService.Save(_settings);
+            if (VetoService.IsRunning)
+            {
+                VetoService.Stop();
+                string args = BuildVetoArgs();
+                VetoService.Start(args);
+                UpdateVetoStatus();
+            }
+            AppendLog($"[Veto] Активный hostlist: {_settings.VetoHostlistPath}", "info");
+        }
+    }
+
     private void TgWsSetting_Checked(object sender, RoutedEventArgs e)
     {
         if (!_settingsLoaded) return;
@@ -7925,6 +8398,10 @@ public partial class MainWindow : Window
         var isV2 = _settings.ZapretVersion == ZapretVersion.V2;
         ZapretV1Option.Background = new SolidColorBrush(isV2 ? Color.FromRgb(8, 8, 14) : Color.FromRgb(10, 26, 18));
         ZapretV2Option.Background = new SolidColorBrush(isV2 ? Color.FromRgb(10, 26, 18) : Color.FromRgb(8, 8, 14));
+        ZapretV1Dot.Fill = new SolidColorBrush(isV2 ? Color.FromRgb(0x5a, 0x6a, 0x7a) : Color.FromRgb(0x00, 0xff, 0x88));
+        ZapretV2Dot.Fill = new SolidColorBrush(isV2 ? Color.FromRgb(0x00, 0xff, 0x88) : Color.FromRgb(0x5a, 0x6a, 0x7a));
+        ZapretV1Lbl.Foreground = new SolidColorBrush(isV2 ? Color.FromRgb(0x5a, 0x6a, 0x7a) : Color.FromRgb(0xe0, 0xe0, 0xe0));
+        ZapretV2Lbl.Foreground = new SolidColorBrush(isV2 ? Color.FromRgb(0xe0, 0xe0, 0xe0) : Color.FromRgb(0x5a, 0x6a, 0x7a));
     }
 
     private void ReOnboard_Click(object s, RoutedEventArgs e)

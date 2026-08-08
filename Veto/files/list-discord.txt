@@ -1,0 +1,11 @@
+﻿# Discord
+discord.com
+discord.gg
+discordapp.com
+discord.media
+discordapp.net
+cdn.discordapp.com
+media.discordapp.net
+gateway.discord.gg
+remote-auth-gateway.discord.gg
+status.discord.com

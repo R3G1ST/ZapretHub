@@ -1,0 +1,9 @@
+LIBRARY WinDivert
+EXPORTS
+    WinDivertOpen
+    WinDivertClose
+    WinDivertRecv
+    WinDivertSend
+    WinDivertShutdown
+    WinDivertSetParam
+    WinDivertGetParam

@@ -1,0 +1,13 @@
+*.o
+*.a
+*.tmp
+*.zip
+*.exe
+obj/
+build/
+*.log
+lib/temp/
+lib/*.dll
+lib/*.lib
+lib/*.sys
+bin/
