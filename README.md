@@ -2,28 +2,44 @@
 
 <h1>ZapretHub</h1>
 
-<p><b>GUI менеджер Zapret и tg-ws-proxy для обхода блокировок</b></p>
+<p><b>GUI менеджер для обхода DPI-блокировок</b></p>
 
 [![License](https://img.shields.io/badge/лицензия-GPL_3.0-blue?style=flat-square)](LICENSE)
+[![Version](https://img.shields.io/badge/версия-1.8.20-green?style=flat-square)](https://github.com/R3G1ST/ZapretHub/releases/latest)
 
 </div>
 
 ---
 
-## О проекте
-
-**ZapretHub** — это GUI приложение для управления [zapret-discord-youtube](https://github.com/Flowseal/zapret-discord-youtube) и [tg-ws-proxy](https://github.com/Flowseal/tg-ws-proxy). Позволяет обходить блокировки сайтов и сервисов на Windows без VPN.
-
-Возможности:
-- Автоматическая диагностика и настройка Zapret
-- Управление стратегиями обхода (.bat файлы)
-- Управление списками доменов
-- Импорт/экспорт модов (.zip)
-- Создание модов из .bat файлов
-- Автообновление компонентов
-- Трей-иконка и автозапуск
+<p align="center">
+  <a href="#-rus">Русский</a> • <a href="#-english">English</a>
+</p>
 
 ---
+
+# 🇷🇺 Русский
+
+## О проекте
+
+**ZapretHub** — это GUI приложение для управления DPI-обходом на Windows. Поддерживает 4 компонента:
+
+| Компонент | Описание | Репозиторий |
+|-----------|----------|-------------|
+| **Zapret** | Основной DPI bypass | [Flowseal/zapret-discord-youtube](https://github.com/Flowseal/zapret-discord-youtube) |
+| **Zapret 2** | Расширенная версия | [bol-van/zapret2](https://github.com/bol-van/zapret2) |
+| **TgWsProxy** | WebSocket прокси | [Flowseal/tg-ws-proxy](https://github.com/Flowseal/tg-ws-proxy) |
+| **Veto** | Собственный DPI движок | [R3G1ST/Veto](https://github.com/R3G1ST/Veto) |
+
+## Возможности
+
+- Автоматическая диагностика и настройка
+- Управление стратегиями обхода (.bat файлы)
+- Управление списками доменов (835+ доменов, 10 категорий)
+- Импорт/экспорт модов (.zip)
+- Проверка обновлений через GitHub API
+- Трей-иконка и автозапуск
+- Discord Rich Presence
+- Встроенная диагностика Telegram, Discord, DNS, DPI
 
 ## Скачивание
 
@@ -33,50 +49,64 @@
 
 - Windows 10/11 (x64)
 - Запуск от имени администратора
-- [.NET Desktop Runtime 8.0](https://dotnet.microsoft.com/download/dotnet/8.0)
-
----
-
-## Как это работает
-
-1. Запустите приложение от имени администратора
-2. Нажмите кнопку запуска — программа проверит и настроит компоненты
-3. Заблокированные сайты станут доступны
-
----
 
 ## Сборка
 
 ```bash
-git clone https://github.com/R3G1ST/ZapretHub.git
+dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
 ```
-
-1. Откройте `ZapretHub.sln` в Visual Studio
-2. Нажмите **Сборка → Собрать решение**
-
-### Компоненты
-
-Сторонние компоненты (Zapret, TgWsProxy) скачиваются автоматически из официальных репозиториев:
-- [Flowseal/zapret-discord-youtube](https://github.com/Flowseal/zapret-discord-youtube)
-- [Flowseal/tg-ws-proxy](https://github.com/Flowseal/tg-ws-proxy)
-
----
-
-## Авторы компонентов
-
-- **Zapret** — [Flowseal](https://github.com/Flowseal)
-- **tg-ws-proxy** — [Flowseal](https://github.com/Flowseal)
-
----
 
 ## Лицензия
 
-Проект распространяется под лицензией [GPL-3.0](LICENSE).
-
-**Отказ от ответственности:** Программа предоставляется «как есть». Используя ZapretHub, вы подтверждаете, что делаете это на свой страх и риск.
+GPL-3.0
 
 ---
 
-<div align="center">
-  <sub>v1.1.8 · 2026</sub>
-</div>
+# 🇬🇧 English
+
+## About
+
+**ZapretHub** is a GUI manager for DPI bypass on Windows. Supports 4 components:
+
+| Component | Description | Repository |
+|-----------|-------------|------------|
+| **Zapret** | Main DPI bypass | [Flowseal/zapret-discord-youtube](https://github.com/Flowseal/zapret-discord-youtube) |
+| **Zapret 2** | Extended version | [bol-van/zapret2](https://github.com/bol-van/zapret2) |
+| **TgWsProxy** | WebSocket proxy | [Flowseal/tg-ws-proxy](https://github.com/Flowseal/tg-ws-proxy) |
+| **Veto** | Custom DPI engine | [R3G1ST/Veto](https://github.com/R3G1ST/Veto) |
+
+## Features
+
+- Automatic diagnostics and setup
+- Bypass strategy management (.bat files)
+- Domain list management (835+ domains, 10 categories)
+- Mod import/export (.zip)
+- Update checking via GitHub API
+- System tray and autostart
+- Discord Rich Presence
+- Built-in diagnostics for Telegram, Discord, DNS, DPI
+
+## Download
+
+Download the latest version from [GitHub Releases](https://github.com/R3G1ST/ZapretHub/releases/latest).
+
+### System Requirements
+
+- Windows 10/11 (x64)
+- Run as administrator
+
+## Building
+
+```bash
+dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
+```
+
+## License
+
+GPL-3.0
+
+---
+
+<p align="center">
+  <sub>Made by <a href="https://github.com/R3G1ST">R3G1ST</a></sub>
+</p>
