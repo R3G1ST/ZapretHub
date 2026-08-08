@@ -14,6 +14,7 @@ public static class AutoDownloadService
     private const string ZapretRepo = "Flowseal/zapret-discord-youtube";
     private const string Zapret2Repo = "bol-van/zapret2";
     private const string TgWsProxyRepo = "Flowseal/tg-ws-proxy";
+    private const string VetoRepo = "R3G1ST/Veto";
     private static readonly string InstallDir = @"C:\Zapret";
 
     private static readonly string[] ProtectedListFiles =

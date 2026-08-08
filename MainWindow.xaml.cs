@@ -3232,9 +3232,17 @@ public partial class MainWindow : Window
             ZapretVersionText.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
             ZapretVersionIcon.Visibility = Visibility.Collapsed;
 
+            Zapret2VersionText.Text = "...";
+            Zapret2VersionText.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+            Zapret2VersionIcon.Visibility = Visibility.Collapsed;
+
             TgWsProxyVersionText.Text = "...";
             TgWsProxyVersionText.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
             TgWsProxyVersionIcon.Visibility = Visibility.Collapsed;
+
+            VetoVersionText.Text = "...";
+            VetoVersionText.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+            VetoVersionIcon.Visibility = Visibility.Collapsed;
 
             var versionInfo = await GetDetailedVersionInfoAsync();
 
@@ -3275,6 +3283,28 @@ public partial class MainWindow : Window
                 ZapretVersionIcon.Visibility = Visibility.Collapsed;
             }
 
+            if (!string.IsNullOrEmpty(versionInfo.zapret2Current))
+            {
+                if (versionInfo.zapret2NeedsUpdate && !string.IsNullOrEmpty(versionInfo.zapret2Latest))
+                {
+                    Zapret2VersionText.Text = $"{versionInfo.zapret2Current} → {versionInfo.zapret2Latest}";
+                    Zapret2VersionText.Foreground = new SolidColorBrush(Color.FromRgb(0xea, 0xb3, 0x08));
+                    Zapret2VersionIcon.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    Zapret2VersionText.Text = versionInfo.zapret2Current;
+                    Zapret2VersionText.Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xc5, 0x5e));
+                    Zapret2VersionIcon.Visibility = Visibility.Visible;
+                }
+            }
+            else
+            {
+                Zapret2VersionText.Text = "Не установлен";
+                Zapret2VersionText.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+                Zapret2VersionIcon.Visibility = Visibility.Collapsed;
+            }
+
             if (!string.IsNullOrEmpty(versionInfo.tgWsProxyCurrent))
             {
                 if (versionInfo.tgWsProxyNeedsUpdate && !string.IsNullOrEmpty(versionInfo.tgWsProxyLatest))
@@ -3296,6 +3326,28 @@ public partial class MainWindow : Window
                 TgWsProxyVersionText.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
                 TgWsProxyVersionIcon.Visibility = Visibility.Collapsed;
             }
+
+            if (!string.IsNullOrEmpty(versionInfo.vetoCurrent))
+            {
+                if (versionInfo.vetoNeedsUpdate && !string.IsNullOrEmpty(versionInfo.vetoLatest))
+                {
+                    VetoVersionText.Text = $"{versionInfo.vetoCurrent} → {versionInfo.vetoLatest}";
+                    VetoVersionText.Foreground = new SolidColorBrush(Color.FromRgb(0xea, 0xb3, 0x08));
+                    VetoVersionIcon.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    VetoVersionText.Text = versionInfo.vetoCurrent;
+                    VetoVersionText.Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xc5, 0x5e));
+                    VetoVersionIcon.Visibility = Visibility.Visible;
+                }
+            }
+            else
+            {
+                VetoVersionText.Text = "Не установлен";
+                VetoVersionText.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+                VetoVersionIcon.Visibility = Visibility.Collapsed;
+            }
         }
         catch (Exception ex)
         {
@@ -3308,26 +3360,45 @@ public partial class MainWindow : Window
             ZapretVersionText.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
             ZapretVersionIcon.Visibility = Visibility.Collapsed;
 
+            Zapret2VersionText.Text = "—";
+            Zapret2VersionText.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+            Zapret2VersionIcon.Visibility = Visibility.Collapsed;
+
             TgWsProxyVersionText.Text = "—";
             TgWsProxyVersionText.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
             TgWsProxyVersionIcon.Visibility = Visibility.Collapsed;
+
+            VetoVersionText.Text = "—";
+            VetoVersionText.Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+            VetoVersionIcon.Visibility = Visibility.Collapsed;
         }
     }
 
-    private async Task<(bool allUpToDate, bool zapretNeedsUpdate, bool tgWsProxyNeedsUpdate,
-                        string zapretCurrent, string zapretLatest, string tgWsProxyCurrent, string tgWsProxyLatest)>
+    private async Task<(bool allUpToDate, bool zapretNeedsUpdate, bool zapret2NeedsUpdate, bool tgWsProxyNeedsUpdate, bool vetoNeedsUpdate,
+                        string zapretCurrent, string zapretLatest, string zapret2Current, string zapret2Latest,
+                        string tgWsProxyCurrent, string tgWsProxyLatest, string vetoCurrent, string vetoLatest)>
         GetDetailedVersionInfoAsync()
     {
         bool zapretInstalled = !string.IsNullOrEmpty(_settings.ZapretPath) && File.Exists(_settings.ZapretPath);
+        bool zapret2Installed = !string.IsNullOrEmpty(_settings.Zapret2Path) && File.Exists(_settings.Zapret2Path);
         bool tgWsProxyInstalled = !string.IsNullOrEmpty(_settings.TgWsProxyPath) && File.Exists(_settings.TgWsProxyPath);
+        bool vetoInstalled = !string.IsNullOrEmpty(Services.VetoService.GetVetoPath());
 
         string zapretCurrent = "";
         string zapretLatest = "";
         bool zapretNeedsUpdate = false;
 
+        string zapret2Current = "";
+        string zapret2Latest = "";
+        bool zapret2NeedsUpdate = false;
+
         string tgWsProxyCurrent = "";
         string tgWsProxyLatest = "";
         bool tgWsProxyNeedsUpdate = false;
+
+        string vetoCurrent = "";
+        string vetoLatest = "";
+        bool vetoNeedsUpdate = false;
 
         if (zapretInstalled)
         {
@@ -3337,6 +3408,17 @@ public partial class MainWindow : Window
             if (!string.IsNullOrEmpty(zapretLatest) && !string.IsNullOrEmpty(zapretCurrent))
             {
                 zapretNeedsUpdate = IsNewerVersion(zapretLatest, zapretCurrent);
+            }
+        }
+
+        if (zapret2Installed)
+        {
+            zapret2Current = GetInstalledZapret2Version(_settings.Zapret2Path) ?? "";
+            zapret2Latest = await GetLatestGitHubVersionAsync("bol-van/zapret2") ?? "";
+
+            if (!string.IsNullOrEmpty(zapret2Latest) && !string.IsNullOrEmpty(zapret2Current))
+            {
+                zapret2NeedsUpdate = IsNewerVersion(zapret2Latest, zapret2Current);
             }
         }
 
@@ -3351,10 +3433,17 @@ public partial class MainWindow : Window
             }
         }
 
-        bool allUpToDate = !zapretNeedsUpdate && !tgWsProxyNeedsUpdate && (zapretInstalled || tgWsProxyInstalled);
+        if (vetoInstalled)
+        {
+            vetoCurrent = GetInstalledVetoVersion() ?? "";
+        }
 
-        return (allUpToDate, zapretNeedsUpdate, tgWsProxyNeedsUpdate,
-                zapretCurrent, zapretLatest, tgWsProxyCurrent, tgWsProxyLatest);
+        bool allUpToDate = !zapretNeedsUpdate && !zapret2NeedsUpdate && !tgWsProxyNeedsUpdate && !vetoNeedsUpdate
+                           && (zapretInstalled || zapret2Installed || tgWsProxyInstalled || vetoInstalled);
+
+        return (allUpToDate, zapretNeedsUpdate, zapret2NeedsUpdate, tgWsProxyNeedsUpdate, vetoNeedsUpdate,
+                zapretCurrent, zapretLatest, zapret2Current, zapret2Latest,
+                tgWsProxyCurrent, tgWsProxyLatest, vetoCurrent, vetoLatest);
     }
 
     private string? GetInstalledZapretVersion(string serviceBatPath)
@@ -3397,6 +3486,82 @@ public partial class MainWindow : Window
                 }
                 catch { }
             }
+
+            return "установлен";
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private string? GetInstalledZapret2Version(string exePath)
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(exePath);
+            if (string.IsNullOrEmpty(dir))
+                return null;
+
+            var versionFile = Path.Combine(dir, "zapret2_version.txt");
+            if (File.Exists(versionFile))
+            {
+                var version = File.ReadAllText(versionFile).Trim();
+                if (!string.IsNullOrEmpty(version))
+                    return version;
+            }
+
+            var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(exePath);
+            if (!string.IsNullOrEmpty(versionInfo.ProductVersion))
+            {
+                return versionInfo.ProductVersion.Trim();
+            }
+
+            if (!string.IsNullOrEmpty(versionInfo.FileVersion))
+            {
+                return versionInfo.FileVersion.Trim();
+            }
+
+            return "установлен";
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private string? GetInstalledVetoVersion()
+    {
+        try
+        {
+            string vetoPath = Services.VetoService.GetVetoPath();
+            if (string.IsNullOrEmpty(vetoPath))
+                return null;
+
+            var dir = Path.GetDirectoryName(vetoPath);
+            if (string.IsNullOrEmpty(dir))
+                return null;
+
+            var versionFile = Path.Combine(dir, "veto_version.txt");
+            if (File.Exists(versionFile))
+            {
+                var version = File.ReadAllText(versionFile).Trim();
+                if (!string.IsNullOrEmpty(version))
+                    return version;
+            }
+
+            var cmakeLists = Path.Combine(dir, "..", "CMakeLists.txt");
+            if (File.Exists(cmakeLists))
+            {
+                var content = File.ReadAllText(cmakeLists);
+                var match = System.Text.RegularExpressions.Regex.Match(content, @"project\(Veto\s+VERSION\s+([0-9.]+)");
+                if (match.Success)
+                    return match.Groups[1].Value;
+            }
+
+            var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(vetoPath);
+            if (!string.IsNullOrEmpty(versionInfo.ProductVersion))
+                return versionInfo.ProductVersion.Trim();
 
             return "установлен";
         }
@@ -3526,6 +3691,28 @@ public partial class MainWindow : Window
                 }
             }
 
+            if (!string.IsNullOrEmpty(_settings.Zapret2Path) && File.Exists(_settings.Zapret2Path))
+            {
+                var zapret2Dir = Path.GetDirectoryName(_settings.Zapret2Path);
+                if (!string.IsNullOrEmpty(zapret2Dir))
+                {
+                    var versionFile = Path.Combine(zapret2Dir, "zapret2_version.txt");
+
+                    if (!File.Exists(versionFile))
+                    {
+                        try
+                        {
+                            var latestVersion = await GetLatestGitHubVersionAsync("bol-van/zapret2");
+                            if (!string.IsNullOrEmpty(latestVersion))
+                            {
+                                File.WriteAllText(versionFile, latestVersion);
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+
             if (!string.IsNullOrEmpty(_settings.TgWsProxyPath) && File.Exists(_settings.TgWsProxyPath))
             {
                 var tgWsDir = Path.GetDirectoryName(_settings.TgWsProxyPath);
@@ -3560,6 +3747,34 @@ public partial class MainWindow : Window
                             {
                                 File.WriteAllText(versionFile, version);
 
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+
+            string vetoPath = Services.VetoService.GetVetoPath();
+            if (!string.IsNullOrEmpty(vetoPath))
+            {
+                var vetoDir = Path.GetDirectoryName(vetoPath);
+                if (!string.IsNullOrEmpty(vetoDir))
+                {
+                    var versionFile = Path.Combine(vetoDir, "veto_version.txt");
+
+                    if (!File.Exists(versionFile))
+                    {
+                        try
+                        {
+                            var cmakeLists = Path.Combine(vetoDir, "..", "CMakeLists.txt");
+                            if (File.Exists(cmakeLists))
+                            {
+                                var content = File.ReadAllText(cmakeLists);
+                                var match = System.Text.RegularExpressions.Regex.Match(content, @"project\(Veto\s+VERSION\s+([0-9.]+)");
+                                if (match.Success)
+                                {
+                                    File.WriteAllText(versionFile, match.Groups[1].Value);
+                                }
                             }
                         }
                         catch { }
@@ -7422,7 +7637,7 @@ public partial class MainWindow : Window
 
     private void SetupIndicatorTooltips()
     {
-        IndicatorsTooltipText.Text = "Сеть: проверка...\nVPN: проверка...\nZapret: проверка...\nTgWsProxy: проверка...";
+        IndicatorsTooltipText.Text = "Сеть: проверка...\nVPN: проверка...\nZapret: проверка...\nZapret 2: проверка...\nTgWsProxy: проверка...\nVeto: проверка...";
         IndicatorsPanel.MouseEnter += (_, _) =>
         {
             _popupCloseTimer?.Stop();
@@ -7449,8 +7664,10 @@ public partial class MainWindow : Window
         var net = NetDot.Fill is SolidColorBrush scb && scb.Color.G > 100 ? "OK" : "Ошибка";
         var vpn = VpnDot.Fill is SolidColorBrush scb2 && scb2.Color.G > 100 ? "OK" : "Выкл";
         var zapret = ZapretDot.Fill is SolidColorBrush scb3 && scb3.Color.G > 100 ? "Запущен" : "Остановлен";
+        var zapret2 = Zapret2Dot.Fill is SolidColorBrush scb5 && scb5.Color.G > 100 ? "Запущен" : "Остановлен";
         var tgws = TgWsDot.Fill is SolidColorBrush scb4 && scb4.Color.G > 100 ? "Запущен" : "Остановлен";
-        return $"Сеть: {net}\nVPN: {vpn}\nZapret: {zapret}\nTgWsProxy: {tgws}";
+        var veto = VetoDot.Fill is SolidColorBrush scb6 && scb6.Color.G > 100 ? "Запущен" : "Остановлен";
+        return $"Сеть: {net}\nVPN: {vpn}\nZapret: {zapret}\nZapret 2: {zapret2}\nTgWsProxy: {tgws}\nVeto: {veto}";
     }
 
     private void SetConnectedFromStatus()

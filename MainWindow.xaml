@@ -5847,6 +5847,25 @@
                                                       Visibility="Collapsed"/>
                                             </StackPanel>
                                         </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                            <TextBlock Text="Zapret 2: " 
+                                                       FontFamily="Cascadia Code, Consolas, monospace" FontSize="13"
+                                                       Foreground="#e0e0e0"
+                                                       VerticalAlignment="Center"/>
+                                            <StackPanel x:Name="Zapret2VersionPanel" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock x:Name="Zapret2VersionText"
+                                                           FontFamily="Cascadia Code, Consolas, monospace" FontSize="13"
+                                                           VerticalAlignment="Center"/>
+                                                <Path x:Name="Zapret2VersionIcon"
+                                                      Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                                                      Fill="#00ff88"
+                                                      Width="14" Height="14"
+                                                      Stretch="Uniform"
+                                                      Margin="6,0,0,0"
+                                                      VerticalAlignment="Center"
+                                                      Visibility="Collapsed"/>
+                                            </StackPanel>
+                                        </StackPanel>
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
                                             <TextBlock Text="TgWsProxy: " 
                                                        FontFamily="Cascadia Code, Consolas, monospace" FontSize="13"
@@ -5857,6 +5876,25 @@
                                                            FontFamily="Cascadia Code, Consolas, monospace" FontSize="13"
                                                            VerticalAlignment="Center"/>
                                                 <Path x:Name="TgWsProxyVersionIcon"
+                                                      Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                                                      Fill="#00ff88"
+                                                      Width="14" Height="14"
+                                                      Stretch="Uniform"
+                                                      Margin="6,0,0,0"
+                                                      VerticalAlignment="Center"
+                                                      Visibility="Collapsed"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
+                                            <TextBlock Text="Veto: " 
+                                                       FontFamily="Cascadia Code, Consolas, monospace" FontSize="13"
+                                                       Foreground="#e0e0e0"
+                                                       VerticalAlignment="Center"/>
+                                            <StackPanel x:Name="VetoVersionPanel" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock x:Name="VetoVersionText"
+                                                           FontFamily="Cascadia Code, Consolas, monospace" FontSize="13"
+                                                           VerticalAlignment="Center"/>
+                                                <Path x:Name="VetoVersionIcon"
                                                       Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
                                                       Fill="#00ff88"
                                                       Width="14" Height="14"

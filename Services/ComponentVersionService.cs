@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -11,22 +12,28 @@ namespace ZapretHub.Services;
 public static class ComponentVersionService
 {
     private const string ZapretRepo = "Flowseal/zapret-discord-youtube";
+    private const string Zapret2Repo = "bol-van/zapret2";
     private const string TgWsProxyRepo = "Flowseal/tg-ws-proxy";
+    private const string VetoRepo = "R3G1ST/Veto";
 
     public static async Task<(bool needsUpdate, string reason)> CheckIfUpdateNeededAsync(AppSettings settings)
     {
         try
         {
             bool zapretCheck = settings.EnableZapret && !string.IsNullOrEmpty(settings.ZapretPath) && File.Exists(settings.ZapretPath);
+            bool zapret2Check = !string.IsNullOrEmpty(settings.Zapret2Path) && File.Exists(settings.Zapret2Path);
             bool tgWsProxyCheck = settings.EnableTgWsProxy && !string.IsNullOrEmpty(settings.TgWsProxyPath) && File.Exists(settings.TgWsProxyPath);
+            bool vetoCheck = !string.IsNullOrEmpty(VetoService.GetVetoPath());
 
-            if (!zapretCheck && !tgWsProxyCheck)
+            if (!zapretCheck && !zapret2Check && !tgWsProxyCheck && !vetoCheck)
             {
                 return (true, "Компоненты не установлены");
             }
 
             bool zapretNeedsUpdate = false;
+            bool zapret2NeedsUpdate = false;
             bool tgWsProxyNeedsUpdate = false;
+            bool vetoNeedsUpdate = false;
 
             if (zapretCheck)
             {
@@ -38,6 +45,19 @@ public static class ComponentVersionService
                     IsNewerVersion(latestZapretVersion, zapretVersion))
                 {
                     zapretNeedsUpdate = true;
+                }
+            }
+
+            if (zapret2Check)
+            {
+                var zapret2Version = GetInstalledZapret2Version(settings.Zapret2Path);
+                var latestZapret2Version = await GetLatestGitHubVersionAsync(Zapret2Repo);
+
+                if (!string.IsNullOrEmpty(latestZapret2Version) &&
+                    !string.IsNullOrEmpty(zapret2Version) &&
+                    IsNewerVersion(latestZapret2Version, zapret2Version))
+                {
+                    zapret2NeedsUpdate = true;
                 }
             }
 
@@ -54,17 +74,28 @@ public static class ComponentVersionService
                 }
             }
 
-            if (zapretNeedsUpdate || tgWsProxyNeedsUpdate)
+            if (vetoCheck)
             {
-                string components = "";
-                if (zapretNeedsUpdate && tgWsProxyNeedsUpdate)
-                    components = "Zapret и TgWsProxy";
-                else if (zapretNeedsUpdate)
-                    components = "Zapret";
-                else
-                    components = "TgWsProxy";
+                var vetoVersion = GetInstalledVetoVersion();
+                var latestVetoVersion = await GetLatestGitHubVersionAsync(VetoRepo);
 
-                return (true, $"Доступно обновление для {components}");
+                if (!string.IsNullOrEmpty(latestVetoVersion) &&
+                    !string.IsNullOrEmpty(vetoVersion) &&
+                    IsNewerVersion(latestVetoVersion, vetoVersion))
+                {
+                    vetoNeedsUpdate = true;
+                }
+            }
+
+            if (vetoNeedsUpdate || zapretNeedsUpdate || zapret2NeedsUpdate || tgWsProxyNeedsUpdate)
+            {
+                var components = new List<string>();
+                if (zapretNeedsUpdate) components.Add("Zapret");
+                if (zapret2NeedsUpdate) components.Add("Zapret 2");
+                if (tgWsProxyNeedsUpdate) components.Add("TgWsProxy");
+                if (vetoNeedsUpdate) components.Add("Veto");
+
+                return (true, $"Доступно обновление для {string.Join(", ", components)}");
             }
 
             return (false, "Все компоненты актуальны");
@@ -101,6 +132,76 @@ public static class ComponentVersionService
             }
 
             var fileInfo = new FileInfo(serviceBatPath);
+            return fileInfo.LastWriteTime.ToString("yyyy.MM.dd");
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public static string? GetInstalledZapret2Version(string exePath)
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(exePath);
+            if (string.IsNullOrEmpty(dir))
+                return null;
+
+            var versionFile = Path.Combine(dir, "zapret2_version.txt");
+            if (File.Exists(versionFile))
+            {
+                return File.ReadAllText(versionFile).Trim();
+            }
+
+            var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(exePath);
+            if (!string.IsNullOrEmpty(versionInfo.ProductVersion))
+            {
+                return versionInfo.ProductVersion.Trim();
+            }
+
+            if (!string.IsNullOrEmpty(versionInfo.FileVersion))
+            {
+                return versionInfo.FileVersion.Trim();
+            }
+
+            var fileInfo = new FileInfo(exePath);
+            return fileInfo.LastWriteTime.ToString("yyyy.MM.dd");
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public static string? GetInstalledVetoVersion()
+    {
+        try
+        {
+            string vetoPath = VetoService.GetVetoPath();
+            if (string.IsNullOrEmpty(vetoPath))
+                return null;
+
+            var dir = Path.GetDirectoryName(vetoPath);
+            if (string.IsNullOrEmpty(dir))
+                return null;
+
+            var versionFile = Path.Combine(dir, "veto_version.txt");
+            if (File.Exists(versionFile))
+            {
+                return File.ReadAllText(versionFile).Trim();
+            }
+
+            var cmakeLists = Path.Combine(dir, "..", "CMakeLists.txt");
+            if (File.Exists(cmakeLists))
+            {
+                var content = File.ReadAllText(cmakeLists);
+                var match = System.Text.RegularExpressions.Regex.Match(content, @"project\(Veto\s+VERSION\s+([0-9.]+)");
+                if (match.Success)
+                    return match.Groups[1].Value;
+            }
+
+            var fileInfo = new FileInfo(vetoPath);
             return fileInfo.LastWriteTime.ToString("yyyy.MM.dd");
         }
         catch
