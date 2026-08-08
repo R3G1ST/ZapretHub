@@ -16614,21 +16614,25 @@ public partial class MainWindow : Window
             };
             UpdateService.OnProgress += progressHandler;
 
+            bool isUpdating = false;
             updateBtn.Click += async (_, _) =>
             {
-                UpdateService.ResetDownloadState();
+                if (isUpdating) return;
+                isUpdating = true;
                 updateBtn.Content = "Загрузка...";
                 updateBtn.IsEnabled = false;
                 try
                 {
+                    UpdateService.ResetDownloadState();
                     await UpdateService.DownloadAndInstallAsync(dlUrl, null);
                 }
                 catch (InvalidOperationException)
                 {
                     Dispatcher.Invoke(() =>
                     {
-                        updateBtn.Content = "Повторить";
+                        updateBtn.Content = "Обновить";
                         updateBtn.IsEnabled = true;
+                        isUpdating = false;
                     });
                 }
                 catch (Exception ex)
@@ -16637,6 +16641,7 @@ public partial class MainWindow : Window
                     {
                         updateBtn.Content = "Ошибка";
                         updateBtn.IsEnabled = true;
+                        isUpdating = false;
                     });
                 }
             };
