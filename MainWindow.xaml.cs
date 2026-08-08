@@ -16581,6 +16581,7 @@ public partial class MainWindow : Window
                 stack.Children.Add(notesText);
             }
 
+            var dlUrl = n.DownloadUrl;
             var updateBtn = new Button
             {
                 Content = "Обновить",
@@ -16592,11 +16593,23 @@ public partial class MainWindow : Window
                 Foreground = new SolidColorBrush(Color.FromRgb(0x03, 0x03, 0x06)),
                 Background = new SolidColorBrush(Color.FromRgb(0x00, 0xff, 0x88)),
                 BorderThickness = new Thickness(0),
-                Cursor = System.Windows.Input.Cursors.Hand
+                Cursor = System.Windows.Input.Cursors.Hand,
+                IsHitTestVisible = true
             };
-            var dlUrl = n.DownloadUrl;
 
-            if (UpdateService.IsDownloading && UpdateService.DownloadingUrl == dlUrl)
+            updateBtn.PreviewMouseLeftButtonDown += (_, e) =>
+            {
+                e.Handled = true;
+            };
+
+            if (string.IsNullOrEmpty(dlUrl))
+            {
+                updateBtn.Content = "Нет ссылки";
+                updateBtn.IsEnabled = false;
+                updateBtn.Background = new SolidColorBrush(Color.FromRgb(0x3a, 0x3a, 0x4a));
+                updateBtn.Foreground = new SolidColorBrush(Color.FromRgb(0x5a, 0x6a, 0x7a));
+            }
+            else if (UpdateService.IsDownloading && UpdateService.DownloadingUrl == dlUrl)
             {
                 updateBtn.Content = $"Загрузка {UpdateService.DownloadProgress}%";
                 updateBtn.IsEnabled = false;
@@ -16614,11 +16627,14 @@ public partial class MainWindow : Window
             };
             UpdateService.OnProgress += progressHandler;
 
-            bool isUpdating = false;
             updateBtn.Click += async (_, _) =>
             {
-                if (isUpdating) return;
-                isUpdating = true;
+                if (UpdateService.IsDownloading) return;
+                if (string.IsNullOrEmpty(dlUrl))
+                {
+                    updateBtn.Content = "Нет ссылки";
+                    return;
+                }
                 updateBtn.Content = "Загрузка...";
                 updateBtn.IsEnabled = false;
                 try
@@ -16632,7 +16648,6 @@ public partial class MainWindow : Window
                     {
                         updateBtn.Content = "Обновить";
                         updateBtn.IsEnabled = true;
-                        isUpdating = false;
                     });
                 }
                 catch (Exception ex)
@@ -16641,7 +16656,6 @@ public partial class MainWindow : Window
                     {
                         updateBtn.Content = "Ошибка";
                         updateBtn.IsEnabled = true;
-                        isUpdating = false;
                     });
                 }
             };
