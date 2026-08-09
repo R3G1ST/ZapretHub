@@ -1,3 +1,4 @@
+using ZapretHub.Zapret.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,8 +11,8 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using ZapretHub.Models;
-using ZapretHub.Services;
+using ZapretHub.Core.Models; using ZapretHub.Zapret.Models; using ZapretHub.Veto.Models;
+using ZapretHub.Core.Services;
 
 using Color = System.Windows.Media.Color;
 using Brushes = System.Windows.Media.Brushes;

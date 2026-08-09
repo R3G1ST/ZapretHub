@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ZapretHub.Services;
+namespace ZapretHub.Core.Services;
 
 public enum GitHubAvailabilityResult
 {

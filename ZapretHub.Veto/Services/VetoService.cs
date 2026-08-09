@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace ZapretHub.Services
+namespace ZapretHub.Veto.Services
 {
     public static class VetoService
     {

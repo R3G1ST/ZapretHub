@@ -5,9 +5,10 @@ using System.Net.NetworkInformation;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
-using ZapretHub.Models;
+using ZapretHub.Core.Models;
+using ZapretHub.Zapret.Models;
 
-namespace ZapretHub.Services;
+namespace ZapretHub.Zapret.Services;
 
 public static class DiagnosticsEngine
 {

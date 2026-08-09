@@ -2,9 +2,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using ZapretHub.Core.Models; using ZapretHub.Zapret.Models; using ZapretHub.Veto.Models;
+using ZapretHub.Core.Models;
 
-namespace ZapretHub.Services.Mods;
+namespace ZapretHub.Core.Services.Mods;
 
 public static class ModPackager
 {

@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text.Json;
 
-namespace ZapretHub.Services;
+namespace ZapretHub.TgWsProxy.Services;
 
 public static class TgWsProxySettingsService
 {

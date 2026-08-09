@@ -28,9 +28,15 @@ using System.Windows.Shapes;
 using System.Windows.Interop;
 using Microsoft.Win32;
 using System.Windows.Threading;
-using ZapretHub.Models;
+using ZapretHub.Core.Models;
+using ZapretHub.Zapret.Models;
+using ZapretHub.Veto.Models;
+using ZapretHub.Core.Services;
+using ZapretHub.Zapret.Services;
+using ZapretHub.Veto.Services;
+using ZapretHub.TgWsProxy.Services;
 using ZapretHub.Services;
-using ZapretHub.Services.Mods;
+using ZapretHub.Core.Services.Mods;
 using ZapretHub.Views;
 using System.Runtime.InteropServices;
 
@@ -3382,7 +3388,7 @@ public partial class MainWindow : Window
         bool zapretInstalled = !string.IsNullOrEmpty(_settings.ZapretPath) && File.Exists(_settings.ZapretPath);
         bool zapret2Installed = !string.IsNullOrEmpty(_settings.Zapret2Path) && File.Exists(_settings.Zapret2Path);
         bool tgWsProxyInstalled = !string.IsNullOrEmpty(_settings.TgWsProxyPath) && File.Exists(_settings.TgWsProxyPath);
-        bool vetoInstalled = !string.IsNullOrEmpty(Services.VetoService.GetVetoPath());
+        bool vetoInstalled = !string.IsNullOrEmpty(VetoService.GetVetoPath());
 
         string zapretCurrent = "";
         string zapretLatest = "";
@@ -3534,7 +3540,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            string vetoPath = Services.VetoService.GetVetoPath();
+            string vetoPath = VetoService.GetVetoPath();
             if (string.IsNullOrEmpty(vetoPath))
                 return null;
 
@@ -3754,7 +3760,7 @@ public partial class MainWindow : Window
                 }
             }
 
-            string vetoPath = Services.VetoService.GetVetoPath();
+            string vetoPath = VetoService.GetVetoPath();
             if (!string.IsNullOrEmpty(vetoPath))
             {
                 var vetoDir = Path.GetDirectoryName(vetoPath);
@@ -6517,7 +6523,7 @@ public partial class MainWindow : Window
 
             if ((zapretSelected && string.IsNullOrEmpty(_settings.ZapretPath) && string.IsNullOrEmpty(_settings.Zapret2Path))
                 || (tgwsSelected && string.IsNullOrEmpty(_settings.TgWsProxyPath))
-                || (vetoSelected && string.IsNullOrEmpty(Services.VetoService.GetVetoPath())))
+                || (vetoSelected && string.IsNullOrEmpty(VetoService.GetVetoPath())))
             {
                 AppendLog("Не настроены пути к выбранным компонентам. Откройте Настройки.", "warn");
                 return;
@@ -6617,7 +6623,7 @@ public partial class MainWindow : Window
             {
                 BypassBtnLine2.Text = "veto";
                 AnimateProgressBar(80, Color.FromRgb(0, 255, 136), "Запуск Veto...", 0.3);
-                bool vetoStarted = Services.VetoService.Start(BuildVetoArgs());
+                bool vetoStarted = VetoService.Start(BuildVetoArgs());
                 if (vetoStarted) { started = true; AppendLog("Veto Engine запущен", "ok"); }
                 else AppendLog("Ошибка запуска Veto", "error");
             }
@@ -6680,7 +6686,7 @@ public partial class MainWindow : Window
         await Task.Delay(200);
 
         AnimateProgressBar(75, Color.FromRgb(251, 191, 36), "Остановка Veto...", 0.3);
-        Services.VetoService.Stop();
+        VetoService.Stop();
         try { foreach (var p in Process.GetProcessesByName("veto")) try { p.Kill(); p.Dispose(); } catch { } } catch { }
         await Task.Delay(200);
 
@@ -8312,7 +8318,7 @@ public partial class MainWindow : Window
 
     private async void VetoAutotune_Click(object sender, RoutedEventArgs e)
     {
-        string vetoPath = Services.VetoService.GetVetoPath();
+        string vetoPath = VetoService.GetVetoPath();
         if (string.IsNullOrEmpty(vetoPath) || !File.Exists(vetoPath))
         {
             VetoAutotuneResult.Text = "veto.exe не найден";
@@ -8389,11 +8395,11 @@ public partial class MainWindow : Window
             }
 
             // Restart Veto with new strategy if running
-            if (Services.VetoService.IsRunning)
+            if (VetoService.IsRunning)
             {
-                Services.VetoService.Stop();
+                VetoService.Stop();
                 await Task.Delay(500);
-                Services.VetoService.Start(BuildVetoArgs());
+                VetoService.Start(BuildVetoArgs());
                 await Task.Delay(1000);
                 UpdateVetoStatus();
             }
@@ -12963,7 +12969,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            var (hasUpdate, newVersion, downloadUrl, error) = await ZapretHub.Services.UpdateService.CheckAsync();
+            var (hasUpdate, newVersion, downloadUrl, error) = await ZapretHub.Core.Services.UpdateService.CheckAsync();
             if (hasUpdate && !string.IsNullOrEmpty(newVersion))
             {
                 var window = new ZapretHub.Views.UpdateWindow();
@@ -16490,7 +16496,7 @@ public partial class MainWindow : Window
         var store = NotificationService.GetStore();
 
         var seen = new System.Collections.Generic.HashSet<string>();
-        var deduped = new System.Collections.Generic.List<Models.AppNotification>();
+        var deduped = new System.Collections.Generic.List<ZapretHub.Core.Models.AppNotification>();
         foreach (var n in store.Notifications)
         {
             if (seen.Add(n.Version))

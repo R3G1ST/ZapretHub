@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ZapretHub.Models;
+namespace ZapretHub.Zapret.Models;
 
 public class ZapretConfig
 {

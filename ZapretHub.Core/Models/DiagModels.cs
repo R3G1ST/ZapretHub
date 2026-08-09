@@ -1,4 +1,4 @@
-namespace ZapretHub.Models;
+namespace ZapretHub.Core.Models;
 
 public enum BlockType { None, Throttling, IpBlock, SniBlock, DnsSpoof, MediaThrottle }
 

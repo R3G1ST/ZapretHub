@@ -5,9 +5,9 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using ZapretHub.Core.Models; using ZapretHub.Zapret.Models; using ZapretHub.Veto.Models;
+using ZapretHub.Core.Models;
 
-namespace ZapretHub.Services.Mods
+namespace ZapretHub.Core.Services.Mods
 {
     public static class AutoHostsModService
     {

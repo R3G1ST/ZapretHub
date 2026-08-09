@@ -1,3 +1,4 @@
+using ZapretHub.Veto.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -5,8 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using ZapretHub.Services;
-using ZapretHub.Services.Mods;
+using ZapretHub.Core.Services;
+using ZapretHub.Core.Services.Mods;
 using MessageBox = System.Windows.MessageBox;
 using Button = System.Windows.Controls.Button;
 using Orientation = System.Windows.Controls.Orientation;

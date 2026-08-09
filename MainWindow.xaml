@@ -1,7 +1,7 @@
 ﻿<Window x:Class="ZapretHub.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:models="clr-namespace:ZapretHub.Models"
+        xmlns:models="clr-namespace:ZapretHub.Core.Models"
         Title="ZapretHub" Height="680" Width="880"
         MinHeight="580" MinWidth="760"
         WindowStyle="None" AllowsTransparency="True"

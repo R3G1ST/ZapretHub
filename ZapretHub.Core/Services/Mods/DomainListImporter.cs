@@ -1,7 +1,7 @@
 using System.Net.Http;
-using ZapretHub.Core.Models; using ZapretHub.Zapret.Models; using ZapretHub.Veto.Models;
+using ZapretHub.Core.Models;
 
-namespace ZapretHub.Services.Mods;
+namespace ZapretHub.Core.Services.Mods;
 
 public static class DomainListImporter
 {

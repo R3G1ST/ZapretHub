@@ -9,9 +9,10 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using ZapretHub.Models;
+using ZapretHub.Core.Models;
+using ZapretHub.Zapret.Models;
 
-namespace ZapretHub.Services;
+namespace ZapretHub.Zapret.Services;
 
 public class ZapretConfigService
 {

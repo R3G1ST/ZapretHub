@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ZapretHub.Models;
+namespace ZapretHub.Core.Models;
 
 public class AppNotification
 {

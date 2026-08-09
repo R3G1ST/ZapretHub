@@ -2,9 +2,9 @@ using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using ZapretHub.Models;
+using ZapretHub.Core.Models;
 
-namespace ZapretHub.Services;
+namespace ZapretHub.Core.Services;
 
 public static class SettingsService
 {

@@ -1,7 +1,7 @@
 using DiscordRPC;
 using DiscordRPC.Logging;
 
-namespace ZapretHub.Services;
+namespace ZapretHub.Core.Services;
 
 public class DiscordRpcService : IDisposable
 {

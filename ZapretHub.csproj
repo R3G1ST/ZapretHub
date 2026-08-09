@@ -12,9 +12,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
     <RollForward>LatestMajor</RollForward>
-    <Version>1.8.22</Version>
-    <AssemblyVersion>1.8.22.0</AssemblyVersion>
-    <FileVersion>1.8.22.0</FileVersion>
+    <Version>1.9.0</Version>
+    <AssemblyVersion>1.9.0.0</AssemblyVersion>
+    <FileVersion>1.9.0.0</FileVersion>
     <Copyright>© 2024-2026 rupleide</Copyright>
     <Product>ZapretHub</Product>
     <Description>ZapretHub - GUI менеджер Zapret и tg-ws-proxy</Description>
@@ -54,5 +54,12 @@
     <EmbeddedResource Include="Assets\Fallback\zapret-fallback.zip" />
     <EmbeddedResource Include="Assets\Fallback\tgwsproxy-fallback.exe" />
     <EmbeddedResource Include="Assets\Fallback\metadata.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="ZapretHub.Core\ZapretHub.Core.csproj" />
+    <ProjectReference Include="ZapretHub.Zapret\ZapretHub.Zapret.csproj" />
+    <ProjectReference Include="ZapretHub.Veto\ZapretHub.Veto.csproj" />
+    <ProjectReference Include="ZapretHub.TgWsProxy\ZapretHub.TgWsProxy.csproj" />
   </ItemGroup>
 </Project>

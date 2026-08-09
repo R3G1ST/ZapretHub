@@ -1,3 +1,8 @@
+using ZapretHub.TgWsProxy.Services;
+using ZapretHub.Zapret.Models;
+using ZapretHub.Core.Services;
+using ZapretHub.Veto.Services;
+using ZapretHub.Zapret.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -5,7 +10,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using ZapretHub.Models;
+using ZapretHub.Core.Models;
 
 namespace ZapretHub.Services;
 

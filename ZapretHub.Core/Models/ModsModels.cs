@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using Color = System.Windows.Media.Color;
 
-namespace ZapretHub.Models;
+namespace ZapretHub.Core.Models;
 
 public enum ModType { Strategy, List, Build, Hosts }
 

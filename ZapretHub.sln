@@ -1,25 +1,46 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 18
-VisualStudioVersion = 18.4.11605.240 stable
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetFix", "NetFix.csproj", "{65B277D8-D082-5EE5-A355-CA00026A6535}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZapretHub.Core", "ZapretHub.Core\ZapretHub.Core.csproj", "{AB67C73A-B230-4FC7-8B64-9EFFDF1FD844}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZapretHub.Zapret", "ZapretHub.Zapret\ZapretHub.Zapret.csproj", "{B956FFA6-10EF-4124-A483-0370A09B4543}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZapretHub.Veto", "ZapretHub.Veto\ZapretHub.Veto.csproj", "{64AFC85D-E91C-428B-ACD8-5F4D21285027}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZapretHub.TgWsProxy", "ZapretHub.TgWsProxy\ZapretHub.TgWsProxy.csproj", "{40CAAD5D-5156-4AD1-BDEE-389905BE8590}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZapretHub", "ZapretHub.csproj", "{78516D4A-3F35-4EA9-BD6D-F38CE83FB722}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|x64 = Debug|x64
-		Release|x64 = Release|x64
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{65B277D8-D082-5EE5-A355-CA00026A6535}.Debug|x64.ActiveCfg = Debug|x64
-		{65B277D8-D082-5EE5-A355-CA00026A6535}.Debug|x64.Build.0 = Debug|x64
-		{65B277D8-D082-5EE5-A355-CA00026A6535}.Release|x64.ActiveCfg = Release|x64
-		{65B277D8-D082-5EE5-A355-CA00026A6535}.Release|x64.Build.0 = Release|x64
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {8793CE6E-4405-4C15-A21F-8703B1B92AD9}
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AB67C73A-B230-4FC7-8B64-9EFFDF1FD844}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB67C73A-B230-4FC7-8B64-9EFFDF1FD844}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB67C73A-B230-4FC7-8B64-9EFFDF1FD844}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB67C73A-B230-4FC7-8B64-9EFFDF1FD844}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B956FFA6-10EF-4124-A483-0370A09B4543}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B956FFA6-10EF-4124-A483-0370A09B4543}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B956FFA6-10EF-4124-A483-0370A09B4543}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B956FFA6-10EF-4124-A483-0370A09B4543}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64AFC85D-E91C-428B-ACD8-5F4D21285027}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64AFC85D-E91C-428B-ACD8-5F4D21285027}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64AFC85D-E91C-428B-ACD8-5F4D21285027}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64AFC85D-E91C-428B-ACD8-5F4D21285027}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40CAAD5D-5156-4AD1-BDEE-389905BE8590}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40CAAD5D-5156-4AD1-BDEE-389905BE8590}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40CAAD5D-5156-4AD1-BDEE-389905BE8590}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40CAAD5D-5156-4AD1-BDEE-389905BE8590}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78516D4A-3F35-4EA9-BD6D-F38CE83FB722}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{78516D4A-3F35-4EA9-BD6D-F38CE83FB722}.Debug|Any CPU.Build.0 = Debug|x64
+		{78516D4A-3F35-4EA9-BD6D-F38CE83FB722}.Release|Any CPU.ActiveCfg = Release|x64
+		{78516D4A-3F35-4EA9-BD6D-F38CE83FB722}.Release|Any CPU.Build.0 = Release|x64
 	EndGlobalSection
 EndGlobal

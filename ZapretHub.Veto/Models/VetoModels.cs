@@ -1,4 +1,4 @@
-namespace ZapretHub.Models
+namespace ZapretHub.Veto.Models
 {
     public class VetoSettings
     {

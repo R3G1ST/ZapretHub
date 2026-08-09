@@ -5,7 +5,7 @@
 <p><b>GUI менеджер для обхода DPI-блокировок</b></p>
 
 [![License](https://img.shields.io/badge/лицензия-GPL_3.0-blue?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/версия-1.8.22-green?style=flat-square)](https://github.com/R3G1ST/ZapretHub/releases/latest)
+[![Version](https://img.shields.io/badge/версия-1.9.0-green?style=flat-square)](https://github.com/R3G1ST/ZapretHub/releases/latest)
 
 </div>
 
@@ -40,6 +40,18 @@
 - Трей-иконка и автозапуск
 - Discord Rich Presence
 - Встроенная диагностика Telegram, Discord, DNS, DPI
+
+## Архитектура (v1.9.0+)
+
+Модульная структура проекта:
+
+| Проект | Назначение |
+|--------|------------|
+| **ZapretHub.Core** | Общие сервисы (обновления, уведомления, настройки, моды) |
+| **ZapretHub.Zapret** | Модуль Zapret (diagnostics, config) |
+| **ZapretHub.Veto** | Модуль Veto (VetoService) |
+| **ZapretHub.TgWsProxy** | Модуль TgWsProxy (настройки) |
+| **ZapretHub** | UI точка входа (MainWindow, Views) |
 
 ## Скачивание
 
@@ -85,6 +97,18 @@ GPL-3.0
 - System tray and autostart
 - Discord Rich Presence
 - Built-in diagnostics for Telegram, Discord, DNS, DPI
+
+## Architecture (v1.9.0+)
+
+Modular project structure:
+
+| Project | Purpose |
+|---------|---------|
+| **ZapretHub.Core** | Shared services (updates, notifications, settings, mods) |
+| **ZapretHub.Zapret** | Zapret module (diagnostics, config) |
+| **ZapretHub.Veto** | Veto module (VetoService) |
+| **ZapretHub.TgWsProxy** | TgWsProxy module (settings) |
+| **ZapretHub** | UI entry point (MainWindow, Views) |
 
 ## Download
 

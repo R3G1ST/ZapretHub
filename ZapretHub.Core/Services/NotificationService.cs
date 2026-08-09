@@ -4,9 +4,9 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using ZapretHub.Models;
+using ZapretHub.Core.Models;
 
-namespace ZapretHub.Services;
+namespace ZapretHub.Core.Services;
 
 public static class NotificationService
 {

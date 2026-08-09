@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 using System.Windows.Controls;
 using System.Windows.Media.Effects;
 
-namespace ZapretHub.Models;
+namespace ZapretHub.Core.Models;
 
 public class NoteMap
 {

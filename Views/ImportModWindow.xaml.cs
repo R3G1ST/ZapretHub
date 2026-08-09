@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using ZapretHub.Models;
+using ZapretHub.Core.Models; using ZapretHub.Zapret.Models; using ZapretHub.Veto.Models;
 using Color = System.Windows.Media.Color;
 using Orientation = System.Windows.Controls.Orientation;
 using FontFamily = System.Windows.Media.FontFamily;

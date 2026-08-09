@@ -5,9 +5,9 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Linq;
-using ZapretHub.Services.Mods;
+using ZapretHub.Core.Services.Mods;
 
-namespace ZapretHub.Services;
+namespace ZapretHub.Core.Services;
 
 public static class AutoDownloadService
 {
