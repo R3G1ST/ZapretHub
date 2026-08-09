@@ -5,7 +5,7 @@
 <p><b>GUI менеджер для обхода DPI-блокировок</b></p>
 
 [![License](https://img.shields.io/badge/лицензия-GPL_3.0-blue?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/версия-1.8.21-green?style=flat-square)](https://github.com/R3G1ST/ZapretHub/releases/latest)
+[![Version](https://img.shields.io/badge/версия-1.8.22-green?style=flat-square)](https://github.com/R3G1ST/ZapretHub/releases/latest)
 
 </div>
 

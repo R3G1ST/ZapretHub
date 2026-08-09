@@ -16630,6 +16630,53 @@ public partial class MainWindow : Window
             updateBtn.Click += async (_, _) =>
             {
                 if (UpdateService.IsDownloading) return;
+                if (string.IsNullOrEmpty(dlUrl) && !string.IsNullOrEmpty(n.TagName))
+                {
+                    updateBtn.Content = "Получение ссылки...";
+                    updateBtn.IsEnabled = false;
+                    try
+                    {
+                        using var handler = new System.Net.Http.HttpClientHandler
+                        {
+                            ServerCertificateCustomValidationCallback = (_, _, _, _) => true
+                        };
+                        using var http = new System.Net.Http.HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+                        http.DefaultRequestHeaders.UserAgent.ParseAdd("ZapretHub/1.0");
+                        var tagUrl = $"https://api.github.com/repos/R3G1ST/ZapretHub/releases/tags/{n.TagName}";
+                        var relJson = await http.GetStringAsync(tagUrl);
+                        var relDoc = JsonDocument.Parse(relJson);
+                        if (relDoc.RootElement.TryGetProperty("assets", out var relAssets))
+                        {
+                            foreach (var asset in relAssets.EnumerateArray())
+                            {
+                                string assetName = asset.GetProperty("name").GetString() ?? "";
+                                if (assetName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    dlUrl = asset.GetProperty("browser_download_url").GetString() ?? "";
+                                    break;
+                                }
+                            }
+                        }
+                        if (string.IsNullOrEmpty(dlUrl))
+                        {
+                            Dispatcher.Invoke(() =>
+                            {
+                                updateBtn.Content = "Нет ссылки";
+                                updateBtn.IsEnabled = true;
+                            });
+                            return;
+                        }
+                    }
+                    catch
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            updateBtn.Content = "Ошибка";
+                            updateBtn.IsEnabled = true;
+                        });
+                        return;
+                    }
+                }
                 if (string.IsNullOrEmpty(dlUrl))
                 {
                     updateBtn.Content = "Нет ссылки";
